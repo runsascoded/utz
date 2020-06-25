@@ -4,8 +4,8 @@
 # In[1]:
 
 
-import ur
-from process import run, line, check
+#import ur
+from .process import run, line, check
 
 
 def branch_exists(branch):

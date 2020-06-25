@@ -89,26 +89,26 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
 # In[2]:
 
 
-import ur
+#import ur
 
 
 # In[3]:
 
 
-import process
-from process import *
+from . import process
+from .process import *
 
-import pnds
-from pnds import *
+from . import pnds
+from .pnds import *
 
-from cd import cd
-from o import o
+from .cd import cd
+from .o import o
 
-from git_helpers import *
+from .git_helpers import *
 
-from args_parser import *
+from .args_parser import *
 
-from context import *
+from .context import *
 
 
 # ## Optional Modules
