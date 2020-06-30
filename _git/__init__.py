@@ -7,7 +7,7 @@ except ImportError:
 
 
 from .remote import push
-from .process import run
+from ..process import run
 
 
 def checkout(branch, ref=None, exist=False):
@@ -20,6 +20,7 @@ def checkout(branch, ref=None, exist=False):
 def merge(ref, msg=None):
     cmd = ['git','merge','--no-edit']
     if msg: cmd += ['-m',msg]
+    cmd += [ref]
     run(cmd)
 
 
