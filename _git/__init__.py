@@ -10,7 +10,7 @@ from .remote import push
 from ..process import run
 
 
-from .checkout import Checkout
+from ._checkout import Checkout
 checkout = Checkout()
 
 
