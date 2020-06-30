@@ -10,11 +10,8 @@ from .remote import push
 from ..process import run
 
 
-def checkout(branch, ref=None, exist=False):
-    if exist:
-        run('git','checkout',branch,ref)
-    else:
-        run('git','checkout','-B',branch,ref)
+from .checkout import Checkout
+checkout = Checkout()
 
 
 def merge(ref, msg=None, ff=None):
