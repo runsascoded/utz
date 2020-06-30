@@ -17,10 +17,16 @@ def checkout(branch, ref=None, exist=False):
         run('git','checkout','-B',branch,ref)
 
 
-def merge(ref, msg=None):
+def merge(ref, msg=None, ff=None):
     cmd = ['git','merge','--no-edit']
+
+    if ff == True: cmd += ['--ff-only']
+    elif ff == False: cmd += ['--no-ff']
+
     if msg: cmd += ['-m',msg]
+
     cmd += [ref]
+
     run(cmd)
 
 
