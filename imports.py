@@ -43,7 +43,7 @@ today = now.strftime('%Y-%m-%d')
 
 from pathlib import Path
 def mkdir(path, *args, **kwargs):
-    os.mkdirs(str(path), *args, **kwargs)
+    os.makedirs(str(path), *args, **kwargs)
     return path
 
 def mkpar(path, *args, **kwargs):
