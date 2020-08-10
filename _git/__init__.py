@@ -1,11 +1,32 @@
 try:
-    from git import Repo, Git
+    from git import Repo, Git, InvalidGitRepositoryError
     from functools import partial
-    Repo = partial(Repo, search_parent_directories=True)
+    import os
+    def make_repo(*args, exist_ok=False, search_parent_directories=True, gitignore=None, msg=None, **kwargs):
+        load_kwargs = kwargs.copy()
+        load_kwargs['search_parent_directories'] = search_parent_directories
+        if exist_ok:
+            try:
+                return Repo(*args, **load_kwargs)
+            except InvalidGitRepositoryError:
+                repo = Repo.init(*args, **kwargs)
+                if gitignore:
+                    if isinstance(gitignore, str): gitignore = [ gitignore ]
+                    gitignore_path = os.path.join(repo.working_dir, '.gitignore')
+                    with open(gitignore_path, 'w') as f:
+                        for line in gitignore:
+                            f.write(line + '\n')
+                    repo.git.add('.gitignore')
+                    msg = msg or 'initial commit'
+                    repo.git.commit('-m',msg)
+                return repo
+        else:
+            return Repo(*args, **load_kwargs)
 except ImportError:
     pass
 
 
+from . import branch, diff, head, remote, submodule
 from .remote import push
 from ..process import run
 
