@@ -97,7 +97,7 @@ from time import sleep
 # In[2]:
 
 
-import ur
+#import ur
 
 
 # In[3]:
