@@ -7,9 +7,12 @@
 from inspect import getfullargspec
 import json
 from jupyter_client import kernelspec
+from os.path import abspath, dirname, exists, splitext
 from papermill import execute_notebook
 from sys import executable
 from ._collections import singleton
+from . import _git as git
+from .process import line, run
 
 
 def current_kernel():
@@ -26,7 +29,15 @@ def current_kernel():
     return singleton(kernels.keys())
 
 
-def execute(input, output=None, nest_asyncio=True, *args, **kwargs):
+def execute(input, output=None, nest_asyncio=True, cwd=False, commit=True, msg=None, start_sha=None, *args, **kwargs):
+    if not exists(input) and not input.endswith('.ipynb'):
+        input += '.ipynb'
+    if not exists(input):
+        raise ValueError(f"Nonexistent input notebook: {input}")
+    if commit:
+        if not start_sha:
+            start_sha = git.head.sha()
+    name = splitext(input)[0]
     output = output or input
     spec = getfullargspec(execute_notebook)
     exec_kwarg_names = spec.args[-len(spec.defaults):]
@@ -54,13 +65,30 @@ def execute(input, output=None, nest_asyncio=True, *args, **kwargs):
     else:
         parameters = kwargs
 
-    print(f'parameters: {parameters}')
+    if cwd:
+        if cwd is True:
+            cwd = None
+    else:
+        cwd = dirname(abspath(input))
     execute_notebook(
         str(input),
         str(output),
         *args,
         nest_asyncio=nest_asyncio,
+        cwd=cwd,
         **exec_kwargs,
         parameters=parameters,
     )
-
+    if commit:
+        if commit is True:
+            commit = []
+        commit += [output]
+        msg = msg or output
+        last_sha = git.head.sha()
+        run(['git','add'] + commit)
+        run('git','commit','-m',msg)
+        if start_sha != last_sha:
+            repo = git.Repo()
+            tree = repo.tree().hexsha
+            head = line('git','commit-tree',tree,'-p',start_sha,'-p',last_sha,'-m',msg)
+            run('git','reset',head)
