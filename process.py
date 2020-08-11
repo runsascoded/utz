@@ -23,7 +23,7 @@ def parse_cmd(cmd):
 def lines(*cmd, keep_trailing_newline=False, dry_run=False, **kwargs):
     '''Return the lines written to stdout by a command'''
     lines = [
-        line.strip()
+        line.rstrip('\n')
         for line in
         output(*cmd, dry_run=dry_run, **kwargs).decode().split('\n')
     ]
