@@ -7,7 +7,8 @@
 from inspect import getfullargspec
 import json
 from jupyter_client import kernelspec
-from os.path import abspath, dirname, exists, splitext
+from os import makedirs
+from os.path import abspath, basename, dirname, exists, isdir, join, sep, splitext
 from papermill import execute_notebook
 from sys import executable
 from ._collections import singleton
@@ -29,7 +30,7 @@ def current_kernel():
     return singleton(kernels.keys())
 
 
-def execute(input, output=None, nest_asyncio=True, cwd=False, commit=True, msg=None, start_sha=None, *args, **kwargs):
+def execute(input, output=None, nest_asyncio=True, cwd=False, inject_paths=False, commit=True, msg=None, start_sha=None, *args, **kwargs):
     if not exists(input) and not input.endswith('.ipynb'):
         input += '.ipynb'
     if not exists(input):
@@ -38,7 +39,13 @@ def execute(input, output=None, nest_asyncio=True, cwd=False, commit=True, msg=N
         if not start_sha:
             start_sha = git.head.sha()
     name = splitext(input)[0]
-    output = output or input
+    if output:
+        if not output.endswith('.ipynb'):
+            output = join(output, basename(input))
+        out_dir = dirname(abspath(output))
+        makedirs(out_dir, exist_ok=True)
+    else:
+        output = input
     spec = getfullargspec(execute_notebook)
     exec_kwarg_names = spec.args[-len(spec.defaults):]
     exec_kwargs = { 
@@ -76,12 +83,15 @@ def execute(input, output=None, nest_asyncio=True, cwd=False, commit=True, msg=N
         *args,
         nest_asyncio=nest_asyncio,
         cwd=cwd,
+        inject_paths=inject_paths,
         **exec_kwargs,
         parameters=parameters,
     )
     if commit:
         if commit is True:
             commit = []
+        elif isinstance(commit, str):
+            commit = [commit]
         commit += [output]
         msg = msg or output
         last_sha = git.head.sha()
