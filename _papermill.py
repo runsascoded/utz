@@ -93,7 +93,7 @@ def execute(input, output=None, nest_asyncio=True, cwd=False, inject_paths=False
         elif isinstance(commit, str):
             commit = [commit]
         commit += [output]
-        msg = msg or output
+        msg = msg or name
         last_sha = git.head.sha()
         run(['git','add'] + commit)
         run('git','commit','-m',msg)
