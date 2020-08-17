@@ -7,7 +7,7 @@
 from inspect import getfullargspec
 import json
 from jupyter_client import kernelspec
-from os import makedirs
+from os import makedirs, remove
 from os.path import abspath, basename, dirname, exists, isdir, join, sep, splitext
 from papermill import execute_notebook
 from sys import executable
@@ -31,7 +31,18 @@ def current_kernel():
     return singleton(kernels.keys())
 
 
-def execute(input, output=None, nest_asyncio=True, cwd=False, inject_paths=False, commit=True, msg=None, start_sha=None, *args, **kwargs):
+def execute(
+    input, output=None,
+    nest_asyncio=True,
+    cwd=False,
+    inject_paths=False,
+    commit=True,
+    msg=None,
+    start_sha=None,
+    msg_path='_MSG',
+    *args,
+    **kwargs
+):
     if not exists(input) and not input.endswith('.ipynb'):
         input += '.ipynb'
     if not exists(input):
@@ -102,7 +113,13 @@ def execute(input, output=None, nest_asyncio=True, cwd=False, inject_paths=False
         elif isinstance(commit, str):
             commit = [commit]
         commit += [output]
-        msg = msg or name
+        if not msg:
+            if exists(msg_path):
+                with open(msg_path,'r') as f:
+                    msg = f.read()
+                remove(msg_path)
+            else:
+                msg = name
         last_sha = git.head.sha()
         run(['git','add'] + commit)
         run('git','commit','-m',msg)
