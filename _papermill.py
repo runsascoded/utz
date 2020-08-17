@@ -14,6 +14,7 @@ from sys import executable
 from ._collections import singleton
 from . import _git as git
 from .process import line, run
+from papermill import PapermillExecutionError
 
 
 def current_kernel():
@@ -77,16 +78,24 @@ def execute(input, output=None, nest_asyncio=True, cwd=False, inject_paths=False
             cwd = None
     else:
         cwd = dirname(abspath(input))
-    execute_notebook(
-        str(input),
-        str(output),
-        *args,
-        nest_asyncio=nest_asyncio,
-        cwd=cwd,
-        inject_paths=inject_paths,
-        **exec_kwargs,
-        parameters=parameters,
-    )
+
+    try:
+        execute_notebook(
+            str(input),
+            str(output),
+            *args,
+            nest_asyncio=nest_asyncio,
+            cwd=cwd,
+            inject_paths=inject_paths,
+            **exec_kwargs,
+            parameters=parameters,
+        )
+    except PapermillExecutionError as e:
+        if e.evalue.startswith('OK: '):
+            print('Run notebook %s exited with "OK" msg' % str(input))
+        else:
+            raise e
+
     if commit:
         if commit is True:
             commit = []
