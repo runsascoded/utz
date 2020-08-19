@@ -138,6 +138,7 @@ def execute(
             nest_asyncio=nest_asyncio,  # allow papermill-in-papermill
             cwd=cwd,
             inject_paths=inject_paths,  # normally unused, but allow notebook to reflect on its own path
+            progress_bar=progress_bar,
             **exec_kwargs,
         )
     except PapermillExecutionError as e:
