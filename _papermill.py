@@ -35,18 +35,24 @@ def current_kernel():
 def execute(
     input,
     output=None,
+    # Papermill execute_notebook kwargs that we may override defaults for
     nest_asyncio=True,
     cwd=False,
     inject_paths=False,
+    progress_bar=False,
+    # Aliases for papermill kwargs
+    kernel=None,
+    params=None,
+    # Configs for committing run notebook + specifying output paths to include
     commit=True,
     msg=None,
     start_sha=None,
     msg_path='_MSG',
-    kernel=None,
-    params=None,
     *args,
     **kwargs
 ):
+    '''Run a jupyter notebook using papermill, and git commit the output
+    '''
     if not exists(input) and not input.endswith('.ipynb'):
         input += '.ipynb'
     if not exists(input):
