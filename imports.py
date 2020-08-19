@@ -32,7 +32,8 @@ from dateutil.parser import parse
 from datetime import datetime as dt, date
 with _try: from pytz import UTC
 now = dt.now()
-runtime = now.strftime('%Y-%m-%dT%H:%M:%S')
+ISO_DATE_FMT = '%Y-%m-%dT%H:%M:%S'
+runtime = now.strftime(ISO_DATE_FMT)
 today = now.strftime('%Y-%m-%d')
 
 
@@ -42,12 +43,15 @@ today = now.strftime('%Y-%m-%d')
 
 
 from pathlib import Path
-def mkdir(path, *args, **kwargs):
-    os.makedirs(str(path), *args, **kwargs)
+def mkdir(path, *args, exist_ok=True, **kwargs):
+    os.makedirs(str(path), *args, exist_ok=exist_ok, **kwargs)
     return path
 
 def mkpar(path, *args, **kwargs):
-    path.parent.mkdir(exist_ok=True, parents=True)
+    if isinstance(path, Path):
+        path.parent.mkdir(exist_ok=True, parents=True)
+    else:
+        mkdir(dirname(path))
     return path
 
 
@@ -55,7 +59,7 @@ def mkpar(path, *args, **kwargs):
 
 # In[ ]:
 
-
+from configparser import ConfigParser
 from dataclasses import dataclass
 
 try:
@@ -82,6 +86,7 @@ from os.path import dirname, basename, splitext, exists
 from re import match
 
 import shlex
+from shutil import move, rmtree
 
 from subprocess import check_call, check_output, PIPE, DEVNULL
 
