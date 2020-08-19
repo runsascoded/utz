@@ -52,6 +52,7 @@ def run(*cmd, dry_run=False, **kwargs):
         print(f'Running: {shlex_join(cmd)}')
         check_call(cmd, **kwargs)
 
+sh = run
 
 def output(*cmd, dry_run=False, **kwargs):
     '''Convenience wrapper for check_output'''
