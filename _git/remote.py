@@ -26,7 +26,7 @@ def url(name, *args, **kwargs):
     return line('git','remote','get-url',name)
 _url = url
 
-def init(name, url, branch=None, remote_branch=None, fetch=True):
+def init(name, url, branch=None, remote_branch=None, fetch=True, checkout=True):
     if exists(name):
         existing_url = _url(name)
         if existing_url != url:
@@ -40,11 +40,9 @@ def init(name, url, branch=None, remote_branch=None, fetch=True):
     if branch:
         remote_branch = remote_branch or 'master'
         upstream = f'{name}/{remote_branch}'
-        if _branch.exists(branch):
-            run('git','branch','-u',upstream,branch)
+        run('git','branch','-u',upstream,branch)
+        if checkout:
             run('git','checkout',branch)
-        else:
-            run('git','checkout','-b',branch,'-t',upstream)
 
 def push(name=None, local=None, remote=None):
     refspec = None
