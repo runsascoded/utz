@@ -10,10 +10,12 @@ from dateutil.parser import parse
 from pathlib import Path
 
 from numpy import nan, array, ndarray
+from os.path import exists, splitext
 
 import pandas as pd
 from pandas import     concat, DataFrame as DF, Series,     isna,     read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table,     date_range, to_datetime as to_dt, Timedelta as Δ, NaT
 
+from shutil import rmtree
 
 # ## Config
 
@@ -121,3 +123,14 @@ def expand_date(s):
     d = parse(s).date()
     return dict(date=d, year=d.year, month=d.month, day=d.day)
 
+
+def to_parquet(df, out_path, verify_extension=True, *args, **kwargs):
+    if verify_extension:
+        _, extension = splitext(out_path)
+        if extension != '.parquet':
+            raise Exception(f"Refusing to write parquet dataset to non-parquet path {out_path}")
+
+    if exists(out_path):
+        rmtree(out_path)
+
+    return df.to_parquet(out_path, *args, **kwargs)
