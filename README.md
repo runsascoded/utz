@@ -9,7 +9,7 @@ pip install utz
 ## Use
 Import the whole kitchen sink:
 ```python
-from utz.imports import *
+from utz import *
 ```
 
 See [imports.py](utz/imports.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
