@@ -80,7 +80,7 @@ from os.path import basename, dirname, exists, join, splitext
 from re import match
 
 import shlex
-from shutil import move, rmtree
+from shutil import copy, copyfileobj, move, rmtree
 
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL, PIPE, Popen
 
