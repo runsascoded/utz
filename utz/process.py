@@ -72,10 +72,10 @@ def json(*cmd, **kwargs):
     return loads(output(*cmd, **kwargs).decode())
 
 
-def check(*cmd):
+def check(*cmd, stdout=DEVNULL, stderr=DEVNULL):
     '''Return True iff a command run successfully (i.e. exits with code 0)'''
     try:
-        run(*cmd, stderr=DEVNULL)
+        run(*cmd, stdout=stdout, stderr=stderr)
         return True
     except CalledProcessError:
         return False
