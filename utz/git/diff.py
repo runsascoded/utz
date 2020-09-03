@@ -4,7 +4,6 @@
 # In[ ]:
 
 
-import ur
 from ..process import *
 
 def exists(untracked=True, unstaged=True):

@@ -9,6 +9,12 @@ setup(
     author="Ryan Williams",
     author_email="ryan@runsascoded.com",
     description="Misc stdlib, pandas, subprocess, and other utilities, exposed for easy importing + boilerplate-reduction",
+    install_requires=[
+        "GitPython",
+        "joblib",
+        "pandas",
+        "pyyaml",
+    ],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/runsascoded/utz",

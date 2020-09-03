@@ -103,7 +103,6 @@ o1.a, o1.b
 # In[4]:
 
 
-#import ur
 from .context import catch
 with catch(AttributeError): o1.c
 

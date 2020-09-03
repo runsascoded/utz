@@ -4,13 +4,6 @@
 # # imports
 # Common Jupyter imports and helpers to wildcard import from other notebooks
 
-# In[ ]:
-
-
-from sys import executable as python
-get_ipython().system('{python} -m pip install -q pandas')
-
-
 # Helper for optional imports:
 
 # In[7]:
@@ -99,12 +92,6 @@ from time import sleep
 # ## Sibling modules
 # Some other notebooks and Python files from this repo:
 
-# In[2]:
-
-
-#import ur
-
-
 # In[3]:
 
 
@@ -117,8 +104,7 @@ from .pnds import *
 from .cd import cd
 from .o import o
 
-from . import _git as git
-from ._git import Git, Repo, make_repo
+from .git import Git, Repo, make_repo
 
 from .args_parser import *
 

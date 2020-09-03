@@ -5,7 +5,6 @@
 
 
 from contextlib import contextmanager
-import ur
 from ..process import run
 from . import branch as _branch
 
