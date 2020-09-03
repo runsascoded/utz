@@ -11,11 +11,19 @@ from collections.abc import Iterable
 
 def parse_cmd(cmd):
     '''Stringify and potentially unwrap a command'''
-    if len(cmd) == 1         and isinstance(cmd[0], Iterable)         and not isinstance(cmd[0], str):
-        cmd = cmd[0]
+    def flatten(args):
+        if isinstance(args, list) or isinstance(args, tuple):
+            return tuple(
+                a
+                for arg in args
+                for a in flatten(arg)
+            )
+        else:
+            return (args,)
+
     return [
         str(arg)
-        for arg in cmd
+        for arg in flatten(cmd)
         if arg is not None
     ]
 
