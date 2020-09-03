@@ -12,8 +12,8 @@ from os.path import abspath, basename, dirname, exists, isdir, join, sep, splite
 from papermill import execute_notebook
 from pathlib import Path
 from sys import executable
-from ._collections import singleton
-from . import _git as git
+from .collections import singleton
+from . import git
 from .process import line, run
 from papermill import PapermillExecutionError
 

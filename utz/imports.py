@@ -110,7 +110,7 @@ from .args_parser import *
 
 from .context import *
 
-from ._collections import coerce, singleton
+from .collections import coerce, singleton
 
 
 # ## Optional Modules

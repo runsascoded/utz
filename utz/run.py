@@ -53,7 +53,7 @@ if json_str:
     params = { **json.loads(json_str), **params }
 
 
-from ._papermill import execute
+from .papermill import execute
 
 execute(
     input=nb,
