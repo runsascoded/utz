@@ -69,11 +69,23 @@ class o(object):
         except KeyError:
             raise AttributeError(f'Key {k}')
 
-    def get(self, k, default=None):
-        try:
+    def get(self, k, default):
+        if k in self:
             return self[k]
-        except KeyError:
+        else:
             return default
+
+    def __call__(self, *keys, default=None):
+        obj = self
+        keys = list(keys)
+        while keys:
+            key = keys.pop(0)
+            if key in obj:
+                obj = obj[key]
+            else:
+                return default
+
+        return obj
 
     def __getitem__(self, k):
         v = self._data[k]
@@ -84,6 +96,18 @@ class o(object):
     
     def __str__(self): return str(self._data)
     def __repr__(self): return repr(self._data)
+
+    def __iter__(self): return iter(self._data)
+    def items(self): return self._data.items()
+
+    def __eq__(self, r):
+        if isinstance(r, o):
+            return self._data == r._data
+        if isinstance(r, dict):
+            return self._data == r
+        return NotImplemented
+
+    def __hash__(self): return hash(self._data)
 
 
 # ## Examples
