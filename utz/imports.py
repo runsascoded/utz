@@ -70,18 +70,19 @@ from functools import partial, lru_cache, namedtuple, reduce, singledispatch
 from glob import glob
 
 from itertools import combinations, combinations_with_replacement, permutations
+
 import json
 
 import os
-from os import cpu_count
-from os.path import dirname, basename, splitext, exists
+from os import cpu_count, environ as env, getcwd
+from os.path import basename, dirname, exists, join, splitext
 
 from re import match
 
 import shlex
 from shutil import move, rmtree
 
-from subprocess import check_call, check_output, PIPE, DEVNULL
+from subprocess import check_call, check_output, CalledProcessError, DEVNULL, PIPE, Popen
 
 from sys import stdout, stderr, executable as python
 
