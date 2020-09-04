@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 from inspect import getfullargspec
 import json
 from jupyter_client import kernelspec
 from os import makedirs, remove
-from os.path import abspath, basename, dirname, exists, isdir, join, sep, splitext
+from os.path import abspath, basename, dirname, exists, join, splitext
 from papermill import execute_notebook
 from pathlib import Path
 from sys import executable
@@ -84,7 +81,7 @@ def execute(
     if kernel:
         if 'kernel_name' in exec_kwargs:
             if exec_kwargs['kernel_name'] != kernel:
-                raise ValueError(f'Conflicting kernel_name values: {exec_kwargs["kernel_name"]} vs. {kernel_name}')
+                raise ValueError(f'Conflicting kernel_name values: {exec_kwargs["kernel_name"]} vs. {kernel}')
         else:
             exec_kwargs['kernel_name'] = kernel
     else:
@@ -105,7 +102,7 @@ def execute(
                         )
                     )
             if exec_kwargs['kernel_name'] != kernel:
-                raise ValueError(f'Conflicting kernel_name values: {exec_kwargs["kernel_name"]} vs. {kernel_name}')
+                raise ValueError(f'Conflicting kernel_name values: {exec_kwargs["kernel_name"]} vs. {kernel}')
         else:
             exec_kwargs['parameters'] = params
 

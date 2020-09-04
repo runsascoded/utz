@@ -29,7 +29,7 @@
 # In[1]:
 
 
-class o(object):
+class o(dict):
 
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
@@ -47,24 +47,25 @@ class o(object):
         K = '_data'
         if K in data:
             raise ValueError(f"Reserved key '{K}' found in 'data' dict: {data}")
-            
+
+        super().__init__(**data)
+
         for k, v in data.items():
-            if isinstance(v, dict): v = o(v)
+            if isinstance(v, dict) and not isinstance(v, o): v = o(v)
             super(o, self).__setattr__(k, v)
-                                               
+
         super(o, self).__setattr__(K, data)
 
-    def __dict__(self):
-        return self._data
+    def __dict__(self): return self._data
     
     def __setattr__(self, k, v):
-        if isinstance(v, dict): v = o(v)
+        if isinstance(v, dict) and not isinstance(v, o): v = o(v)
         self._data[k] = v
 
     def __getattr__(self, k):
         try:
             v = self._data[k]
-            if isinstance(v, dict): v = o(v)
+            if isinstance(v, dict) and not isinstance(v, o): v = o(v)
             return v
         except KeyError:
             raise AttributeError(f'Key {k}')
@@ -89,7 +90,7 @@ class o(object):
 
     def __getitem__(self, k):
         v = self._data[k]
-        if isinstance(v, dict): v = o(v)
+        if isinstance(v, dict) and not isinstance(v, o): v = o(v)
         return v
     def __setitem__(self, k, v): self._data[k] = v
     def __contains__(self, k): return k in self._data
@@ -105,6 +106,13 @@ class o(object):
             return self._data == r._data
         if isinstance(r, dict):
             return self._data == r
+        return NotImplemented
+
+    def __ne__(self, r):
+        if isinstance(r, o):
+            return self._data != r._data
+        if isinstance(r, dict):
+            return self._data != r
         return NotImplemented
 
     def __hash__(self): return hash(self._data)

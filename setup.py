@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="utz",
-    version="0.0.8",
+    version="0.0.9",
     author="Ryan Williams",
     author_email="ryan@runsascoded.com",
     description="Misc stdlib, pandas, subprocess, and other utilities, exposed for easy importing + boilerplate-reduction",

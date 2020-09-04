@@ -1,4 +1,4 @@
-import pytest
+import json
 from pytest import raises
 from utz.o import o
 
@@ -80,3 +80,8 @@ def test_list():
     _o = o(a=1, b=2)
     assert list(iter(_o)) == [ 'a', 'b' ]
     assert list(_o.items()) == [ ('a',1), ('b',2) ]
+
+
+def test_serialization():
+    _o = o(a=1, b={'c':3})
+    assert json.dumps(_o) == '{"a": 1, "b": {"c": 3}}'

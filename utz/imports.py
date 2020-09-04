@@ -55,6 +55,7 @@ def mkpar(path, *args, **kwargs):
 from configparser import ConfigParser
 from dataclasses import dataclass
 
+import functools
 try:
     # Python 3.8
     from functools import cached_property, singledispatchmethod
@@ -75,16 +76,18 @@ import json
 
 import os
 from os import cpu_count, environ as env, getcwd
-from os.path import basename, dirname, exists, join, splitext
+from os.path import basename, dirname, exists, isabs, isdir, isfile, islink, join, sep, splitext
 
-from re import match
+import re
+from re import match, fullmatch, IGNORECASE, MULTILINE, DOTALL, search, split, sub
 
 import shlex
 from shutil import copy, copyfileobj, move, rmtree
 
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL, PIPE, Popen
 
-from sys import stdout, stderr, executable as python
+import sys
+from sys import stdout, stderr, executable as python, exit, platform
 
 from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
 from time import sleep
