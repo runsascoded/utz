@@ -25,7 +25,7 @@ def url(name, *args, **kwargs):
     return line('git','remote','get-url',name)
 _url = url
 
-def init(name, url, branch=None, remote_branch=None, fetch=True, checkout=True):
+def init(name, url, branch=None, remote_branch=None, fetch=True, checkout=True, push=True):
     if exists(name):
         existing_url = _url(name)
         if existing_url != url:
@@ -39,7 +39,15 @@ def init(name, url, branch=None, remote_branch=None, fetch=True, checkout=True):
     if branch:
         remote_branch = remote_branch or 'master'
         upstream = f'{name}/{remote_branch}'
-        run('git','branch','-u',upstream,branch)
+        try:
+            run('git','branch','-u',upstream,branch)
+        except CalledProcessError as e:
+            if push:
+                print(f'Failed to track upstream branch {upstream}; attempting to push {branch}:{remote_branch}')
+                run('git','push',name,f'{branch}:{remote_branch}')
+                run('git','branch','-u',upstream,branch)
+            else:
+                raise e
         if checkout:
             run('git','checkout',branch)
 
