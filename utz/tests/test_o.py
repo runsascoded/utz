@@ -62,6 +62,8 @@ def test_nested():
     ne(o1, o(a=o(b=1,c=3)))
     ne(o1, o(a=o(b=1),c=3))
 
+    assert o1.get('b') is None
+    assert o1.get('a') == o(b=1)
     assert o1.get('b', 'default') == 'default'
     assert o1.get('a', 'default') == o(b=1)
     assert o1('a', 'b', default='default') == 1

@@ -70,7 +70,7 @@ class o(dict):
         except KeyError:
             raise AttributeError(f'Key {k}')
 
-    def get(self, k, default):
+    def get(self, k, default=None):
         if k in self:
             return self[k]
         else:
