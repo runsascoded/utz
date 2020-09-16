@@ -1,6 +1,5 @@
-from os.path import join
+from os.path import join, splitext
 from pathlib import Path
-from shutil import move
 from zipfile import is_zipfile, ZipFile
 
 
