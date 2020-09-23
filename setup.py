@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="utz",
-    version="0.0.11",
+    version="0.0.12",
     author="Ryan Williams",
     author_email="ryan@runsascoded.com",
     description="Misc stdlib, pandas, subprocess, and other utilities, exposed for easy importing + boilerplate-reduction",
@@ -15,6 +15,12 @@ setup(
         "pandas",
         "pyyaml",
     ],
+    extras_require={
+        'pdf': [
+            'reportlab==3.5.42',
+            'pyPDF2==1.26.0',
+        ]
+    },
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/runsascoded/utz",
