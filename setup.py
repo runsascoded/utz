@@ -19,8 +19,9 @@ setup(
         'pdf': [
             'reportlab==3.5.42',
             'pyPDF2==1.26.0',
-        ]
+        ],
     },
+    scripts=['utz.sh',],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/runsascoded/utz",
