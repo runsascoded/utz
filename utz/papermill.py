@@ -9,6 +9,8 @@ from os.path import abspath, basename, dirname, exists, join, splitext
 from papermill import execute_notebook
 from pathlib import Path
 from sys import executable
+from traceback import format_exception
+
 from .collections import singleton
 from . import git
 from .process import line, run
@@ -127,6 +129,7 @@ def execute(
     else:
         cwd = dirname(abspath(input))
 
+    exc = None
     try:
         execute_notebook(
             str(input),
@@ -143,13 +146,27 @@ def execute(
         if e.evalue.startswith('OK: '):
             print('Run notebook %s exited with "OK" msg' % str(input))
         else:
-            raise e
+            exc = e
 
-    # Commit results:
-    # - by default, just the notebook output path
-    # - pass a list of paths to "commit" (or a single path as a str or Path) to include them in the commit
-    # - if a file named '_MSG' is written by the notebook, use its contents as the commit message
-    if commit:
+    if commit or exc:
+        if exc:
+            msg = '\n'.join(
+                [
+                    f'Failed: {repr(exc)}',
+                    '',
+                    print(''.join(
+                        format_exception(
+                            etype=type(exc),
+                            value=exc,
+                            tb=exc.__traceback__,
+                        )
+                    )),
+                ]
+            )
+        # Commit results:
+        # - by default, just the notebook output path
+        # - pass a list of paths to "commit" (or a single path as a str or Path) to include them in the commit
+        # - if a file named '_MSG' is written by the notebook, use its contents as the commit message
         if commit is True:
             commit = []
         elif isinstance(commit, str):
@@ -172,3 +189,6 @@ def execute(
             tree = repo.tree().hexsha
             head = line('git','commit-tree',tree,'-p',start_sha,'-p',last_sha,'-m',msg)
             run('git','reset',head)
+
+        if exc:
+            raise exc
