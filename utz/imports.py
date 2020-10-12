@@ -79,8 +79,8 @@ import json
 from math import ceil, floor, pi, exp, log, log2, log10, cos, sin, tan, acos, asin, atan
 
 import os
-from os import cpu_count, environ as env, getcwd, listdir
-from os.path import basename, dirname, exists, isabs, isdir, isfile, islink, join, sep, splitext
+from os import chdir, cpu_count, environ as env, getcwd, listdir
+from os.path import abspath, basename, dirname, exists, expanduser, expandvars, isabs, isdir, isfile, islink, join, normpath, realpath, relpath, sep, splitext
 
 import re
 from re import match, fullmatch, IGNORECASE, MULTILINE, DOTALL, search, split, sub
