@@ -70,12 +70,16 @@ from functools import partial, lru_cache, namedtuple, reduce, singledispatch
 
 from glob import glob
 
+from io import BytesIO, StringIO
+
 from itertools import combinations, combinations_with_replacement, permutations
 
 import json
 
+from math import ceil, floor, pi, exp, log, log2, log10, cos, sin, tan, acos, asin, atan
+
 import os
-from os import cpu_count, environ as env, getcwd
+from os import cpu_count, environ as env, getcwd, listdir
 from os.path import basename, dirname, exists, isabs, isdir, isfile, islink, join, sep, splitext
 
 import re
