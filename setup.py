@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 from utz import *
 rgx = r'v?(?P<version>\d+\.\d+\.\d+)'
-tag = line('git','describe','HEAD')
+tag = line('git','describe','--tags','HEAD')
 version = match(rgx, tag)['version']
 
 setup(
