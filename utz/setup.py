@@ -91,6 +91,7 @@ def setup(**kwargs):
         'version',
         'description',
         'long_description',
+        'long_description_content_type',
         'license',
         'author',
         'author_email',

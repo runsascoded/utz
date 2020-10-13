@@ -13,6 +13,9 @@ setup(
             'reportlab==3.5.42',
             'pyPDF2==1.26.0',
         ],
+        'setup': [
+            'md2py==0.0.1',
+        ]
     },
     scripts=['utz.sh',],
     url="https://github.com/runsascoded/utz",
