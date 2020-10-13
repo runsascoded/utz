@@ -5,6 +5,7 @@ setup(
         "GitPython",
         "joblib",
         "pandas",
+        "python-dateutil",
         "pyyaml",
     ],
     extras_require={

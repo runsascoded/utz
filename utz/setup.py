@@ -17,14 +17,18 @@ class Compute:
         '''Default to markdown format for `long_description`'''
         return "text/markdown"
 
-    VERSION_TAG_REGEX = r'v?(?P<version>\d+\.\d+\.\d+)'
+    VERSION_TAG_REGEX = r'v?(?P<version>\d+\.\d+\.\d+(?:-(?P<commits_ahead>\d+)-g(?P<sha>[0-9a-f]{6,}))?)'
     def version(self):
         '''Infer version from git tag of the form "v_._._" (which must be present)'''
-        tag = line('git','describe','--tags','HEAD')
-        m = match(self.VERSION_TAG_REGEX, tag)
-        if not m:
-            raise ValueError('Unrecognized tag: %s' % tag)
-        version = m['version']
+        try:
+            tag = line('git','describe','--tags','HEAD')
+            m = match(self.VERSION_TAG_REGEX, tag)
+            if not m:
+                raise ValueError('Unrecognized tag: %s' % tag)
+            version = m['version']
+        except CalledProcessError:
+            version = line('git','log','--format=%h','-n1')
+
         return version
 
     def name(self):

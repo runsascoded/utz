@@ -6,7 +6,11 @@
 # In[ ]:
 
 
-from dateutil.parser import parse
+try:
+    from dateutil.parser import parse
+except ImportError:
+    pass
+
 from pathlib import Path
 
 from numpy import nan, array, ndarray

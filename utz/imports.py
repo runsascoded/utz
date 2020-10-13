@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 # # imports
 # Common Jupyter imports and helpers to wildcard import from other notebooks
 
 # Helper for optional imports:
-
-# In[7]:
-
 
 from contextlib import suppress
 _try = suppress(ImportError, ModuleNotFoundError)
@@ -18,12 +14,10 @@ _try = suppress(ImportError, ModuleNotFoundError)
 
 # ### Date/Time
 
-# In[ ]:
-
-
-from dateutil.parser import parse
 from datetime import datetime as dt, date
+with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
+
 now = dt.now()
 ISO_DATE_FMT = '%Y-%m-%dT%H:%M:%S'
 runtime = now.strftime(ISO_DATE_FMT)
@@ -31,9 +25,6 @@ today = now.strftime('%Y-%m-%d')
 
 
 # ### Paths
-
-# In[ ]:
-
 
 from pathlib import Path
 def mkdir(path, *args, exist_ok=True, **kwargs):
@@ -49,9 +40,6 @@ def mkpar(path, *args, **kwargs):
 
 
 # ### Other
-
-# In[ ]:
-
 from configparser import ConfigParser
 from dataclasses import dataclass
 
@@ -100,31 +88,28 @@ from time import sleep
 # ## Sibling modules
 # Some other notebooks and Python files from this repo:
 
-# In[3]:
-
-
 from . import process
 from .process import *
 
-from . import pnds
-from .pnds import *
+with _try:
+    from . import pnds
+    from .pnds import *
 
 from .cd import cd
 from .o import o
 
-from .git import Git, Repo, make_repo
+with _try:
+    from .git import Git, Repo, make_repo
 
 from .args_parser import *
 
 from .context import *
 
-from .collections import coerce, singleton
+with _try:
+    from .collections import coerce, singleton
 
 
 # ## Optional Modules
-
-# In[8]:
-
 
 # joblib: easy parallelization
 with _try:
@@ -145,15 +130,9 @@ with _try:
 
 # ## PyData / Scientific Python
 
-# In[9]:
-
-
-import numpy as np
-from numpy import concatenate, array, ndarray, matrix, nan
-
-
-# In[10]:
-
+with _try:
+    import numpy as np
+    from numpy import concatenate, array, ndarray, matrix, nan
 
 with _try: import seaborn as sns
 with _try: import matplotlib.pyplot as plt
