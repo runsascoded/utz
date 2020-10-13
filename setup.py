@@ -3,9 +3,14 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+from utz import *
+rgx = r'v?(?P<version>\d+\.\d+\.\d+)'
+tag = line('git','describe','HEAD')
+version = match(rgx, tag)['version']
+
 setup(
     name="utz",
-    version="0.0.12",
+    version=version,
     author="Ryan Williams",
     author_email="ryan@runsascoded.com",
     description="Misc stdlib, pandas, subprocess, and other utilities, exposed for easy importing + boilerplate-reduction",
