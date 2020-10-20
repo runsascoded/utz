@@ -1,10 +1,6 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 # # Pandas imports / aliases / helpers
-
-# In[ ]:
-
 
 try:
     from dateutil.parser import parse
@@ -18,14 +14,18 @@ from os import remove
 from os.path import exists, isdir, splitext
 
 import pandas as pd
-from pandas import     concat, DataFrame as DF, Series,     isna,     read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table,     date_range, to_datetime as to_dt, Timedelta as Δ, NaT
+from pandas import \
+    concat, \
+    DataFrame as DF, \
+    Series, \
+    isna, \
+    read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table, \
+    date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
+    get_option, set_option
 
 from shutil import rmtree
 
 # ## Config
-
-# In[ ]:
-
 
 def display(r=None, c=None):
     '''Set the default number of rows and columns for Pandas to display'''
@@ -39,9 +39,6 @@ display(100, 100)
 
 # ## Concat / Creation
 
-# In[ ]:
-
-
 def sxs(*dfs, **kwargs):
     '''Concat some DataFrames "side by side"'''
     return concat(dfs, axis=1, **kwargs)
@@ -49,18 +46,12 @@ def sxs(*dfs, **kwargs):
 
 # ## Counting
 
-# In[ ]:
-
-
 def series_counts(series, ascending = None):
     df_new = DF(series.value_counts())
     column_name = df_new.columns[0]
     df_new['index'] = df_new.index
     ascending = [False,True] if ascending is None else ascending
     return df_new.sort_values(by = [column_name,'index'], ascending = ascending)[column_name]
-
-
-# In[ ]:
 
 
 def sort_by_series(df, series):
@@ -77,9 +68,6 @@ def sort_by_series(df, series):
 
 
 # ## File paths
-
-# In[ ]:
-
 
 def file_dict(path):
     name = path.name
@@ -120,9 +108,6 @@ def load_files(files, glob=None, name=None):
 
 
 # ## Dates
-
-# In[ ]:
-
 
 def expand_date(s):
     d = parse(s).date()

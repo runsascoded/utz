@@ -45,7 +45,12 @@ class Compute:
 
     def description(self):
         '''Set `description` to the contents of a <p> first-child of an initial <h1>'''
-        from md2py import md2py
+        try:
+            from md2py import md2py
+        except ImportError:
+            import pip
+            pip.main(['install','md2py'])
+            from md2py import md2py
         md = md2py(self.long_description())
         h1 = md.h1
         desc = h1.descendants[0]
