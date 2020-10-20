@@ -14,7 +14,8 @@ setup(
             'pyPDF2==1.26.0',
         ],
         'setup': [
-            'md2py==0.0.1',
+            'lxml==4.6.1',
+            'mistune==2.0.0a5',
         ]
     },
     scripts=['utz.sh',],

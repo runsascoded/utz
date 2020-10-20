@@ -46,17 +46,27 @@ class Compute:
     def description(self):
         '''Set `description` to the contents of a <p> first-child of an initial <h1>'''
         try:
-            from md2py import md2py
+            import mistune
         except ImportError:
             import pip
-            pip.main(['install','md2py'])
-            from md2py import md2py
-        md = md2py(self.long_description())
-        h1 = md.h1
-        desc = h1.descendants[0]
-        if desc.name != 'p':
-            raise ValueError('Parsing description failed due to first child of initial <h1> not being type <p>: %s' % str(desc))
-        return desc.string
+            pip.main(['install','mistune==2.0.0a5'])
+            import mistune
+
+        html = mistune.html(self.long_description())
+
+        try:
+            import lxml
+        except ImportError:
+            import pip
+            pip.main(['install','lxml'])
+            import lxml
+
+        from lxml.html import fragments_fromstring
+        [ h1, p, *_ ] = fragments_fromstring(html)
+        if h1.tag != 'h1' or p.tag != 'p':
+            raise ValueError('Expected initial <h1> followed by <p> while parsing `description` from README.md')
+
+        return p.text_content()
 
     def packages(self):
         return find_packages()
