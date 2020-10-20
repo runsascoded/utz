@@ -11,7 +11,7 @@ jobs:
           python-version: '3.x'
       - name: Install test dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip wheel
           pip install pytest
           pip install -e .[setup]
           pip install -e .
@@ -30,8 +30,8 @@ jobs:
           python-version: '3.x'
       - name: Install release dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+          python -m pip install --upgrade pip wheel
+          pip install setuptools twine
           pip install -e .[setup]
       - name: Build and publish
         env:
