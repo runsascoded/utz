@@ -18,6 +18,5 @@ setup(
             'mistune>=0.8.1,<2',  # match nbconvert
         ]
     },
-    scripts=['utz.sh',],
     url="https://github.com/runsascoded/utz",
 )
