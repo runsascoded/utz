@@ -49,10 +49,10 @@ class Compute:
             import mistune
         except ImportError:
             import pip
-            pip.main(['install','mistune==2.0.0a5'])
+            pip.main(['install','mistune>=0.8.1,<2'])  # match nbconvert
             import mistune
 
-        html = mistune.html(self.long_description())
+        html = mistune.Markdown()(self.long_description())
 
         try:
             import lxml

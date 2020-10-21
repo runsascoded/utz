@@ -15,7 +15,7 @@ setup(
         ],
         'setup': [
             'lxml==4.6.1',
-            'mistune==2.0.0a5',
+            'mistune>=0.8.1,<2',  # match nbconvert
         ]
     },
     scripts=['utz.sh',],
