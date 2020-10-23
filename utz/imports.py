@@ -5,6 +5,7 @@
 
 # Helper for optional imports:
 
+import contextlib
 from contextlib import suppress
 _try = suppress(ImportError, ModuleNotFoundError)
 
@@ -14,6 +15,7 @@ _try = suppress(ImportError, ModuleNotFoundError)
 
 # ### Date/Time
 
+import datetime
 from datetime import datetime as dt, date
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
@@ -40,7 +42,13 @@ def mkpar(path, *args, **kwargs):
 
 
 # ### Other
+import argparse
+from argparse import ArgumentParser
+
+import configparser
 from configparser import ConfigParser
+
+import dataclasses
 from dataclasses import dataclass
 
 import functools
@@ -54,18 +62,23 @@ except ImportError:
     except ImportError as e:
         pass
 
+import functools
 from functools import partial, lru_cache, namedtuple, reduce, singledispatch
 
 from glob import glob
 
+import hashlib
 from hashlib import md5, sha256
 
+import io
 from io import BytesIO, StringIO
 
+import itertools
 from itertools import combinations, combinations_with_replacement, permutations
 
 import json
 
+import math
 from math import ceil, floor, pi, exp, log, log2, log10, cos, sin, tan, acos, asin, atan
 
 import os
@@ -76,15 +89,22 @@ import re
 from re import match, fullmatch, IGNORECASE, MULTILINE, DOTALL, search, split, sub
 
 import shlex
+import shutil
 from shutil import copy, copyfileobj, move, rmtree
 
+import subprocess
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL, PIPE, Popen
 
 import sys
 from sys import stdout, stderr, executable as python, exit, platform
 
+import tempfile
 from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
+
+import time
 from time import sleep
+
+import typing
 from typing import Any, Callable, Collection, Generator, Iterable, Iterator, List, Optional, Sequence, Set, Sized, Union
 
 # ## Sibling modules
