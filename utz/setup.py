@@ -72,11 +72,16 @@ class Compute:
         return find_packages()
 
     def classifiers(self):
-        return [
+        classifiers = [
             "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: MIT License",
             "Operating System :: OS Independent",
         ]
+
+        license = self.license()
+        if license:
+            classifiers += [f"License :: OSI Approved :: {license} License"]
+
+        return classifiers
 
     def python_requires(self): return '>=3.6'
 

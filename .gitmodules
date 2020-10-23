@@ -1,0 +1,3 @@
+[submodule "utz/tests/data/gsmo"]
+	path = utz/tests/data/gsmo
+	url = https://github.com/runsascoded/gsmo.git

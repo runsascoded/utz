@@ -16,7 +16,11 @@ setup(
         'setup': [
             'lxml==4.6.1',
             'mistune>=0.8.1,<2',  # match nbconvert
-        ]
+        ],
+        'test': [
+            'pytest==6.0.1',
+            'pytest-mock==3.3.1',
+        ],
     },
     url="https://github.com/runsascoded/utz",
 )
