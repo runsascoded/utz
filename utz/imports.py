@@ -58,6 +58,8 @@ from functools import partial, lru_cache, namedtuple, reduce, singledispatch
 
 from glob import glob
 
+from hashlib import md5, sha256
+
 from io import BytesIO, StringIO
 
 from itertools import combinations, combinations_with_replacement, permutations
@@ -83,7 +85,7 @@ from sys import stdout, stderr, executable as python, exit, platform
 
 from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
 from time import sleep
-
+from typing import Any, Callable, Collection, Generator, Iterable, Iterator, List, Optional, Sequence, Set, Sized, Union
 
 # ## Sibling modules
 # Some other notebooks and Python files from this repo:

@@ -1,12 +1,7 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
 
 import shlex
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL
-from collections.abc import Iterable
 
 
 def parse_cmd(cmd):
@@ -42,11 +37,13 @@ def lines(*cmd, keep_trailing_newline=False, dry_run=False, **kwargs):
     return lines
 
 
-def line(*cmd, **kwargs):
+def line(*cmd, empty_ok=False, **kwargs):
     '''Run a command, verify that it returns a single line of output, and return that line'''
     _lines = lines(*cmd, **kwargs)
     if len(_lines) == 1:
         return _lines[0]
+    elif empty_ok and not _lines:
+        return None
     else:
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
