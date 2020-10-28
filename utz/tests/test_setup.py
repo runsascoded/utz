@@ -2,6 +2,7 @@
 from os.path import dirname, join
 from utz.cd import cd
 
+
 def test_setup_gsmo(mocker):
     cur_dir = dirname(__file__)
     gsmo_dir = join(cur_dir,'data','gsmo')
