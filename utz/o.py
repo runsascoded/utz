@@ -30,7 +30,6 @@
 
 
 class o(dict):
-
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
             raise ValueError(f'≤1 positional args required, got {len(args)}')
@@ -56,7 +55,20 @@ class o(dict):
 
         super(o, self).__setattr__(K, data)
 
-    def __dict__(self): return self._data
+    @classmethod
+    def merge(cls, *args, **kwargs):
+        if args:
+            (obj, *args) = args
+            obj = dict(obj)
+        else:
+            obj = dict()
+        for arg in args:
+            obj.update(**arg)
+        for k,v in kwargs.items():
+            obj[k] = v
+        return o(obj)
+
+    def __dict__(self): return dict(self._data)
     
     def __setattr__(self, k, v):
         if isinstance(v, dict) and not isinstance(v, o): v = o(v)
