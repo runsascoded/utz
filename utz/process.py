@@ -23,12 +23,16 @@ def parse_cmd(cmd):
     ]
 
 
-def lines(*cmd, keep_trailing_newline=False, dry_run=False, **kwargs):
+def lines(*cmd, keep_trailing_newline=False, dry_run=False, err_ok=False, **kwargs):
     '''Return the lines written to stdout by a command'''
+    out = output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
+    if err_ok and out is None:
+        return None
+
     lines = [
         line.rstrip('\n')
         for line in
-        output(*cmd, dry_run=dry_run, **kwargs).decode().split('\n')
+        out.decode().split('\n')
     ]
 
     if not keep_trailing_newline and lines and not lines[-1]:
@@ -37,13 +41,13 @@ def lines(*cmd, keep_trailing_newline=False, dry_run=False, **kwargs):
     return lines
 
 
-def line(*cmd, empty_ok=False, **kwargs):
+def line(*cmd, empty_ok=False, err_ok=False, **kwargs):
     '''Run a command, verify that it returns a single line of output, and return that line'''
-    _lines = lines(*cmd, **kwargs)
-    if len(_lines) == 1:
-        return _lines[0]
-    elif empty_ok and not _lines:
+    _lines = lines(*cmd, err_ok=err_ok, **kwargs)
+    if (empty_ok or err_ok) and not _lines:
         return None
+    elif len(_lines) == 1:
+        return _lines[0]
     else:
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
@@ -59,7 +63,7 @@ def run(*cmd, dry_run=False, **kwargs):
 
 sh = run
 
-def output(*cmd, dry_run=False, **kwargs):
+def output(*cmd, dry_run=False, err_ok=False, **kwargs):
     '''Convenience wrapper for check_output'''
     cmd = parse_cmd(cmd)
     shlex_join = getattr(shlex, 'join', ' '.join)  # shlex.join only exists in Python ≥3.8
@@ -68,7 +72,13 @@ def output(*cmd, dry_run=False, **kwargs):
         return b''
     else:
         print(f'Running: {shlex_join(cmd)}')
-        return check_output(cmd, **kwargs)
+        try:
+            return check_output(cmd, **kwargs)
+        except CalledProcessError as e:
+            if err_ok:
+                return None
+            else:
+                raise e
 
 
 from json import loads
