@@ -3,9 +3,10 @@ from contextlib import contextmanager
 from ctypes import pythonapi, py_object, c_int
 from functools import cached_property
 from inspect import getmembers, stack
+from sys import stderr
 
 @contextmanager
-def use(o, ivars=True, methods=True, properties='all'):
+def use(o, ivars=True, methods=True, properties='all', local_conflict='ignore'):
     stk = stack()
     frame_info = stk[2]
     frame = frame_info.frame
@@ -17,6 +18,17 @@ def use(o, ivars=True, methods=True, properties='all'):
                 restore[k] = True, glbls[k]
             else:
                 restore[k] = False, None
+            if local_conflict != 'ignore':
+                if k in frame.f_locals:
+                    # TODO: can this be refined to distinguish function vs class vs module scope?
+                    # locals can be reliably updated in module scope, afaict.
+                    msg = f'var {k} found in local scope; setting global may not take effect'
+                    if local_conflict == 'warn':
+                        stderr.write('%s\n' % msg)
+                    elif local_conflict in ['raise','err','error']:
+                        raise RuntimeError(msg)
+                    else:
+                        raise ValueError(f'Unrecognized `local_conflict` value: {local_conflict}')
             glbls[k] = v
     else:
         cls = { k:v for k,v in getmembers(type(o)) if not k.startswith('_') }
@@ -26,9 +38,6 @@ def use(o, ivars=True, methods=True, properties='all'):
         _ivars = keys.difference(cls.keys())
         imethods = set(cls.keys()).difference(props.keys()).difference(cached_props.keys()).intersection(keys)
         cmethods = { k:v for k,v in cls.items() if isinstance(v, classmethod) }
-        # obj = { k:v for k,v in getmembers(o) if not k.startswith('_') }
-        # methods = cls.keys()
-        # ivars = set(obj.keys()).difference(methods)
 
         assign = _ivars if ivars else set()
         if methods:
@@ -45,10 +54,11 @@ def use(o, ivars=True, methods=True, properties='all'):
             if k in glbls:
                 restore[k] = True, glbls[k]
             else:
+                # exec(f'{k} = None', frame.f_globals, frame.f_locals)
                 restore[k] = False, None
             glbls[k] = getattr(o, k)
 
-    pythonapi.PyFrame_LocalsToFast(py_object(frame), c_int(0))
+    pythonapi.PyFrame_LocalsToFast(py_object(frame), c_int(1))
     del frame
     yield
     if restore:
@@ -59,7 +69,7 @@ def use(o, ivars=True, methods=True, properties='all'):
                 glbls[k] = v
             else:
                 del glbls[k]
-        pythonapi.PyFrame_LocalsToFast(py_object(frame), c_int(0))
+        pythonapi.PyFrame_LocalsToFast(py_object(frame), c_int(1))
         del frame
 
 
