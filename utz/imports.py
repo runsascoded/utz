@@ -79,7 +79,7 @@ from itertools import combinations, combinations_with_replacement, permutations
 import json
 
 import math
-from math import ceil, floor, pi, exp, log, log2, log10, cos, sin, tan, acos, asin, atan
+from math import acos, asin, atan, ceil, floor, pi, exp, log, log2, log10, cos, sin, sqrt, tan
 
 import os
 from os import chdir, cpu_count, environ as env, getcwd, listdir
