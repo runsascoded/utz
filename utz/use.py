@@ -31,7 +31,7 @@ def use(o, local_conflict='ignore', **kwargs):
                 exclude = kwargs.pop('exclude')
                 if isinstance(exclude, str): exclude = [exclude]
             if kwargs:
-                raise ValueError(f'Unexpected kwargs for use(dict): {",".join(kwargs.keys())}')
+                raise ValueError(f'Unexpected kwargs for use(dict): {",".join(kwargs)}')
             if include and exclude:
                 raise ValueError('Specify at most one of [include,exclude]')
 

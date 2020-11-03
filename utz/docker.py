@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 from .process import run, sh
 
 class File:
-    def __init__(self, path=None, tag=None, ctx=None, dir=None, rm=None):
+    def __init__(self, path=None, tag=None, ctx=None, dir=None, rm=None, copy_dir=None):
         if path:
             self.rm = bool(rm)
         else:
@@ -16,6 +16,7 @@ class File:
         self.fd = None
         self.tag = tag
         self.ctx = ctx
+        self.copy_dir = copy_dir
 
     def write(self, *lines):
         if not self.fd:
@@ -45,8 +46,14 @@ class File:
 
         return Image(tag, self)
 
-    def COPY(self, *args, dir=None):
+    def COPY(self, *args, **kwargs):
         (*srcs, dst) = args
+        if 'dir' in kwargs:
+            dir = kwargs.pop('dir')
+            if kwargs:
+                raise ValueError(f'Unexpected kwargs: {",".join(kwargs)}')
+        else:
+            dir = self.copy_dir
         if dir:
             srcs = [ join(dir, src) for src in srcs ]
         self.write(f'COPY {" ".join([*srcs, dst])}')
