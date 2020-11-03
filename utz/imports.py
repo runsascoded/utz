@@ -108,7 +108,7 @@ import typing
 from typing import Any, Callable, Collection, Generator, Iterable, Iterator, List, Optional, Sequence, Set, Sized, Union
 
 # ## Sibling modules
-# Some other notebooks and Python files from this repo:
+# Import other utilities from this repo:
 
 from . import process
 from .process import *
@@ -118,7 +118,9 @@ with _try:
     from .pnds import *
 
 from .cd import cd
+from . import docker
 from .o import o
+from .use import use
 
 with _try:
     from .git import Git, Repo, make_repo

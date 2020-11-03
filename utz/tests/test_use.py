@@ -1,7 +1,7 @@
 
 from functools import cached_property
 import pytest
-from utz.use import use
+from utz import use
 
 
 # convenient way to verify that a name is undefined
