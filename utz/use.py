@@ -6,6 +6,13 @@ from sys import stderr
 
 from .methods import Methods
 
+IVAR_KWARG_NAME = 'ivars'
+METHOD_KWARG_NAME = 'methods'
+CMETHOD_KWARG_NAMES = ['cmethods','classmethods']
+SMETHOD_KWARG_NAMES = ['smethods','staticmethods']
+SMEMbER_KWARG_NAMES = ['smembers','staticmembers']
+PROP_KWARG_NAMES = ['props','properties']
+CACHED_PROP_KWARG_NAMES = ['cached_props','cached_properties']
 
 @contextmanager
 def use(o, local_conflict='ignore', **kwargs):
@@ -15,9 +22,22 @@ def use(o, local_conflict='ignore', **kwargs):
     glbls = frame.f_globals
     restore = {}
     if type(o) is dict:
+        include = exclude = None
         if kwargs:
-            raise ValueError(f'kwargs not supported when passing dict object: {",".join(kwargs.keys())}')
+            if 'include' in kwargs:
+                include = kwargs.pop('include')
+                if isinstance(include, str): include = [include]
+            if 'exclude' in kwargs:
+                exclude = kwargs.pop('exclude')
+                if isinstance(exclude, str): exclude = [exclude]
+            if kwargs:
+                raise ValueError(f'Unexpected kwargs for use(dict): {",".join(kwargs.keys())}')
+            if include and exclude:
+                raise ValueError('Specify at most one of [include,exclude]')
+
         for k,v in o.items():
+            if include and k not in include: continue
+            if exclude and k in exclude: continue
             if k in glbls:
                 restore[k] = True, glbls[k]
             else:
@@ -44,15 +64,16 @@ def use(o, local_conflict='ignore', **kwargs):
             smembers = False
             properties = False
             cached_properties = False
-            include = kwargs['include'].split(',')
+            include = kwargs['include']
+            if isinstance(include, str): include = [include]
             for k in include:
-                if k == 'ivars': ivars = True
-                if k == 'methods': methods = True
-                if k == 'cmethods': cmethods = True
-                if k == 'smethods': smethods = True
-                if k == 'smembers': smembers = True
-                if k == 'properties': properties = True
-                if k == 'cached_properties': cached_properties = True
+                if k == IVAR_KWARG_NAME: ivars = True
+                if k == METHOD_KWARG_NAME: methods = True
+                if k in CMETHOD_KWARG_NAMES: cmethods = True
+                if k in SMETHOD_KWARG_NAMES: smethods = True
+                if k in SMEMbER_KWARG_NAMES: smembers = True
+                if k in PROP_KWARG_NAMES: properties = True
+                if k in CACHED_PROP_KWARG_NAMES: cached_properties = True
         else:
             ivars = True
             methods = True
@@ -62,23 +83,24 @@ def use(o, local_conflict='ignore', **kwargs):
             properties = True
             cached_properties = True
             if 'exclude' in kwargs:
-                exclude = kwargs['exclude'].split(',')
+                exclude = kwargs['exclude']
+                if isinstance(exclude, str): exclude = [exclude]
                 for k in exclude:
-                    if k == 'ivars': ivars = False
-                    if k == 'methods': methods = False
-                    if k == 'cmethods': cmethods = False
-                    if k == 'smethods': smethods = False
-                    if k == 'smembers': smembers = False
-                    if k == 'properties': properties = False
-                    if k == 'cached_properties': cached_properties = False
+                    if k == IVAR_KWARG_NAME: ivars = False
+                    if k == METHOD_KWARG_NAME: methods = False
+                    if k in CMETHOD_KWARG_NAMES: cmethods = False
+                    if k in SMETHOD_KWARG_NAMES: smethods = False
+                    if k in SMEMbER_KWARG_NAMES: smembers = False
+                    if k in PROP_KWARG_NAMES: properties = False
+                    if k in CACHED_PROP_KWARG_NAMES: cached_properties = False
             else:
                 for k,v in kwargs.items():
-                    if k == 'ivars': ivars = bool(v)
-                    if k == 'methods': methods = bool(v)
-                    if k == 'cmethods': cmethods = bool(v)
-                    if k == 'smethods': smethods = bool(v)
-                    if k == 'smembers': smembers = bool(v)
-                    if k == 'properties':
+                    if k == IVAR_KWARG_NAME: ivars = bool(v)
+                    if k == METHOD_KWARG_NAME: methods = bool(v)
+                    if k in CMETHOD_KWARG_NAMES: cmethods = bool(v)
+                    if k in SMETHOD_KWARG_NAMES: smethods = bool(v)
+                    if k in SMEMbER_KWARG_NAMES: smembers = bool(v)
+                    if k in PROP_KWARG_NAMES:
                         if v == 'all':
                             pass
                         elif v == 'cached':
@@ -92,13 +114,13 @@ def use(o, local_conflict='ignore', **kwargs):
         m = Methods(o)
 
         assign = set()
-        if ivars: assign.update(m.ivars)
-        if  methods: assign.update(m. methods)
-        if cmethods: assign.update(m.cmethods)
-        if smethods: assign.update(m.smethods)
-        if smembers: assign.update(m.smembers)
+        if             ivars: assign.update(m.            ivars)
+        if           methods: assign.update(m.          methods)
+        if          cmethods: assign.update(m.         cmethods)
+        if          smethods: assign.update(m.         smethods)
+        if          smembers: assign.update(m.         smembers)
         if cached_properties: assign.update(m.cached_properties)
-        if properties: assign.update(m.properties)
+        if        properties: assign.update(m.       properties)
 
         for k in assign:
             if k in glbls:
@@ -110,6 +132,7 @@ def use(o, local_conflict='ignore', **kwargs):
     pythonapi.PyFrame_LocalsToFast(py_object(frame), c_int(1))
     del frame
     yield
+
     if restore:
         frame = frame_info.frame
         glbls = frame.f_globals
