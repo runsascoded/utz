@@ -1,6 +1,6 @@
 import json
 from pytest import raises
-from utz.o import o
+from utz import o
 
 def test_kwargs():
     o1 = o(a=1,b=2)
@@ -86,10 +86,21 @@ def test_list():
 
 def test_serialization():
     _o = o(a=1, b={'c':3})
-    assert json.dumps(_o) == '{"a": 1, "b": {"c": 3}}'
+    _o.update(d=4)
+    assert json.dumps(_o) == '{"a": 1, "b": {"c": 3}, "d": 4}'
 
 
 def test_merge():
+    d1 = { 'a':1,'b':2 }
+    d2 = { 'a':11,'c':33 }
+    o1 = o(d1).merge(d2)
+    assert dict(o1) == { 'a':11,'b':2,'c':33 }
+    assert (o1.a, o1.b, o1.c) == (11, 2, 33)
+    assert d1 == {'a':1,'b':2}
+    assert d2 == { 'a':11,'c':33 }
+
+
+def test_merge_static():
     d1 = { 'a':1,'b':2 }
     d2 = { 'a':11,'c':33 }
     o1 = o.merge(d1, d2)
@@ -97,3 +108,9 @@ def test_merge():
     assert (o1.a, o1.b, o1.c) == (11, 2, 33)
     assert d1 == {'a':1,'b':2}
     assert d2 == { 'a':11,'c':33 }
+
+
+def test_update():
+    o1 = o(a=1,b=2)
+    o1.update(b='bbb',c=3,d=4)
+    assert dict(o1) == { 'a':1,'b':'bbb','c':3,'d':4 }

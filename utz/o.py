@@ -1,35 +1,22 @@
 #!/usr/bin/env python
-# coding: utf-8
 
-# # `o()`: attr-access for `dict`s
-# Wrap `dict`s (or kwarg lists) to allow direct `.`-accessing of items.
-# 
-# Before:
-# ```python
-# x={'a':1,'b':2}  # given some dict
-# x['a'], x['b']   # access fields via "getitem" syntax
-# ```
-# After:
-# ```python
-# x=o({'a':1,'b':2})  # wrap dict in o()
-# x.a, x.b            # access members via "getattr" syntax
-# ```
-# Or, instantiate directly with kwargs:
-# ```python
-# x=o(a=1,b=2)
-# x.a, x.b
-# ```
-# 
-# **Contents:**
-# - [Implementation](#Implementation)
-# - [Examples](#Examples)
-
-# ## Implementation
-
-# In[1]:
+from collections.abc import MutableMapping
 
 
-class o(dict):
+def merge(*args, **kwargs):
+    if args:
+        (obj, *args) = args
+        obj = dict(obj)
+    else:
+        obj = dict()
+    for arg in args:
+        obj.update(**arg)
+    for k,v in kwargs.items():
+        obj[k] = v
+    return o(obj)
+
+
+class o(MutableMapping, dict):
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
             raise ValueError(f'≤1 positional args required, got {len(args)}')
@@ -55,21 +42,16 @@ class o(dict):
 
         super(o, self).__setattr__(K, data)
 
-    @classmethod
-    def merge(cls, *args, **kwargs):
-        if args:
-            (obj, *args) = args
-            obj = dict(obj)
-        else:
-            obj = dict()
+    def merge(self, *args, **kwargs): return merge(self, *args, **kwargs)
+
+    def update(self, *args, **kwargs):
         for arg in args:
-            obj.update(**arg)
+            self.update(**arg)
         for k,v in kwargs.items():
-            obj[k] = v
-        return o(obj)
+            setattr(self, k, v)
 
     def __dict__(self): return dict(self._data)
-    
+
     def __setattr__(self, k, v):
         if isinstance(v, dict) and not isinstance(v, o): v = o(v)
         self._data[k] = v
@@ -81,6 +63,9 @@ class o(dict):
             return v
         except KeyError:
             raise AttributeError(f'Key {k}')
+
+    def __len__(self): return len(self._data)
+    def __delitem__(self, k): del self._data[k]
 
     def get(self, k, default=None):
         if k in self:
@@ -128,102 +113,3 @@ class o(dict):
         return NotImplemented
 
     def __hash__(self): return hash(self._data)
-
-
-# ## Examples
-
-# In[2]:
-
-
-o1 = o(a=1,b=2)
-
-
-# In[3]:
-
-
-o1.a, o1.b
-
-
-# In[4]:
-
-
-from .context import catch
-with catch(AttributeError): o1.c
-
-
-# In[5]:
-
-
-x={'c':3,'d':4}
-o2 = o(x)
-o2.c, o2.d
-
-
-# In[6]:
-
-
-x['e']=5
-o2.e
-
-
-# In[7]:
-
-
-o2.c = 'ccc'
-x
-
-
-# In[8]:
-
-
-o2
-
-
-# In[9]:
-
-
-str(o2)
-
-
-# In[10]:
-
-
-'c' in o2
-
-
-# In[11]:
-
-
-x
-
-
-# In[12]:
-
-
-list(iter(x))
-
-
-# In[13]:
-
-
-'z' in o2
-
-
-# In[14]:
-
-
-oo = o(a={'b':1})
-oo
-
-
-# In[15]:
-
-
-oo.get('b', 'yay')
-
-
-# In[16]:
-
-
-oo.a.b
-
