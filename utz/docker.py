@@ -18,16 +18,23 @@ class File:
         self.ctx = ctx
         self.copy_dir = copy_dir
 
-    def write(self, *lines):
+    def write(self, *lines, open_ok=True):
         if not self.fd:
+            if not open_ok:
+                raise RuntimeError(f"Refusing to write to {self.path} that's not already open")
             self.fd = open(self.path,'w')
         for line in lines:
             self.fd.write('%s\n' % line)
 
-    def build(self, tag=None, ctx=None, **build_args):
+    def close(self, closed_ok=False):
         if self.fd:
             self.fd.close()
             self.fd = None
+        elif not closed_ok:
+            raise RuntimeError(f"Can't close {self.path}; not open")
+
+    def build(self, tag=None, ctx=None, **build_args):
+        self.close()
 
         tag = tag or self.tag
         ctx = ctx or self.ctx or '.'
