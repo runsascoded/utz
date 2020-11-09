@@ -65,6 +65,17 @@ class File:
             srcs = [ join(dir, src) for src in srcs ]
         self.write(f'COPY {" ".join([*srcs, dst])}')
 
+    def ENV(self, *args, **kwargs):
+        for arg in args:
+            if isinstance(arg, str):
+                self.write(f'ENV {arg}')
+            elif isinstance(arg, dict):
+                self.ENV(**arg)
+            else:
+                raise ValueError(f'Unrecognized argument to ENV(): {arg}')
+        for k,v in kwargs.items():
+            self.write(f'ENV {k}={v}')
+
     def NOTE(self, *lines):
         self.write(*[f'# {line}' for line in lines])
 
