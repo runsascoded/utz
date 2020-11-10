@@ -97,12 +97,15 @@ class File:
 
     def LN(self): self.write('')
 
-    def WORKDIR(self, dst='/'):
-        self.write(f'WORKDIR {dst}')
+    def WORKDIR(self, dst='/'): self.write(f'WORKDIR {dst}')
 
-    def ENTRYPOINT(self, arg):
-        self.write('ENTRYPOINT %s' % str(arg))
+    def ENTRYPOINT(self, arg): self.write(f'ENTRYPOINT {arg}')
 
+    def USER(self, user, group=None):
+        if group:
+            self.write(f'USER {user}:{group}')
+        else:
+            self.write(f'USER {user}')
 
 class Image:
     def __init__(self, url, file=None):
