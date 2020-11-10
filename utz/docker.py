@@ -1,12 +1,21 @@
 
 from os.path import join
-from os import remove
+from os import getcwd, remove
 from tempfile import NamedTemporaryFile
 
 from .process import run, sh
 
 class File:
-    def __init__(self, path=None, tag=None, ctx=None, dir=None, rm=None, copy_dir=None):
+    def __init__(self, path=None, tag=None, rm=None, copy_dir=None, **kwargs):
+        if kwargs:
+            if 'dir' in kwargs:
+                dir = kwargs.pop('dir')
+            else:
+                dir = getcwd()
+            if kwargs:
+                raise ValueError(f'Unrecognized kwargs: {kwargs}')
+        else:
+            dir = getcwd()
         if path:
             self.rm = bool(rm)
         else:
@@ -15,7 +24,7 @@ class File:
         self.path = path
         self.fd = None
         self.tag = tag
-        self.ctx = ctx
+        self.dir = dir
         self.copy_dir = copy_dir
 
     def write(self, *lines, open_ok=True):
@@ -33,11 +42,11 @@ class File:
         elif not closed_ok:
             raise RuntimeError(f"Can't close {self.path}; not open")
 
-    def build(self, tag=None, ctx=None, **build_args):
+    def build(self, tag=None, dir=None, **build_args):
         self.close()
 
         tag = tag or self.tag
-        ctx = ctx or self.ctx or '.'
+        dir = dir or self.dir or '.'
         if not tag:
             raise ValueError(f'Missing tag for image build')
 
@@ -46,7 +55,7 @@ class File:
             '-f',self.path,
             '-t',tag,
             [ ['--build-arg',f'{k}={v}'] for k,v in build_args.items() ],
-            ctx
+            dir
         )
         if self.rm:
             remove(self.path)
