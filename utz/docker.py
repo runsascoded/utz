@@ -42,8 +42,8 @@ class File:
         elif not closed_ok:
             raise RuntimeError(f"Can't close {self.path}; not open")
 
-    def build(self, tag=None, dir=None, **build_args):
-        self.close()
+    def build(self, tag=None, dir=None, closed_ok=False, **build_args):
+        self.close(closed_ok=closed_ok)
 
         tag = tag or self.tag
         dir = dir or self.dir or '.'
