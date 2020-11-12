@@ -18,7 +18,7 @@ def singleton(elems, fn=None, empty_ok=False, name='elems'):
             return None
         raise ValueError(f'No {name} found')
     if len(elems) > 1:
-        raise ValueError(f'{len(elems)} {name} found: {",".join([ str(elem) for elem in elems[:10] ])}')
+        raise ValueError(f'{len(elems)} {name} found: {",".join([ str(elem) for elem in list(elems[:10]) ])}')
     [ elem ] = elems
     return elem
 
