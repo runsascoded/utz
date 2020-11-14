@@ -1,11 +1,13 @@
 
-from os.path import join
+from contextlib import AbstractContextManager
+from os.path import exists, join
 from os import getcwd, remove
 from tempfile import NamedTemporaryFile
 
 from .process import run, sh
 
-class File:
+
+class File(AbstractContextManager):
     def __init__(self, path=None, tag=None, rm=None, copy_dir=None, **kwargs):
         if kwargs:
             if 'dir' in kwargs:
@@ -26,6 +28,11 @@ class File:
         self.tag = tag
         self.dir = dir
         self.copy_dir = copy_dir
+
+    def __exit__(self, *_):
+        self.close(closed_ok=True)
+        if exists(self.path):
+            remove(self.path)
 
     def write(self, *lines, open_ok=True):
         if not self.fd:
