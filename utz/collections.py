@@ -6,19 +6,20 @@
 
 from pandas import Series
 
-def singleton(elems, fn=None, empty_ok=False, name='elems'):
+def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True):
     if isinstance(elems, Series):
         elems = elems.unique().tolist()
     if fn:
         elems = [ elem for elem in elems if fn(elem) ]
     else:
-        elems = set(elems)
+        if dedupe:
+            elems = set(elems)
     if not elems:
         if empty_ok:
             return None
         raise ValueError(f'No {name} found')
     if len(elems) > 1:
-        raise ValueError(f'{len(elems)} {name} found: {",".join([ str(elem) for elem in list(elems[:10]) ])}')
+        raise ValueError(f'{len(elems)} {name} found: {",".join([ str(elem) for elem in list(elems)[:10] ])}')
     [ elem ] = elems
     return elem
 
