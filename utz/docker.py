@@ -2,13 +2,14 @@
 from contextlib import AbstractContextManager
 from os.path import exists, join
 from os import getcwd, remove
+from shutil import copy
 from tempfile import NamedTemporaryFile
 
 from .process import run, sh
 
 
 class File(AbstractContextManager):
-    def __init__(self, path=None, tag=None, rm=None, copy_dir=None, **kwargs):
+    def __init__(self, path=None, tag=None, rm=None, copy_dir=None, extend=None, **kwargs):
         if kwargs:
             if 'dir' in kwargs:
                 dir = kwargs.pop('dir')
@@ -28,6 +29,8 @@ class File(AbstractContextManager):
         self.tag = tag
         self.dir = dir
         self.copy_dir = copy_dir
+        if extend:
+            copy(extend, path)
 
     def __exit__(self, *_):
         self.close(closed_ok=True)
@@ -38,7 +41,11 @@ class File(AbstractContextManager):
         if not self.fd:
             if not open_ok:
                 raise RuntimeError(f"Refusing to write to {self.path} that's not already open")
-            self.fd = open(self.path,'w')
+            if exists(self.path):
+                mode = 'a'
+            else:
+                mode = 'w'
+            self.fd = open(self.path,mode)
         for line in lines:
             self.fd.write('%s\n' % line)
 
