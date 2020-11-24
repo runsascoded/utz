@@ -103,7 +103,8 @@ class File(AbstractContextManager):
         self.write(*[f'# {line}' for line in lines])
 
     def RUN(self, *cmds):
-        self.write('RUN %s' % ' \\\n && '.join(cmds))
+        if cmds:
+            self.write('RUN %s' % ' \\\n && '.join(cmds))
 
     def ARG(self, k, v=None):
         if v is None:
