@@ -1,5 +1,5 @@
 from os import remove
-from os.path import dirname, join, splitext
+from os.path import basename, dirname, join, splitext
 from pathlib import Path
 from zipfile import is_zipfile, ZipFile
 
@@ -9,12 +9,13 @@ def try_unzip(path):
         path = str(path)
     if is_zipfile(path):
         from shutil import move
-        name, ext = splitext(path)
+        parent = dirname(path)
+        name, ext = splitext(basename(path))
         if ext == '.zip':
             zip_path = path
-            path = join(dirname(path), name)
+            path = join(parent, name)
         else:
-            zip_path = join(dirname(path), '%s.zip' % name)
+            zip_path = join(parent, '%s.zip' % name)
             print('Renaming %s to %s' % (path, zip_path))
             move(path, zip_path)
 
