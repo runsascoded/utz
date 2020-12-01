@@ -1,7 +1,10 @@
 
 import pytest
+from tempfile import NamedTemporaryFile
 
+from utz import process
 from utz.process import *
+
 
 strs = ['one','two','three']
 
@@ -18,6 +21,25 @@ def test_output():
     assert output('[','1','==','2',']',err_ok=True) is None
     with pytest.raises(CalledProcessError):
         output('[','1','==','2',']')
+
+
+def test_json():
+    import json
+    obj = [{
+        'a': {
+            'b': 123
+        }
+    }]
+    with NamedTemporaryFile() as f:
+        path = f.name
+        with open(path,'w') as fd:
+            json.dump(obj, fd)
+
+        assert process.json('cat',path) == obj
+        assert process.json('cat','nonexistent-file', err_ok=True) is None
+        with pytest.raises(CalledProcessError):
+            process.json('cat','nonexistent-file')
+
 
 def test_line():
     assert line('echo','yay') == 'yay'

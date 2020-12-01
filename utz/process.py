@@ -84,7 +84,10 @@ def output(*cmd, dry_run=False, err_ok=False, **kwargs):
 from json import loads
 def json(*cmd, **kwargs):
     '''Run a command, parse the output as JSON, and return the parsed object'''
-    return loads(output(*cmd, **kwargs).decode())
+    out = output(*cmd, **kwargs)
+    if out is None:
+        return None
+    return loads(out.decode())
 
 
 def check(*cmd, stdout=DEVNULL, stderr=DEVNULL):
