@@ -2,10 +2,24 @@
 from contextlib import AbstractContextManager
 from os.path import exists, join
 from os import getcwd, remove
+import re
 from shutil import copy
 from tempfile import NamedTemporaryFile
 
 from .process import run, sh
+
+
+def escape(*args):
+    if len(args) == 1:
+        arg = args[0]
+        if isinstance(arg, dict):
+            return " ".join(escape(k, v) for k,v in arg.items())
+        else:
+            backslashes = re.sub(r'\\',r'\\\\',str(arg))
+            return re.sub(r'(["\n])',r'\\\1',backslashes)
+    elif len(args) == 2:
+        k,v = args
+        return f'"{escape(k)}"="{escape(v)}"'
 
 
 class File(AbstractContextManager):
@@ -88,19 +102,36 @@ class File(AbstractContextManager):
             srcs = [ join(dir, src) for src in srcs ]
         self.write(f'COPY {" ".join([*srcs, dst])}')
 
-    def ENV(self, *args, **kwargs):
+    def kvs(self, cmd, *args, **kwargs):
+        flattened = []
         for arg in args:
             if isinstance(arg, str):
-                self.write(f'ENV {arg}')
+                flattened.append(arg)
+            elif isinstance(arg, tuple):
+                if len(arg) != 2:
+                    raise RuntimeError(f'Invalid tuple arg (required len 2): %s' % str(arg))
+                k,v = arg
+                k = escape(str(k))
+                v = escape(str(v))
+                flattened.append(f'"{k}"="{v}"')
             elif isinstance(arg, dict):
-                self.ENV(**arg)
+                for k,v in arg.items():
+                    flattened.append(f'"{escape(k)}"="{escape(v)}"')
             else:
-                raise ValueError(f'Unrecognized argument to ENV(): {arg}')
+                raise ValueError(f'Unrecognized argument to {cmd}: {arg}')
         for k,v in kwargs.items():
-            self.write(f'ENV {k}={v}')
+            flattened.append(f'"{escape(k)}"="{escape(v)}"')
+        if flattened:
+            self.write(f'{cmd} {" ".join(flattened)}')
 
     def NOTE(self, *lines):
         self.write(*[f'# {line}' for line in lines])
+
+    def ENV(self, *args, **kwargs):
+        return self.kvs('ENV', *args, **kwargs)
+
+    def LABEL(self, *args, **kwargs):
+        return self.kvs('LABEL', *args, **kwargs)
 
     def RUN(self, *cmds):
         if cmds:
