@@ -31,6 +31,7 @@ def test_docker_file_contents():
         LABEL(**{'a.b c':'1 \n2 \n3','aaa':111})
         ENV('aaa=AAA','b=B=B',c='333')
         LABEL(r'a\\b=c\\d', bbb='BBB', **{r'e\f':'g\\h'})
+        ENTRYPOINT('a', 'b c', shell=True)
         ENTRYPOINT('pwd')
     file.close()
     path = file.path
@@ -44,7 +45,8 @@ def test_docker_file_contents():
             'LABEL "a.b c"="1 \\','2 \\','3" "aaa"="111"',
             'ENV aaa=AAA b=B=B "c"="333"',
             r'LABEL a\\b=c\\d "bbb"="BBB" "e\\f"="g\\h"',
-            'ENTRYPOINT pwd',
+            "ENTRYPOINT a 'b c'",
+            'ENTRYPOINT ["pwd"]',
         ]
 
     from datetime import datetime

@@ -1,8 +1,10 @@
 
 from contextlib import AbstractContextManager
+import json
 from os.path import exists, join
 from os import getcwd, remove
 import re
+import shlex
 from shutil import copy
 from tempfile import NamedTemporaryFile
 from types import TracebackType
@@ -161,7 +163,11 @@ class File(AbstractContextManager):
 
     def WORKDIR(self, dst='/'): self.write(f'WORKDIR {dst}')
 
-    def ENTRYPOINT(self, arg): self.write(f'ENTRYPOINT {arg}')
+    def ENTRYPOINT(self, *args, shell=False):
+        if shell:
+            self.write(f'ENTRYPOINT {shlex.join(args)}')
+        else:
+            self.write(f'ENTRYPOINT {json.dumps(args)}')
 
     def USER(self, user, group=None):
         if group:
