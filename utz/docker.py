@@ -5,6 +5,8 @@ from os import getcwd, remove
 import re
 from shutil import copy
 from tempfile import NamedTemporaryFile
+from types import TracebackType
+from typing import Optional, Type
 
 from .process import run, sh
 
@@ -46,7 +48,12 @@ class File(AbstractContextManager):
         if extend:
             copy(extend, path)
 
-    def __exit__(self, *_):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType]
+    ):
         self.close(closed_ok=True)
         if exists(self.path):
             remove(self.path)
