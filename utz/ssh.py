@@ -44,10 +44,8 @@ class Tunnel(AbstractContextManager):
         return self.__enter__()
 
     def __enter__(self):
-        print('Tunnel.__enter__')
         self.proc = Popen(['ssh','-N','-L',f'{self.src}:{self.dst}',self.proxy])
         try:
-            print('entered ctxthread')
             if self.sleep is not None:
                 # Give SSH some time to connect before attempting to connect over it:
                 time.sleep(self.sleep)
@@ -61,13 +59,9 @@ class Tunnel(AbstractContextManager):
                 if p.returncode:
                     raise CalledProcessError(p.returncode, cmd)
         except Exception as e:
-            print('Caught exception verifying tunnel')
             self.proc.kill()
             raise e
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print(f'Tunnel.__exit__({exc_type}, {exc_val}, {exc_tb})')
-        self.proc.kill()
-
+    def __exit__(self, exc_type, exc_val, exc_tb): self.proc.kill()
     def stop(self): self.__exit__(None, None, None)
     def close(self): self.__exit__(None, None, None)
