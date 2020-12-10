@@ -15,9 +15,9 @@ class CtxThread(AbstractContextManager, Thread):
         AbstractContextManager.__init__(self)
 
     def __enter__(self):
-        print('starting thread')
+        print('CtxThread.__enter__')
         self.start()
-        print('started thread')
+        print('CtxThread started thread')
 
     def get_id(self):
         # returns id of the respective thread 
@@ -28,7 +28,7 @@ class CtxThread(AbstractContextManager, Thread):
                 return id
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(f'exiting thread: {exc_type}, {exc_val}, {exc_tb}')
+        print(f'CtxThread.__exit__({exc_type}, {exc_val}, {exc_tb})')
         thread_id = self.get_id()
         print(f'thread_id: {thread_id}')
         res = pythonapi.PyThreadState_SetAsyncExc(thread_id, py_object(SystemExit))
@@ -40,41 +40,73 @@ class CtxThread(AbstractContextManager, Thread):
         self.__exit__(None, None, None)
 
 
-@contextmanager
-def tunnel(
-    proxy,
-    src_port,
-    dst='localhost',
-    dst_port=None,
-    src_host='localhost',
-    sleep=1,
-    timeout=1,
-):
-    ''''''
+class Tunnel(AbstractContextManager):
+    def __init__(
+        self,
+        proxy,
+        src_port,
+        dst='localhost',
+        dst_port=None,
+        src_host='localhost',
+        sleep=1,
+        timeout=1,
+    ):
+        src_port = str(src_port)
+        dst_host = dst
+        if not dst_port:
+            dst_port = src_port
+        dst_port = str(dst_port)
 
-    src = f'{src_host}:{src_port}'
-    src_port = str(src_port)
-    dst_host = dst
-    if not dst_port:
-        dst_port = src_port
-    dst_port = str(dst_port)
-    dst = f'{dst_host}:{dst_port}'
+        self.proxy = proxy
 
+        self.src_host = src_host
+        self.src_port = src_port
+
+        self.dst_host = dst_host
+        self.dst_port = dst_port
+
+        self.sleep = sleep
+        self.timeout = timeout
+
+    @property
+    def src(self): return f'{self.src_host}:{self.src_port}'
+
+    @property
+    def dst(self): return f'{self.dst_host}:{self.dst_port}'
+
+    def start(self):
+        return self.__enter__()
+
+    @staticmethod
     def ssh_tunnel(src, dst, proxy):
         run('ssh','-N','-L',f'{src}:{dst}',proxy)
 
-    with CtxThread(target=ssh_tunnel, args=(src, dst, proxy)):
-        print('entered ctxthread')
-        if sleep is not None:
-            # Give SSH some time to connect before attempting to connect over it:
-            time.sleep(sleep)
+    def __enter__(self):
+        print('Tunnel.__enter__')
+        self.ctx_thread = CtxThread(target=self.ssh_tunnel, args=(self.src, self.dst, self.proxy))
+        self.ctx_thread.__enter__()
+        try:
+            print('entered ctxthread')
+            if self.sleep is not None:
+                # Give SSH some time to connect before attempting to connect over it:
+                time.sleep(self.sleep)
 
-            if not check('which','telnet'):
-                raise RuntimeError("`telnet` required to test SSH connection")
+                if not check('which','telnet'):
+                    raise RuntimeError("`telnet` required to test SSH connection")
 
-            # Verify telnet connectivity
-            cmd = ['telnet',src_host,src_port]
-            p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=timeout)
-            if p.returncode:
-                raise CalledProcessError(p.returncode, cmd)
-        yield
+                # Verify telnet connectivity
+                cmd = ['telnet',self.src_host,self.src_port]
+                p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=self.timeout)
+                if p.returncode:
+                    raise CalledProcessError(p.returncode, cmd)
+        except Exception as e:
+            print('Caught exception verifying tunnel')
+            self.ctx_thread.__exit__(type(e), e, e.__traceback__)
+            raise e
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(f'Tunnel.__exit__({exc_type}, {exc_val}, {exc_tb})')
+        self.ctx_thread.__exit__(exc_type, exc_val, exc_tb)
+
+    def stop(self): self.__exit__(None, None, None)
+    def close(self): self.__exit__(None, None, None)
