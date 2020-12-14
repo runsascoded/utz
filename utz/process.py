@@ -51,27 +51,38 @@ def line(*cmd, empty_ok=False, err_ok=False, **kwargs):
     else:
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
-def run(*cmd, dry_run=False, **kwargs):
+ELIDED = '****'
+
+def mk_cmd_str(cmd, elide=None):
+    shlex_join = getattr(shlex, 'join', ' '.join)  # shlex.join only exists in Python ≥3.8
+    cmd_str = shlex_join(cmd)
+    if elide:
+        if isinstance(elide, str): elide = [elide]
+        for s in elide:
+            cmd_str = cmd_str.replace(s, ELIDED)
+    return cmd_str
+
+def run(*cmd, dry_run=False, elide=None, **kwargs):
     '''Convenience wrapper for check_call'''
     cmd = parse_cmd(cmd)
-    shlex_join = getattr(shlex, 'join', ' '.join)  # shlex.join only exists in Python ≥3.8
+    cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
-        print(f'Would run: {shlex_join(cmd)}')
+        print(f'Would run: {cmd_str}')
     else:
-        print(f'Running: {shlex_join(cmd)}')
+        print(f'Running: {cmd_str}')
         check_call(cmd, **kwargs)
 
 sh = run
 
-def output(*cmd, dry_run=False, err_ok=False, **kwargs):
+def output(*cmd, dry_run=False, err_ok=False, elide=None, **kwargs):
     '''Convenience wrapper for check_output'''
     cmd = parse_cmd(cmd)
-    shlex_join = getattr(shlex, 'join', ' '.join)  # shlex.join only exists in Python ≥3.8
+    cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
-        print(f'Would run: {shlex_join(cmd)}')
+        print(f'Would run: {cmd_str}')
         return b''
     else:
-        print(f'Running: {shlex_join(cmd)}')
+        print(f'Running: {cmd_str}')
         try:
             return check_output(cmd, **kwargs)
         except CalledProcessError as e:
@@ -90,10 +101,10 @@ def json(*cmd, **kwargs):
     return loads(out.decode())
 
 
-def check(*cmd, stdout=DEVNULL, stderr=DEVNULL):
+def check(*cmd, stdout=DEVNULL, stderr=DEVNULL, **kwargs):
     '''Return True iff a command run successfully (i.e. exits with code 0)'''
     try:
-        run(*cmd, stdout=stdout, stderr=stderr)
+        run(*cmd, stdout=stdout, stderr=stderr, **kwargs)
         return True
     except CalledProcessError:
         return False
