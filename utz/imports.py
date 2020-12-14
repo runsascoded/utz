@@ -19,12 +19,7 @@ import datetime
 from datetime import datetime as dt, date
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
-
-now = dt.now()
-ISO_DATE_FMT = '%Y-%m-%dT%H:%M:%S'
-runtime = now.strftime(ISO_DATE_FMT)
-today = now.strftime('%Y-%m-%d')
-
+from .time import now, today
 
 # ### Paths
 

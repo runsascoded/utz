@@ -6,6 +6,7 @@ setup(
         "joblib",
         "pandas",
         "python-dateutil",
+        "pytz",
         "pyyaml",
     ],
     extras_require={
