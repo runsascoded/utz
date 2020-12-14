@@ -1,22 +1,14 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 # # Context Manager utilities
 
 # General/Common imports:
-
-# In[ ]:
-
 
 from contextlib import AbstractContextManager, contextmanager, suppress
 
 
 # ## `nullcontext`
 # Define `nullcontext` in a cross-version way:
-
-# In[ ]:
-
-
 try:
     # Python ≥3.7
     from contextlib import nullcontext
@@ -28,18 +20,10 @@ except ImportError:
 
 
 # Verify it works:
-
-# In[2]:
-
-
 with nullcontext(): pass
 
 
 # ## `catch`: context manager for catching+verifying `Exception`s
-
-# In[ ]:
-
-
 class catch(AbstractContextManager):
     def __init__(self, *excs):
         self.excs = excs
@@ -58,9 +42,5 @@ class catch(AbstractContextManager):
 
 
 # ## `no`: context manager for verifying `NameError`s (undefined variable names)
-
-# In[1]:
-
-
 no = catch(NameError)
 

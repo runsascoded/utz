@@ -1,6 +1,7 @@
 
 from datetime import datetime as dt
-from pytz import UTC
+from sys import stderr
+
 from .o import o
 
 
@@ -17,8 +18,18 @@ class now:
         elif isinstance(fmt, str):
             if hasattr(FMTS, fmt):
                 fmt = getattr(FMTS, fmt)
-        self.time = dt.now().astimezone(UTC)
+        self.time = dt.now()
+        try:
+            from pytz import UTC
+            self.time = self.time.astimezone(UTC)
+        except ImportError:
+            # timezone will be local, not UTC; don't imply UTC in format
+            stderr.write('pytz not installed; now()/today() will be based on OS TZ, which may not be UTC\n')
+            assert fmt[-1] == 'Z'
+            fmt = fmt[:-1]
+
         self.fmt = fmt
+
     def __call__(self, fmt): return self.time.strftime(fmt)
     def __getattr__(self, k): return getattr(self.time, k)
     def __str__(self): return self.time.strftime(self.fmt)
