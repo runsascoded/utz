@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 from pandas import Series
 
 def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True):
     if isinstance(elems, Series):
         elems = elems.unique().tolist()
+    elif isinstance(elems, dict):
+        elems = elems.items()
     if fn:
         elems = [ elem for elem in elems if fn(elem) ]
     else:
@@ -22,9 +21,6 @@ def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True):
         raise ValueError(f'{len(elems)} {name} found: {",".join([ str(elem) for elem in list(elems)[:10] ])}')
     [ elem ] = elems
     return elem
-
-
-# In[ ]:
 
 
 from math import exp, log

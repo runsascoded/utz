@@ -12,3 +12,9 @@ def test_singleton():
 
     with raises(ValueError, 'No elems found'):
         singleton([])
+
+    assert singleton({'a':1}) == ('a', 1)
+    with raises(ValueError, "2 elems found: ('b', 2),('a', 1)"):
+        singleton({'a':1,'b':2})
+    with raises(ValueError, 'No elems found'):
+        singleton({})
