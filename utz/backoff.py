@@ -2,8 +2,19 @@
 from datetime import datetime as dt
 from sys import stderr
 import time
+from typing import Union
 
-def backoff(fn, init=1, step=2, reps=5, max=None, out=stderr, now=False, msg=None, fmt='%.1f', pred=bool, exc=False):
+
+def backoff(
+    fn,
+    init=1, step=2, reps=5, max=None,
+    out=stderr,
+    now=False,
+    msg=None,
+    fmt='%.1f',
+    pred=bool,
+    exc: Union[bool, Exception] = False,
+):
     attempts = 0
     n = 0
     sleep = init
@@ -12,8 +23,8 @@ def backoff(fn, init=1, step=2, reps=5, max=None, out=stderr, now=False, msg=Non
         if exc is True:
             exc = Exception
         else:
-            assert isinstance(exc, Exception)
-        def check(v):
+            assert issubclass(exc, Exception)
+        def check():
             try:
                 return True, fn()
             except exc as e:
@@ -33,8 +44,10 @@ def backoff(fn, init=1, step=2, reps=5, max=None, out=stderr, now=False, msg=Non
             if not n:
                 if attempts: out.write('\n')
                 out.write(('Sleeping %ss: ' % fmt) % sleep)
+                out.flush()
             time.sleep(sleep)
             out.write('.')
+            out.flush()
         done, v = check()
         if done:
             return v
@@ -43,5 +56,5 @@ def backoff(fn, init=1, step=2, reps=5, max=None, out=stderr, now=False, msg=Non
         if n == reps:
             n = 0
             sleep *= step
-            if max and sleep >= max:
+            if max and sleep > max:
                 raise TimeoutError(msg or ('Failed after %d attempts / %ss' % (attempts, int((dt.now() - start).total_seconds()))))

@@ -53,14 +53,11 @@ class Tunnel(AbstractContextManager):
             def check_ssh():
                 # Verify telnet connectivity
                 cmd = ['telnet',self.src_host,self.src_port]
-                try:
-                    p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=self.timeout)
-                except CalledProcessError as e:
-                    return True
+                p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=self.timeout)
                 if p.returncode:
                     raise CalledProcessError(p.returncode, cmd)
 
-            backoff(check_ssh, init=self.sleep, max=5)
+            backoff(check_ssh, init=self.sleep, max=5, exc=CalledProcessError)
 
         except Exception as e:
             self.proc.kill()
