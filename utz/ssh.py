@@ -3,7 +3,8 @@ import time
 from contextlib import AbstractContextManager
 from subprocess import CalledProcessError, PIPE, Popen
 
-from utz.process import check
+from utz import check
+from utz.backoff import backoff
 
 
 class Tunnel(AbstractContextManager):
@@ -46,18 +47,21 @@ class Tunnel(AbstractContextManager):
     def __enter__(self):
         self.proc = Popen(['ssh','-N','-L',f'{self.src}:{self.dst}',self.proxy])
         try:
-            if self.sleep is not None:
-                # Give SSH some time to connect before attempting to connect over it:
-                time.sleep(self.sleep)
+            if not check('which','telnet'):
+                raise RuntimeError("`telnet` required to test SSH connection")
 
-                if not check('which','telnet'):
-                    raise RuntimeError("`telnet` required to test SSH connection")
-
+            def check_ssh():
                 # Verify telnet connectivity
                 cmd = ['telnet',self.src_host,self.src_port]
-                p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=self.timeout)
+                try:
+                    p = subprocess.run(cmd, input=b'\035\n', stderr=PIPE, timeout=self.timeout)
+                except CalledProcessError as e:
+                    return True
                 if p.returncode:
                     raise CalledProcessError(p.returncode, cmd)
+
+            backoff(check_ssh, init=self.sleep, max=5)
+
         except Exception as e:
             self.proc.kill()
             raise e
