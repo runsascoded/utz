@@ -1,9 +1,9 @@
 
 from datetime import datetime as dt
-from sys import stdout
+from sys import stderr
 import time
 
-def backoff(fn, init=1, step=2, reps=5, max=None, out=stdout, now=False, msg=None, fmt='%.1f', pred=None, exc=False):
+def backoff(fn, init=1, step=2, reps=5, max=None, out=stderr, now=False, msg=None, fmt='%.1f', pred=bool, exc=False):
     attempts = 0
     n = 0
     sleep = init
