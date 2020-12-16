@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 
-from . import branch, diff, head, remote, submodule
+from . import branch, clone, diff, head, remote, submodule
 from .remote import push
 from ..process import run
 

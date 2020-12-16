@@ -93,6 +93,7 @@ from typing import Any, Callable, Collection, Generator, Iterable, Iterator, Lis
 # ## Sibling modules
 # Import other utilities from this repo:
 
+from .backoff import backoff
 from . import process
 from .process import *
 

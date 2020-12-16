@@ -1,10 +1,8 @@
 import subprocess
-import time
 from contextlib import AbstractContextManager
 from subprocess import CalledProcessError, PIPE, Popen
 
-from utz import check
-from utz.backoff import backoff
+from utz import backoff, check
 
 
 class Tunnel(AbstractContextManager):
