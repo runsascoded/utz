@@ -97,7 +97,7 @@ from urllib.parse import urlparse
 # Import other utilities from this repo:
 
 from .backoff import backoff
-from . import process
+from . import docker, process
 from .process import *
 
 with _try:

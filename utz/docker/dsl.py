@@ -11,12 +11,14 @@ def _method(name):
 
     return impl
 
+ARG = _method('ARG')
 COPY = _method('COPY')
-NOTE = _method('NOTE')
-ENV = _method('ENV')
-LABEL = _method('LABEL')
-FROM = _method('FROM')
-LN = _method('LN')
-WORKDIR = _method('WORKDIR')
 ENTRYPOINT = _method('ENTRYPOINT')
+ENV = _method('ENV')
+FROM = _method('FROM')
+LABEL = _method('LABEL')
+LN = _method('LN')
+NOTE = _method('NOTE')
+RUN = _method('RUN')
+WORKDIR = _method('WORKDIR')
 USER = _method('USER')
