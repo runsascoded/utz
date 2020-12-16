@@ -3,30 +3,21 @@ from contextlib import AbstractContextManager
 import json
 from os.path import exists, join
 from os import getcwd, remove
-import re
 import shlex
-from shutil import copy
 from tempfile import NamedTemporaryFile
 from types import TracebackType
 from typing import Optional, Type
 
-from .process import run, sh
+from ..context import nullcontext
+from ..process import sh
 
-
-def escape(*args):
-    if len(args) == 1:
-        arg = args[0]
-        if isinstance(arg, dict):
-            return " ".join(escape(k, v) for k,v in arg.items())
-        else:
-            backslashes = re.sub(r'\\',r'\\\\',str(arg))
-            return re.sub(r'(["\n])',r'\\\1',backslashes)
-    elif len(args) == 2:
-        k,v = args
-        return f'"{escape(k)}"="{escape(v)}"'
+from .image import Image
+from .util import escape
 
 
 class File(AbstractContextManager):
+    _file = None
+
     def __init__(self, path=None, tag=None, rm=None, copy_dir=None, extend=None, **kwargs):
         if kwargs:
             if 'dir' in kwargs:
@@ -37,18 +28,29 @@ class File(AbstractContextManager):
                 raise ValueError(f'Unrecognized kwargs: {kwargs}')
         else:
             dir = getcwd()
+
         if path:
             self.rm = bool(rm)
         else:
-            path = NamedTemporaryFile(prefix='Dockerfile.', dir=dir).name
             self.rm = rm != False
+
         self.path = path
         self.fd = None
         self.tag = tag
         self.dir = dir
         self.copy_dir = copy_dir
+
         if extend:
-            copy(extend, path)
+            with open(extend,'r') as f:
+                self.lines = [ line.rstrip('\n') for line in f.readlines() ]
+        else:
+            self.lines = []
+
+    def __enter__(self):
+        if File._file:
+            raise RuntimeError(f"Can't enter {self}, already entered {File._file}")
+        File._file = self
+        return self
 
     def __exit__(
         self,
@@ -56,46 +58,48 @@ class File(AbstractContextManager):
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType]
     ):
-        self.close(closed_ok=True)
-        if exists(self.path):
+        File._file = None
+        if self.tag:
+            self.build(self.tag)
+        if self.path and exists(self.path) and self.rm:
             remove(self.path)
 
-    def write(self, *lines, open_ok=True):
-        if not self.fd:
-            if not open_ok:
-                raise RuntimeError(f"Refusing to write to {self.path} that's not already open")
-            if exists(self.path):
-                mode = 'a'
-            else:
-                mode = 'w'
-            self.fd = open(self.path,mode)
-        for line in lines:
-            self.fd.write('%s\n' % line)
+    def write(self, *lines):
+        self.lines += lines
 
-    def close(self, closed_ok=False):
-        if self.fd:
-            self.fd.close()
-            self.fd = None
-        elif not closed_ok:
-            raise RuntimeError(f"Can't close {self.path}; not open")
-
-    def build(self, tag=None, dir=None, closed_ok=False, **build_args):
-        self.close(closed_ok=closed_ok)
-
+    def build(self, tag=None, dir=None, **build_args):
         tag = tag or self.tag
-        dir = dir or self.dir or '.'
         if not tag:
             raise ValueError(f'Missing tag for image build')
 
-        run(
-            'docker','build',
-            '-f',self.path,
-            '-t',tag,
-            [ ['--build-arg',f'{k}={v}'] for k,v in build_args.items() ],
-            dir
-        )
-        if self.rm:
-            remove(self.path)
+        dir = dir or self.dir or '.'
+        rm = self.rm
+        path = self.path
+        mode = 'w'
+
+        if path:
+            ctx = nullcontext()
+            if exists(path):
+                mode = 'a'
+        else:
+            ctx = NamedTemporaryFile(prefix='Dockerfile.', dir=dir, delete=rm)
+            rm = False
+            path = ctx.name
+
+        with ctx:
+            with open(path, mode) as fd:
+                fd.writelines('%s\n' % l for l in self.lines)
+
+            sh(
+                'docker','build',
+                '-f',path,
+                '-t',tag,
+                [ ['--build-arg',f'{k}={v}'] for k,v in build_args.items() ],
+                dir
+            )
+
+            if rm:
+                remove(path)
 
         return Image(tag, self)
 
@@ -174,16 +178,3 @@ class File(AbstractContextManager):
             self.write(f'USER {user}:{group}')
         else:
             self.write(f'USER {user}')
-
-class Image:
-    def __init__(self, url, file=None):
-        self.url = url
-        self.file = file
-
-    def run(self, name=None, rm=False,):
-        sh(
-            'docker','run',
-            ['--name',name] if name else None,
-            '--rm' if rm else None,
-            self.url,
-        )
