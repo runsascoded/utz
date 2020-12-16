@@ -90,6 +90,9 @@ from time import sleep
 import typing
 from typing import Any, Callable, Collection, Generator, Iterable, Iterator, List, Optional, Sequence, Set, Sized, Union
 
+import urllib
+from urllib.parse import urlparse
+
 # ## Sibling modules
 # Import other utilities from this repo:
 
