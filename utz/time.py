@@ -4,8 +4,20 @@ from sys import stderr
 
 from .o import o
 
-
 class now:
+    EPOCH = dt(1970,1,1)
+
+    try:
+        # import pytz
+        from pytz import UTC
+        pytz = True
+        # UTC = pytz.UTC
+        def tz(d): return d.astimezone(now.UTC)
+    except ImportError:
+        pytz = False
+        UTC = None
+        def tz(d): return d
+
     FMTS = o(
         iso='%Y-%m-%dT%H:%M:%SZ',
         short='%Y%m%dT%H%M%SZ',
@@ -19,10 +31,9 @@ class now:
             if hasattr(FMTS, fmt):
                 fmt = getattr(FMTS, fmt)
         self.time = dt.now()
-        try:
-            from pytz import UTC
-            self.time = self.time.astimezone(UTC)
-        except ImportError:
+        if now.pytz:
+            self.time = self.time.astimezone(now.UTC)
+        else:
             # timezone will be local, not UTC; don't imply UTC in format
             stderr.write('pytz not installed; now()/today() will be based on OS TZ, which may not be UTC\n')
             assert fmt[-1] == 'Z'
@@ -34,6 +45,8 @@ class now:
     def __getattr__(self, k): return getattr(self.time, k)
     def __str__(self): return self.time.strftime(self.fmt)
     def __repr__(self): return str(self)
+    def __int__(self): return int((self.time - now.tz(now.EPOCH)).total_seconds())
+    def __float__(self): return (self.time - now.tz(now.EPOCH)).total_seconds()
 
 
 class today(now):
