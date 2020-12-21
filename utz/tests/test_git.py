@@ -1,69 +1,96 @@
 
 import utz
-from utz import basename, cd, dirname, exists, getcwd, git, join, lines, realpath, run
+from utz import basename, cd, dirname, env, exists, getcwd, git, join, line, lines, realpath, run
 
 
-def test_tmp_clone_remote():
-    with git.clone.tmp('https://gitlab.com/gsmo/examples/factors.git') as cwd:
+def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, files=None, rm=None,):
+    if cwd:
         # Check that we're actually in the directory returned by the ctx mgr above:
-        tmpdir = realpath(getcwd())
-        assert tmpdir == realpath(cwd)
-        assert basename(getcwd()) == 'factors'
-        # It's a clean clone
-        assert not lines('git','status','--short')
+        dir = realpath(getcwd())
+        assert dir == realpath(cwd)
 
-    # verify the tmpdir is gone
-    assert not exists(tmpdir)
+    if name:
+        # check basename
+        assert basename(getcwd()) == name
 
-def test_tmp_clone_local():
+    if status:
+        if status is True:
+            # verify clone is clean
+            assert not lines('git','status','--short')
+        else:
+            # verify status lines
+            assert lines('git','status','--short') == status
+
+    # verify current branch
+    if branch:
+        assert git.branch.current() == branch
+
+    # verify submodules have been cloned
+    if paths:
+        if isinstance(paths, str): paths = [paths]
+        for path in paths:
+            assert exists(path), f"{path} doesn't exist"
+
+    # verify various shas
+    for sha, refs in shas.items():
+        if isinstance(refs, (list,tuple)):
+            for ref in refs:
+                if ref is None:
+                    assert git.sha() == sha
+                else:
+                    assert git.sha(ref) == sha
+
+    if files:
+        for path, lns in files.items():
+            assert lines('cat',path) == lns
+
+    if rm:
+        assert not exists(rm)
+
+
+def commit_file(path, lines, parent_sha, mode='w'):
+    new_file = not exists(path)
+    with open(path, mode) as f:
+        if isinstance(lines, str): lines = [lines]
+        f.writelines('%s\n' % ln for ln in lines)
+    run('git','add',path)
+    if new_file:
+        msg = f'add {path}: {lines}'
+    else:
+        msg = f'update {path}: {lines}'
+    run('git','commit','-m',msg)
+    assert git.sha('HEAD^') == parent_sha
+    return git.sha()
+
+
+def test_tmp_clone_remote_push_changes():
+    # set this HAILSTONE_SSH_URL to a different fork or repo if developing without access to this one
+    url = env.get('HAILSTONE_SSH_URL', 'git@gitlab.com:gsmo/examples/hailstone.git')
+    branch = 'tmp'
+    sha0 = 'f09bd0a'
+    with git.clone.tmp(url, branch=branch, init=sha0, push=True) as cwd:
+        tmpdir = cwd
+        check(cwd=cwd, name='hailstone', shas={ sha0: (None, branch) })
+        sha1 = commit_file('test1.txt',['111','222'], sha0)
+
+    try:
+        # verify the tmpdir is gone
+        assert not exists(tmpdir)
+
+        ref_str = f'refs/heads/{branch}'
+        remote_line = line('git','ls-remote','--heads',url,ref_str)
+        run('git','fetch',url,f'{branch}:{branch}')
+        full_sha = git.fmt('%H', sha1)
+        assert remote_line == '%s\t%s' % (full_sha, ref_str)
+    finally:
+        run('git','push','--delete',url,branch)
+
+
+def test_tmp_clone_local_pull_changes():
     branch = 'tmp'
     tag = 'v0.0.1'
     base_repo = join(dirname(utz.__file__), 'tests/data/gsmo')
     sha0 = '68a257a'
-
-    def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, files=None, rm=None,):
-        if cwd:
-            # Check that we're actually in the directory returned by the ctx mgr above:
-            dir = realpath(getcwd())
-            assert dir == realpath(cwd)
-
-        if name:
-            # check basename
-            assert basename(getcwd()) == name
-
-        if status:
-            if status is True:
-                # verify clone is clean
-                assert not lines('git','status','--short')
-            else:
-                # verify status lines
-                assert lines('git','status','--short') == status
-
-        # verify current branch
-        if branch:
-            assert git.branch.current() == branch
-
-        # verify submodules have been cloned
-        if paths:
-            if isinstance(paths, str): paths = [paths]
-            for path in paths:
-                assert exists(path), f"{path} doesn't exist"
-
-        # verify various shas
-        for sha, refs in shas.items():
-            if isinstance(refs, (list,tuple)):
-                for ref in refs:
-                    if ref is None:
-                        assert git.sha() == sha
-                    else:
-                        assert git.sha(ref) == sha
-
-        if files:
-            for path, lns in files.items():
-                assert lines('cat',path) == lns
-
-        if rm:
-            assert not exists(rm)
 
     # bind some `check` params
     def verify(wd, sha):
@@ -74,20 +101,6 @@ def test_tmp_clone_local():
             branch=branch,
             shas={sha: (None, branch)},
         )
-
-    def commit_file(path, lines, parent_sha, mode='w'):
-        new_file = not exists(path)
-        with open(path, mode) as f:
-            if isinstance(lines, str): lines = [lines]
-            f.writelines('%s\n' % ln for ln in lines)
-        run('git','add',path)
-        if new_file:
-            msg = f'add {path}: {lines}'
-        else:
-            msg = f'update {path}: {lines}'
-        run('git','commit','-m',msg)
-        assert git.sha('HEAD^') == parent_sha
-        return git.sha()
 
     with git.clone.tmp(base_repo, branch=branch, init=tag) as origin:
         verify(origin, sha0)
@@ -146,7 +159,7 @@ def test_tmp_clone_local():
             # on ctx mgr exit, merge is performed, but a merge conflict arises, and a new branch `conflict-<sha>` points
             # at the unmerged temporary/remote changes
 
-        conflict_branch = f'conflict-{git.fmt("%h", sha3_2)}'
+        conflict_branch = f'conflict-{sha3_2}'
         check(
             shas={
                 sha3_1: (None, branch),

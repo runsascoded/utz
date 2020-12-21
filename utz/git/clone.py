@@ -102,8 +102,7 @@ def tmp(
                     sha = git.sha('FETCH_HEAD')
 
                 if not check('git','merge','-m','\n'.join([f'Merge {branch} from tmpdir','',repo_dir]),sha):
-                    short_sha = git.fmt('%h', sha)
-                    tmp_branch = f'conflict-{short_sha}'
+                    tmp_branch = f'conflict-{sha}'
                     run('git','branch',tmp_branch,sha)
                     stderr.write('Pulling from %s failed, aborting merge, saving to %s\n' % (repo_dir, tmp_branch))
                     run('git','merge','--abort')
@@ -111,9 +110,12 @@ def tmp(
         # optionally push back upstream
         if push:
             with utz.cd(repo_dir):
-                cmd = ['git','push']
+                cmd = ['git','push',]
                 if isinstance(push, str):
-                    cmd += ['origin',push]
+                    cmd += ['origin',f'{push}:{push}',]
                 elif isinstance(push, Iterable):
                     cmd += push
+                elif push is True:
+                    if branch:
+                        cmd += ['origin',f'{branch}:{branch}',]
                 run(*cmd)
