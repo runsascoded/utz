@@ -103,6 +103,7 @@ from uuid import uuid1
 # Import other utilities from this repo:
 
 from .backoff import backoff
+from .tmpdir import tmpdir
 from . import docker, process
 from .process import *
 

@@ -1,0 +1,16 @@
+from contextlib import contextmanager
+from os import mkdir
+from os.path import join
+from tempfile import TemporaryDirectory
+
+
+@contextmanager
+def tmpdir(name=None):
+    '''contextmanager for creating a temporary directory with an optional `name`'''
+    if name:
+        with TemporaryDirectory() as tmpdir:
+            dir = join(tmpdir, name)
+            mkdir(dir)
+            yield dir
+    else:
+        yield TemporaryDirectory()
