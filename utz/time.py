@@ -62,13 +62,19 @@ class now:
     def us(self): return int(float(self) * 1e6)
 
     @staticmethod
-    def from_s(s): return dt.fromtimestamp(s)
+    def to_dt(s):
+        from dateutil.parser import parse
+        return parse(s).astimezone(now.UTC)
     @staticmethod
-    def from_ms(ms): return dt.fromtimestamp(ms / 1e3)
+    def fromtimestamp(s, tz=UTC): return dt.fromtimestamp(s, tz=tz)
     @staticmethod
-    def from_μs(us): return dt.fromtimestamp(us / 1e6)
+    def from_s(s): return now.fromtimestamp(s)
     @staticmethod
-    def from_us(us): return dt.fromtimestamp(us / 1e6)
+    def from_ms(ms): return now.fromtimestamp(ms / 1e3)
+    @staticmethod
+    def from_μs(us): return now.fromtimestamp(us / 1e6)
+    @staticmethod
+    def from_us(us): return dt.fromtimestamp(us / 1e6, tz=now.UTC)
 
 
 class today(now):

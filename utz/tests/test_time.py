@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 from pytz import UTC
 
-from utz import b62, b64, b90, now, o, parse, today
-
+from utz import b62, b64, b90, now, o, today
+to_dt = now.to_dt
 
 def test_time():
     fmt = '%Y-%m-%dT%H:%M:%SZ'
@@ -88,10 +88,10 @@ def test_encodings(debug, codec, cases, t2021):
         else:
             assert s[0] == case.ch
             assert N == case.len
-            assert first_until == parse(case.first_until)
-            assert len_until == parse(case.len_until)
+            assert first_until == to_dt(case.first_until)
+            assert len_until == to_dt(case.len_until)
 
-    instant = parse('20210101')
+    instant = to_dt('20210101')
     assert (
         codec(now(d=instant). s),
         codec(now(d=instant).ms),
