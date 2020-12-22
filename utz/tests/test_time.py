@@ -40,27 +40,27 @@ def test_time():
         (
             b64,
             (
-                o(unit='s', ch='+', len=6, first_until='2038-08-04 05:32:48', len_until='4182-03-13 23:28:00'),
-                o(unit='ms', ch='K', len=7, first_until='2022-04-19 04:50:27.008000', len_until='2111-08-01 03:19:33.184000'),
-                o(unit='us', ch='2', len=9, first_until='2023-08-29 10:01:57.037120', len_until='2549-11-30 07:09:02.965824'),
+                o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z',        len_until='4182-03-14T03:28:00Z'),
+                o(unit='ms', ch='K', len=7, first_until='2022-04-19T08:50:27.008000Z', len_until='2111-08-01T07:19:33.184000Z'),
+                o(unit='us', ch='2', len=9, first_until='2023-08-29T14:01:57.037120Z', len_until='2549-11-30T12:09:02.965824Z'),
             ),
             ('+SuZKz', 'KNuCZyz', '2gvgesKyz'),
         ),
         (
             b62,
             (
-                o(unit= 's', ch='A', len=6, first_until='2028-07-15 10:30:34',        len_until='3799-06-08 04:23:06'),
-                o(unit='ms', ch='b', len=7, first_until='2022-03-24 12:06:23.338000', len_until='2083-06-04 10:46:33.194000'),
-                o(unit='us', ch='G', len=9, first_until='2025-06-18 22:29:50.672362', len_until='2406-01-02 13:06:37.841642'),
+                o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z',        len_until='3799-06-08T08:23:06Z'),
+                o(unit='ms', ch='b', len=7, first_until='2022-03-24T16:06:23.338000Z', len_until='2083-06-04T14:46:33.194000Z'),
+                o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
             ('At4G0V', 'bTwXvhz', 'GWAZusO3r',),
         ),
         (
             b90,
             (
-                o(unit= 's', ch='8', len=5, first_until='2021-12-31 16:46:30',        len_until='2159-03-22 11:46:30'),
-                o(unit='ms', ch='#', len=7, first_until='2037-07-20 16:40:47.190000', len_until='3502-09-11 06:10:47.190002'),
-                o(unit='us', ch='A', len=8, first_until='2021-07-19 22:07:52.247190', len_until='2107-12-11 04:33:22.247190'),
+                o(unit= 's', ch='8', len=5, first_until='2021-12-31T21:46:30Z',        len_until='2159-03-22T15:46:30Z'),
+                o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
+                o(unit='us', ch='A', len=8, first_until='2021-07-20T02:07:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
             ('8Od[z', '#"R^v[z', 'AZK=Tv[z'),
         ),
@@ -84,7 +84,14 @@ def test_encodings(debug, codec, cases, t2021):
         len_until = s2dt(codec(last*N))
 
         if debug:
-            print(f"o(unit='{unit}', ch='{s[0]}', len={N}, first_until='{first_until}', len_until='{len_until}'),")
+            unit_str = '% 4s' % f"'{unit}'"
+            def fmt(d):
+                if unit == 's':
+                    return str(now(d=d))
+                else:
+                    return str(now(fmt='micro', d=d))
+
+            print(f"o(unit={unit_str}, ch='{s[0]}', len={N}, first_until='{fmt(first_until)}', len_until='{fmt(len_until)}'),")
         else:
             assert s[0] == case.ch
             assert N == case.len

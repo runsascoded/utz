@@ -5,8 +5,6 @@ from sys import stderr
 from .o import o
 
 class now:
-    EPOCH = dt(1970,1,1)
-
     try:
         from pytz import UTC
         pytz = True
@@ -16,9 +14,12 @@ class now:
         UTC = None
         def tz(d): return d
 
+    EPOCH = dt(1970,1,1).replace(tzinfo=UTC)
+
     FMTS = o(
         iso='%Y-%m-%dT%H:%M:%SZ',
         short='%Y%m%dT%H%M%SZ',
+        micro='%Y-%m-%dT%H:%M:%S.%fZ',
     )
     @property
     def fmts(self): return self.FMTS
