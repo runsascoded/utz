@@ -17,7 +17,7 @@ class Compute:
         '''Default to markdown format for `long_description`'''
         return "text/markdown"
 
-    VERSION_TAG_REGEX = r'v?(?P<version>(?P<base>\d+\.\d+\.\d+)(?:-(?P<commits_ahead>\d+)-g(?P<sha>[0-9a-f]{6,})|-(?P<rc>rc?\d+))?)'
+    VERSION_TAG_REGEX = r'v?(?P<version>(?P<base>\d+\.\d+\.\d+)(?:-(?P<commits_ahead>\d+)-g(?P<sha>[0-9a-f]{6,})|(?P<rc>(?:r|c|rc|a|b)\d+))?)'
     def version(self):
         '''Infer version from git tag of the form "v_._._" (which must be present)'''
         try:

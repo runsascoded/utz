@@ -38,5 +38,5 @@ def test_setup_gsmo(mocker):
 def test_parse_version():
     rgx = Compute.VERSION_TAG_REGEX
     assert match(rgx, '0.1.2').groupdict() == { 'version': '0.1.2', 'base': '0.1.2', 'commits_ahead': None, 'rc': None, 'sha': None, }
-    assert match(rgx, '0.1.23-r1').groupdict() == { 'version': '0.1.23-r1', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'r1', 'sha': None, }
-    assert match(rgx, '0.1.23-rc45').groupdict() == { 'version': '0.1.23-rc45', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'rc45', 'sha': None, }
+    assert match(rgx, '0.1.23r1').groupdict() == { 'version': '0.1.23r1', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'r1', 'sha': None, }
+    assert match(rgx, '0.1.23rc45').groupdict() == { 'version': '0.1.23rc45', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'rc45', 'sha': None, }
