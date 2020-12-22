@@ -224,3 +224,4 @@ def test_ls_remote_lines():
     assert parse_ls_remote_lines(utz_lines, sha=head, tags=True) == {'v0.2.2':head}
     assert parse_ls_remote_lines(utz_lines, sha=head, heads=True, tags=True) == dict(heads={'py':head}, tags={'v0.2.2':head})
 
+    assert git.ls_remote('https://gitlab.com/runsascoded/utz.git', tag='v0.2.2') == head

@@ -25,9 +25,9 @@ def parse_ls_remote_lines(lns, head=None, tag=None, sha=None, heads=False, tags=
             raise ValueError(f'Unexpected `git ls-remote` line: {ln}')
 
     if head:
-        return d.get('heads').get(head)
+        return d.get('heads', {}).get(head)
     if tag:
-        return d.get('tags').get(tag)
+        return d.get('tags', {}).get(tag)
     if sha:
         r = {}
         for k,v in d.items():
@@ -52,7 +52,7 @@ def ls_remote(remote, *args, head=None, tag=None, sha=None, heads=False, tags=Fa
     cmd = ['git','ls-remote']
     if head or heads: cmd += ['--heads']
     if tag or tags: cmd += ['--tags']
-    cmd += [remote] + args
+    cmd += (remote,) + args
     lns = lines(cmd)
     return parse_ls_remote_lines(lns, head=head, tag=tag, sha=sha, heads=heads, tags=tags)
 
