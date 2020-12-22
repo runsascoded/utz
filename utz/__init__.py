@@ -16,6 +16,8 @@ from .imports import _try
 
 import datetime
 from datetime import datetime as dt, date
+fromtimestamp = dt.fromtimestamp
+fromisoformat = dt.fromisoformat
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
 from .time import now, today
@@ -27,6 +29,9 @@ from .path import mkdir, mkpar
 # ### Other
 import argparse
 from argparse import ArgumentParser
+
+from base64 import b64decode, b64encode, b85decode, b85encode
+from .bases import b62, b64, b90
 
 import configparser
 from configparser import ConfigParser

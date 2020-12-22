@@ -8,10 +8,8 @@ class now:
     EPOCH = dt(1970,1,1)
 
     try:
-        # import pytz
         from pytz import UTC
         pytz = True
-        # UTC = pytz.UTC
         def tz(d): return d.astimezone(now.UTC)
     except ImportError:
         pytz = False
@@ -24,13 +22,19 @@ class now:
     )
     @property
     def fmts(self): return self.FMTS
-    def __init__(self, fmt=None):
+    def __init__(self, fmt=None, d=None):
         FMTS = self.FMTS
         if fmt is None: fmt = FMTS.iso
         elif isinstance(fmt, str):
             if hasattr(FMTS, fmt):
                 fmt = getattr(FMTS, fmt)
-        self.time = dt.now()
+        if d is None:
+            self.time = dt.now()
+        elif isinstance(d, str):
+            from dateutil.parser import parse
+            self.time = parse(d)
+        elif isinstance(d, dt):
+            self.time = d
         if now.pytz:
             self.time = self.time.astimezone(now.UTC)
         else:
@@ -47,6 +51,24 @@ class now:
     def __repr__(self): return str(self)
     def __int__(self): return int((self.time - now.tz(now.EPOCH)).total_seconds())
     def __float__(self): return (self.time - now.tz(now.EPOCH)).total_seconds()
+
+    @property
+    def s(self): return int(self)
+    @property
+    def ms(self): return int(float(self) * 1e3)
+    @property
+    def μs(self): return int(float(self) * 1e6)
+    @property
+    def us(self): return int(float(self) * 1e6)
+
+    @staticmethod
+    def from_s(s): return dt.fromtimestamp(s)
+    @staticmethod
+    def from_ms(ms): return dt.fromtimestamp(ms / 1e3)
+    @staticmethod
+    def from_μs(us): return dt.fromtimestamp(us / 1e6)
+    @staticmethod
+    def from_us(us): return dt.fromtimestamp(us / 1e6)
 
 
 class today(now):
