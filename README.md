@@ -20,10 +20,15 @@ Some noteworthy modules:
 - [o](utz/o.py): `dict` wrapper exposing keys as attrs (e.g.: `o({'a':1}).a == 1`)
 - [process](utz/process.py): subprocess wrappers for more easily shelling out to commands and parsing their stdout
 - [docker](docker/): DSL for programmatically creating Dockerfiles (and building images from them)
+- [ssh](utz/ssh.py): SSH tunnel wrapped in a context manager
+- [time](utz/time.py): `now()`/`today()` helpers with convenient / no-nonsense ISO string serialization and UTC bias
+- [bases](utz/bases.py): `int`⟺`str` codecs with improvements over standard base64 et al.
+- [tmpdir](utz/tmpdir.py): make temporary directories with a specific basename
+- [context](utz/context.py): context-manager helpers, including `ctxs` for composing multiple context managers
+- [backoff](utz/backoff.py): simple exponential-backoff utility
 - [git](utz/git): git helpers / wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)
 - [pnds](utz/pnds.py): common [pandas](https://pandas.pydata.org/) imports and helpers
 - [collections](utz/collections.py): collection/list helpers
-- [context](utz/context.py): contextlib helpers
 
 ### auto-`setup.py`
 [`utz/setup.py`](utz/setup.py) provides defaults for various `setuptools.setup()` params:

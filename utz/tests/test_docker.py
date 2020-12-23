@@ -1,6 +1,6 @@
 from tempfile import NamedTemporaryFile
 
-from utz import docker, line, process, run
+from utz import docker, line, lines, process, run
 from utz.docker.dsl import *
 
 
@@ -60,3 +60,22 @@ def test_docker_file_contents():
         finally:
             run('docker','container','rm',container_name)
             run('docker','image','rm',img_name)
+
+
+def test_docker_demo():
+    def build_python_git_image(python_version, tag):
+        '''Build a Docker image with a specified Python version, and `git` installed'''
+        with docker.File(tag=tag):
+            FROM(f'python:{python_version}-slim')
+            RUN(
+                'apt-get update',
+                'apt-get install -y git',
+            )
+            ENTRYPOINT('python','-V')
+
+    [
+        build_python_git_image(pv, f'python-git:{pv}')
+        for pv in ('3.7.9', '3.8.6', '3.9.1',)
+    ]
+
+    assert lines('docker','run','python-git:3.9.1') == ['Python 3.9.1']

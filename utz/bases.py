@@ -32,6 +32,14 @@ def s2i(s, ints):
     return n
 
 
+def b2s(b, chars):
+    n = 0
+    for byte in b:
+        n *= 256
+        n += byte
+    return i2s(n, chars)
+
+
 class Converter:
     '''Base-class for converters between non-negative integers and strings comprised of a given alphabet
 
@@ -52,6 +60,8 @@ class Converter:
             return s2i(v, self.S2I)
         elif isinstance(v, int):
             return i2s(v, self.I2S)
+        elif isinstance(v, bytes):
+            return b2s(v, self.I2S)
         else:
             raise ValueError(f'Unrecognized type ({type(v)}): {v}')
 

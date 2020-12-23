@@ -1,7 +1,7 @@
 
 from utz.bases import b64
 
-def test_b64():
+def test_ints_strs():
     cases = {
         0: '',
         1: '+',
@@ -19,3 +19,10 @@ def test_b64():
     for i, s in cases.items():
         assert b64(i) == s
         assert b64(s) == i
+
+
+def test_bytes():
+    assert b64(bytes([])) == ''
+    assert b64(bytes([1,])) == '+'
+    assert b64(bytes([1,2])) == '1/'
+    assert b64(bytes([1,2,3])) == 'D50'
