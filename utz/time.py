@@ -65,7 +65,10 @@ class now:
     @staticmethod
     def to_dt(s):
         from dateutil.parser import parse
-        return parse(s).astimezone(now.UTC)
+        parsed = parse(s)
+        if not parsed.tzinfo:
+            parsed = parsed.replace(tzinfo=now.UTC)
+        return parsed
     @staticmethod
     def fromtimestamp(s, tz=UTC): return dt.fromtimestamp(s, tz=tz)
     @staticmethod
