@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -14,6 +14,7 @@ jobs:
       - name: Fetch submodule tags
         run: |
           cd utz/tests/data/gsmo
+          ls -l example/hailstone
           git fetch --tags origin
       - name: Install test dependencies
         run: |
