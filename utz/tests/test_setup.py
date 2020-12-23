@@ -1,8 +1,5 @@
 
-from os.path import dirname, join
-from re import match
-
-from utz.cd import cd
+from utz import cd, dirname, join, line, match
 from utz.setup import Compute
 
 
@@ -37,3 +34,7 @@ def test_parse_version():
     assert match(rgx, '0.1.2').groupdict() == { 'version': '0.1.2', 'base': '0.1.2', 'commits_ahead': None, 'rc': None, 'sha': None, }
     assert match(rgx, '0.1.23r1').groupdict() == { 'version': '0.1.23r1', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'r1', 'sha': None, }
     assert match(rgx, '0.1.23rc45').groupdict() == { 'version': '0.1.23rc45', 'base': '0.1.23', 'commits_ahead': None, 'rc': 'rc45', 'sha': None, }
+
+    v = line('git','describe','--tags','e4282e1')
+    assert v == 'v0.3.7rc1-4-ge4282e1'
+    assert match(rgx, v).groupdict() == { 'version': '0.3.7rc1-4-ge4282e1', 'base': '0.3.7', 'commits_ahead': '4', 'rc': 'rc1', 'sha': 'e4282e1', }
