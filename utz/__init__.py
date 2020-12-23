@@ -109,7 +109,8 @@ from uuid import uuid1
 
 from .backoff import backoff
 from .tmpdir import tmpdir
-from . import docker, process
+
+from . import process
 from .process import *
 
 with _try:
@@ -117,7 +118,10 @@ with _try:
     from .pnds import *
 
 from .cd import cd
+
 from . import docker
+from .docker.dsl import *
+
 from .o import o
 from .use import use
 
