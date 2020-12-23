@@ -12,15 +12,16 @@ Import the whole kitchen sink:
 from utz import *
 ```
 
-See [imports.py](utz/imports.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
+See [__init__.py](utz/__init__.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
 
 ## Features
 Some noteworthy modules:
-- [pnds](utz/pnds.py): common [pandas](https://pandas.pydata.org/) imports and helpers
 - [cd](utz/cd.py): "change directory" contextmanager
 - [o](utz/o.py): `dict` wrapper exposing keys as attrs (e.g.: `o({'a':1}).a == 1`)
 - [process](utz/process.py): subprocess wrappers for more easily shelling out to commands and parsing their stdout
+- [docker](docker/): DSL for programmatically creating Dockerfiles (and building images from them)
 - [git](utz/git): git helpers / wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)
+- [pnds](utz/pnds.py): common [pandas](https://pandas.pydata.org/) imports and helpers
 - [collections](utz/collections.py): collection/list helpers
 - [context](utz/context.py): contextlib helpers
 
