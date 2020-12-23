@@ -67,7 +67,7 @@ def test_tmp_clone_remote_push_changes():
     # set this HAILSTONE_SSH_URL to a different fork or repo if developing without access to this one
     url = env.get('HAILSTONE_SSH_URL', 'git@gitlab.com:gsmo/examples/hailstone.git')
     branch = 'tmp'
-    sha0 = 'f09bd0a'
+    sha0 = 'e0add3d'
     with git.clone.tmp(url, branch=branch, init=sha0, push=True) as cwd:
         tmpdir = cwd
         check(cwd=cwd, name='hailstone', shas={ sha0: (None, branch) })
@@ -88,9 +88,9 @@ def test_tmp_clone_remote_push_changes():
 
 def test_tmp_clone_local_pull_changes():
     branch = 'tmp'
-    tag = 'v0.0.1'
+    tag = 'v0.1.1rc2'
     base_repo = join(dirname(utz.__file__), 'tests/data/gsmo')
-    sha0 = '68a257a'
+    sha0 = 'de6da9d'
 
     # bind some `check` params
     def verify(wd, sha):
