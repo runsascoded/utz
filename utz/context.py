@@ -44,3 +44,40 @@ class catch(AbstractContextManager):
 # ## `no`: context manager for verifying `NameError`s (undefined variable names)
 no = catch(NameError)
 
+
+def run_then_raise(fns, vals=None):
+    '''Run multiple functions, catching all Exceptions and raise-chaining them at the end'''
+    if not fns: return vals
+    if not vals: vals = []
+    (fn, *fns) = fns
+    try:
+        vals.append(fn())
+    except Exception as e:
+        run_then_raise(fns, vals=vals)
+        raise e
+    else:
+        return run_then_raise(fns, vals=vals)
+
+
+def bind_exit(ctx): return lambda: ctx.__exit__(None, None, None)
+
+@contextmanager
+def ctxs(ctxs):
+    vals = []
+    try:
+        for ctx in ctxs:
+            val = ctx.__enter__()
+            vals.append(val)
+        yield vals
+    except Exception as e:
+        run_then_raise(
+            reversed([
+                bind_exit(ctx)
+                for ctx in ctxs[:len(vals)]  # truncate to just the ctxs that were successfully entered
+            ])
+        )
+        raise e
+    else:
+        fns = [ bind_exit(ctx) for ctx in reversed(ctxs) ]
+        run_then_raise(fns)
+
