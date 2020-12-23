@@ -48,7 +48,7 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
         assert not exists(rm)
 
 
-def commit_file(path, lines, parent_sha, mode='w'):
+def commit_file(path, lines, parent_sha, mode='w', fmt='%h'):
     new_file = not exists(path)
     with open(path, mode) as f:
         if isinstance(lines, str): lines = [lines]
@@ -60,7 +60,7 @@ def commit_file(path, lines, parent_sha, mode='w'):
         msg = f'update {path}: {lines}'
     run('git','commit','-m',msg)
     assert git.sha('HEAD^') == parent_sha
-    return git.sha()
+    return git.fmt(fmt)
 
 
 def test_tmp_clone_remote_push_changes():
@@ -68,20 +68,14 @@ def test_tmp_clone_remote_push_changes():
     url = env.get('HAILSTONE_SSH_URL', 'git@gitlab.com:gsmo/examples/hailstone.git')
     branch = 'tmp'
     sha0 = 'e0add3d'
-    with git.clone.tmp(url, branch=branch, init=sha0, push=True) as cwd:
+    with git.clone.tmp(url, branch=branch, ref=sha0, push=True) as cwd:
         tmpdir = cwd
         check(cwd=cwd, name='hailstone', shas={ sha0: (None, branch) })
-        sha1 = commit_file('test1.txt',['111','222'], sha0)
+        sha1 = commit_file('test1.txt',['111','222'], sha0, fmt='%H')
 
     try:
-        # verify the tmpdir is gone
         assert not exists(tmpdir)
-
-        ref_str = f'refs/heads/{branch}'
-        remote_line = line('git','ls-remote','--heads',url,ref_str)
-        run('git','fetch',url,f'{branch}:{branch}')
-        full_sha = git.fmt('%H', sha1)
-        assert remote_line == '%s\t%s' % (full_sha, ref_str)
+        assert git.ls_remote(url, head=branch) == sha1
     finally:
         run('git','push','--delete',url,branch)
 
@@ -102,7 +96,7 @@ def test_tmp_clone_local_pull_changes():
             shas={sha: (None, branch)},
         )
 
-    with git.clone.tmp(base_repo, branch=branch, init=tag) as origin:
+    with git.clone.tmp(base_repo, branch=branch, ref=tag) as origin:
         verify(origin, sha0)
 
         # simulate an additional clone + pulling changes back in
@@ -176,6 +170,34 @@ def test_tmp_clone_local_pull_changes():
 
     # verify the tmpdir is gone
     assert not exists(origin)
+
+
+def test_bare_tmp_clone():
+    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
+    branch = 'tmp'
+    sha0 = 'e0add3d'
+    with git.clone.tmp(base_repo, bare=True, branch=branch, ref=sha0) as origin:
+        check(cwd=origin, status=False, branch=branch, shas={ sha0: (None, branch) })
+        with git.clone.tmp(origin, branch=branch) as wd:
+            check(cwd=wd, name='hailstone', shas={ sha0: (None, branch) })
+            sha1 = commit_file('test1.txt',['aaa','bbb'], sha0)
+            run('git','push','origin')
+            check(
+                branch=branch,
+                shas={
+                    sha1: (None, branch, f'origin/{branch}'),
+                    sha0: 'HEAD^',
+                },
+                files={ 'test1.txt': ['aaa','bbb'] },
+            )
+        check(
+            branch=branch,
+            status=False,  # bare clone!
+            shas={
+                sha1: (None, branch),
+                sha0: 'HEAD^',
+            },
+        )
 
 
 def test_ls_remote_lines():

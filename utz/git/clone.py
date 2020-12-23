@@ -13,13 +13,13 @@ def tmp(
     url,
     *clone_args,
     branch=None,
-    checkout=None,
-    init=None,
+    ref=None,
     submodules=True,
     push=False,
     pull=False,
     cd=True,
     name=None,
+    bare=False,
     **run_kwargs,
 ):
     '''contextmanager for creating a Git repo in a temporary directory, and optionally cd'ing into it and upstreaming
@@ -28,8 +28,8 @@ def tmp(
     - `url`: local or remote path to Git repository to be cloned
     - `clone_args` (List[str]): passed directly to `git clone`
     - `branch`: Git branch to operate on inside temporary clone (by default, inherit from origin)
-    - `checkout`: ref to checkout `branch` to
-    - `init`: like `checkout`, but only used if `branch` doesn't already exist
+    - `ref`: if `branch` doesn't already exist, reset it to this ref. Note: if `ref` is omitted, `branch` must already
+        exist in the remote! If `ref` is set and `branch` isn't, a temporary/nonced branch name will be used.
     - `submodules`: recursively clone submodules (`git clone --recurse-submodules`)
     - `push` (str | bool | List[str]): run a `git push` after `yield`ing; `str` or `List[str]` serve as arguments to
         `git push`
@@ -37,43 +37,45 @@ def tmp(
         use `push`) and running a `git pull` from this temporary clone
     - `cd` (bool): move into the temporary clone dir before `yield`ing
     - `name`: basename for the temporary clone directory (defaults to basename of `url`)
+    - `bare`: clone a bare repository
     '''
-    if checkout and init:
-        raise ValueError(f'checkout and init are exclusive')
 
     name = name or basename(url)
     if name.endswith('.git'): name = name[:-len('.git')]
     with tmpdir(name) as repo_dir:
         cmd = ['git','clone']
         if submodules: cmd += ['--recurse-submodules']
-        if branch and not checkout and not init:
-            # branch already exists and we want to clone and work on it
+        if bare: cmd += ['--bare']
+        if branch and not ref:
+            # branch must already exist and we want to clone and work on it
             cmd += ['-b',branch]
         cmd += clone_args
         cmd += [ url, repo_dir, ]
         run(*cmd, **run_kwargs)
-        # `checkout` and `init` are similar in that they provide a starting ref for the branch, but `init` no-ops if the
-        # branch already exists (it is only used when a new working branch is being created)
-        if checkout or init:
-            ref = checkout or init
+        if ref:
             with utz.cd(repo_dir):
                 if ref is True:
                     ref = git.branch.current()
 
-                update_branch = True
-                if branch:
-                    if git.branch.exists(branch) and init:
-                        update_branch = False
-                else:
+                if not branch:
                     branch = f'tmp-{now("short")}'
 
-                if update_branch:
-                    run('git','checkout','-b',branch,ref)
+                if git.branch.exists(branch):
+                    make_branch = False
+                else:
+                    make_branch = True
+
+                if make_branch:
+                    if bare:
+                        run('git','branch',branch,ref)
+                        run('git','symbolic-ref','HEAD',f'refs/heads/{branch}')
+                    else:
+                        run('git','checkout','-b',branch,ref)
 
                 if cd:
                     yield repo_dir
         if cd:
-            if not (checkout or init):
+            if not ref:
                 # if `checkout or init`, we've already cd'd and yielded above
                 with utz.cd(repo_dir):
                     yield repo_dir
