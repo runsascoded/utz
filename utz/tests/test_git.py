@@ -1,6 +1,22 @@
 
+import pytest
+
 import utz
-from utz import basename, cd, dirname, env, exists, getcwd, git, join, line, lines, realpath, run
+from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, line, lines, realpath, run
+
+
+def test_current_branch():
+    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
+    branch = 'tmp'
+    sha = 'e0add3d'
+    with git.clone.tmp(base_repo, branch=branch, ref=sha):
+        assert git.branch.current() == branch
+        assert git.sha() == sha
+        run('git','checkout',sha)  # detach HEAD
+        with pytest.raises(CalledProcessError):
+            assert git.branch.current() == branch  # by default, no branch ⟹ error
+        assert git.branch.current(sha_ok=True) == sha  # can return SHA instead
+        assert git.branch.current(sha_ok=None) is None  # or None
 
 
 def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, files=None, rm=None,):

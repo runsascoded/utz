@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
+from subprocess import CalledProcessError
 
 from ..process import *
 from . import diff
-from subprocess import CalledProcessError
+
 
 def mv(old, new, untracked=False, checkout=False):
     if current() == old:
@@ -32,6 +28,8 @@ def current(sha_ok=False):
             return line('git','symbolic-ref','-q','--short','HEAD')
         except CalledProcessError:
             return line('git','log','--no-walk','--format=%h')
+    elif sha_ok is None:
+        return line('git','symbolic-ref','-q','--short','HEAD', err_ok=True)
     else:
         return line('git','symbolic-ref','-q','--short','HEAD')
 
