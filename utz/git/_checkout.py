@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 from contextlib import contextmanager
 from ..process import run
 from . import branch as _branch

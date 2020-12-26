@@ -64,7 +64,7 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
         assert not exists(rm)
 
 
-def commit_file(path, lines, parent_sha, mode='w', fmt='%h'):
+def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h'):
     new_file = not exists(path)
     with open(path, mode) as f:
         if isinstance(lines, str): lines = [lines]
@@ -75,7 +75,8 @@ def commit_file(path, lines, parent_sha, mode='w', fmt='%h'):
     else:
         msg = f'update {path}: {lines}'
     run('git','commit','-m',msg)
-    assert git.sha('HEAD^') == parent_sha
+    if parent_sha:
+        assert git.sha('HEAD^') == parent_sha
     return git.fmt(fmt)
 
 
@@ -263,3 +264,35 @@ def test_ls_remote_lines():
     assert parse_ls_remote_lines(utz_lines, sha=head, heads=True, tags=True) == dict(heads={'py':head}, tags={'v0.2.2':head})
 
     assert git.ls_remote('https://gitlab.com/runsascoded/utz.git', tag='v0.2.2') == head
+
+
+def test_atom():
+    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
+    branch = 'tmp'
+    sha0 = 'e0add3d'
+    with git.clone.tmp(base_repo, branch=branch, ref=sha0):
+        with git.txn():
+            pass
+        check(shas={
+            sha0: (None, branch),
+        })
+
+        with git.txn():
+            sha1 = commit_file('value', ['6'])
+        sha2 = git.sha()
+        check(shas={
+            sha2: (None, branch),
+            sha1: f'{branch}^2',
+            sha0: f'{branch}^',
+        })
+
+        with git.txn():
+            sha3 = commit_file('value', ['3'])
+            sha4 = commit_file('value', ['10'])
+        sha5 = git.sha()
+        check(shas={
+            sha5: (None, branch),
+            sha4: f'{branch}^2',
+            sha3: f'{branch}^2^',
+            sha2: f'{branch}^',
+        })

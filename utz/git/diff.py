@@ -1,16 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 from ..process import *
 
+
 def exists(untracked=True, unstaged=True):
-    files = lines('git','status','--porcelain')
+    lns = lines('git','status','--porcelain')
     if not untracked:
-        files = [ file for file in files if not file.startswith('??') ]
+        lns = [ ln for ln in lns if not ln.startswith('??') ]
     if not unstaged:
-        files = [ file for file in files if not file.startswith(' ') ]
-    return bool(files)
+        lns = [ ln for ln in lns if not ln.startswith(' ') ]
+    return bool(lns)
 

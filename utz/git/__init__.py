@@ -27,7 +27,9 @@ except ImportError:
 
 
 from . import branch, clone, diff, head, remote, submodule
+from .ctx import txn
 from .head import fmt, sha
+from .log import msg
 from .remote import push, ls_remote
 from ..process import run
 
