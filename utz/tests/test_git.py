@@ -2,7 +2,7 @@
 import pytest
 
 import utz
-from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, line, lines, realpath, run
+from utz import basename, CalledProcessError, cd, dirname, env, exists, fullmatch, getcwd, git, join, lines, match, realpath, run
 
 
 def test_current_branch():
@@ -64,7 +64,7 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
         assert not exists(rm)
 
 
-def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h'):
+def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h', commit=True):
     new_file = not exists(path)
     with open(path, mode) as f:
         if isinstance(lines, str): lines = [lines]
@@ -74,10 +74,11 @@ def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h'):
         msg = f'add {path}: {lines}'
     else:
         msg = f'update {path}: {lines}'
-    run('git','commit','-m',msg)
-    if parent_sha:
-        assert git.sha('HEAD^') == parent_sha
-    return git.fmt(fmt)
+    if commit:
+        run('git','commit','-m',msg)
+        if parent_sha:
+            assert git.sha('HEAD^') == parent_sha
+        return git.fmt(fmt)
 
 
 def test_tmp_clone_remote_push_changes():
@@ -277,22 +278,59 @@ def test_atom():
             sha0: (None, branch),
         })
 
-        with git.txn():
-            sha1 = commit_file('value', ['6'])
-        sha2 = git.sha()
-        check(shas={
-            sha2: (None, branch),
-            sha1: f'{branch}^2',
-            sha0: f'{branch}^',
-        })
+        with git.txn(add='value') as txn:
+            commit_file('value', ['6'], commit=False)
+            msg='set value=6'
+            txn.msg = msg
+        sha1 = git.sha()
+        assert git.msg() == msg
+        check(
+            shas={
+                sha1: (None, branch),
+                sha0: f'{branch}^',
+            },
+            files={'value':['6']},
+        )
 
+        # no additional commit is created with `add` param configured
         with git.txn():
-            sha3 = commit_file('value', ['3'])
+            sha2 = commit_file('value', ['3'])
+        sha3 = git.sha()
+        assert git.msg() == f'merge txn: {sha1}, {sha2}'
+        check(
+            shas={
+                sha3: (None, branch),
+                sha2: f'{branch}^2',
+                sha1: f'{branch}^',
+            },
+            files={'value':['3']}
+        )
+
+        msg = 'two more updates'
+        with git.txn(msg=msg):
             sha4 = commit_file('value', ['10'])
-        sha5 = git.sha()
+            sha5 = commit_file('value', ['5'])
+        sha6 = git.sha()
+        assert git.msg() == msg
         check(shas={
-            sha5: (None, branch),
-            sha4: f'{branch}^2',
-            sha3: f'{branch}^2^',
+            sha6: (None, branch),
+            sha5: f'{branch}^2',
+            sha4: f'{branch}^2^',
             sha2: f'{branch}^',
         })
+
+        msg = 'set value=8'
+        with git.txn(add='value') as txn:
+            sha7 = commit_file('value', ['16'])
+            commit_file('value', ['8'], commit=False)
+            txn.msg = msg
+        sha8 = git.sha()
+        assert git.msg() == msg
+        check(
+            shas={
+                sha8: (None, branch),
+                sha7: f'{branch}^2',
+                sha6: (f'{branch}^2^',f'{branch}^',),
+            },
+            files={'value':['8']},
+        )
