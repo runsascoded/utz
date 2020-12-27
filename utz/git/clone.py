@@ -5,7 +5,7 @@ from sys import stderr
 from typing import Iterable
 
 import utz
-from utz import check, git, line, match, now, print_exc, run, tmpdir, uuid1
+from utz import check, git, line, match, now, print_exc, run, tmpdir
 
 
 @contextmanager
@@ -20,6 +20,7 @@ def tmp(
     cd=True,
     name=None,
     bare=False,
+    dir=None,
     **run_kwargs,
 ):
     '''contextmanager for creating a Git repo in a temporary directory, and optionally cd'ing into it and upstreaming
@@ -42,7 +43,7 @@ def tmp(
 
     name = name or basename(url)
     if name.endswith('.git'): name = name[:-len('.git')]
-    with tmpdir(name) as repo_dir:
+    with tmpdir(name, dir=dir) as repo_dir:
         cmd = ['git','clone']
         if submodules: cmd += ['--recurse-submodules']
         if bare: cmd += ['--bare']

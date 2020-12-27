@@ -5,12 +5,12 @@ from tempfile import TemporaryDirectory
 
 
 @contextmanager
-def tmpdir(name=None):
+def tmpdir(name=None, dir=None):
     '''contextmanager for creating a temporary directory with an optional `name`'''
     if name:
-        with TemporaryDirectory() as tmpdir:
+        with TemporaryDirectory(dir=dir) as tmpdir:
             dir = join(tmpdir, name)
             mkdir(dir)
             yield dir
     else:
-        yield TemporaryDirectory()
+        yield TemporaryDirectory(dir=dir)

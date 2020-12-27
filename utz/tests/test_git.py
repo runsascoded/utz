@@ -2,7 +2,7 @@
 import pytest
 
 import utz
-from utz import basename, CalledProcessError, cd, dirname, env, exists, fullmatch, getcwd, git, join, lines, match, realpath, run
+from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run
 
 
 def test_current_branch():
