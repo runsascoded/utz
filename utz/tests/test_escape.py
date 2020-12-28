@@ -1,18 +1,41 @@
 
+from functools import partial
+
 from utz.escape import split, join
 
 
-def test_split():
-    def check(s, strs, ch):
-        assert split(s, ch) == strs
-        assert join(strs, ch) == s
+def test_split_join():
+    def check(s, strs, ch, **kwargs):
+        assert split(s, ch, **kwargs) == strs
+        assert join(strs, ch, **kwargs) == s
 
-    check(r'a:b\:c:d\\t\\\\f', ['a','b:c',r'd\t\\f'], ':',)
-    check(r':a:b\:c:d\\t\\\\f:', ['','a','b:c',r'd\t\\f',''], ':',)
-    check(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a','b:::c',r'd\:\\:eee','\\'], ':',)
+    chk = partial(check, ch=':')
+
+    chk(r'a:b\:c:d\\t\\\\f', ['a','b:c',r'd\t\\f'],)
+    chk(r'a:b\:c:d\\t\\\\f', ['a',r'b\:c:d\\t\\\\f'], max=1)
+    chk(r'a:b\:c:d\\t\\\\f', ['a','b:c',r'd\\t\\\\f'], max=2)
+    chk(r'a:b\:c:d\\t\\\\f', ['a','b:c',r'd\t\\f'], max=3)
+    chk(r'a:b\:c:d\\t\\\\f', ['a','b:c',r'd\t\\f'], max=4)
+
+    chk(r':a:b\:c:d\\t\\\\f:', ['','a','b:c',r'd\t\\f',''],)
+    chk(r':a:b\:c:d\\t\\\\f:', ['',r'a:b\:c:d\\t\\\\f:'], max=1)
+    chk(r':a:b\:c:d\\t\\\\f:', ['','a',r'b\:c:d\\t\\\\f:'], max=2)
+    chk(r':a:b\:c:d\\t\\\\f:', ['','a','b:c',r'd\\t\\\\f:'], max=3)
+    chk(r':a:b\:c:d\\t\\\\f:', ['','a','b:c',r'd\t\\f',''], max=4)
+    chk(r':a:b\:c:d\\t\\\\f:', ['','a','b:c',r'd\t\\f',''], max=5)
+
+    chk(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a','b:::c',r'd\:\\:eee','\\'],)
+    chk(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a',r'b\:\:\:c:d\\\:\\\\\:eee:\\'], max=1)
+    chk(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a','b:::c',r'd\\\:\\\\\:eee:\\'], max=2)
+    chk(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a','b:::c',r'd\:\\:eee',r'\\'], max=3)
+    chk(r'a:b\:\:\:c:d\\\:\\\\\:eee:\\', ['a','b:::c',r'd\:\\:eee','\\'], max=4)
 
     # sep char requires regex escaping
     check(r'a|b\|c|d\\t\\\\f', ['a','b|c',r'd\t\\f'], '|',)
+    check(r'a|b\|c|d\\t\\\\f', ['a',r'b\|c|d\\t\\\\f'], '|', max=1)
+    check(r'a|b\|c|d\\t\\\\f', ['a','b|c',r'd\\t\\\\f'], '|', max=2)
+    check(r'a|b\|c|d\\t\\\\f', ['a','b|c',r'd\t\\f'], '|', max=3)
+
     check(r'|a|b\|c|d\\t\\\\f|', ['','a','b|c',r'd\t\\f',''], '|')
     check(r'a|b\|\|\|c|d\\\|\\\\\|eee|\\', ['a','b|||c',r'd\|\\|eee','\\'], '|',)
 
