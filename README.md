@@ -25,6 +25,7 @@ Some noteworthy modules:
 - [bases](utz/bases.py): `int`⟺`str` codecs with improvements over standard base64 et al.
 - [tmpdir](utz/tmpdir.py): make temporary directories with a specific basename
 - [context](utz/context.py): context-manager helpers, including `ctxs` for composing multiple context managers
+- [escape](utz/escape.py): escaping split/join helpers
 - [backoff](utz/backoff.py): simple exponential-backoff utility
 - [git](utz/git): git helpers / wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)
 - [pnds](utz/pnds.py): common [pandas](https://pandas.pydata.org/) imports and helpers
