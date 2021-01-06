@@ -51,7 +51,9 @@ def line(*cmd, empty_ok=False, err_ok=False, **kwargs):
     else:
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
+
 ELIDED = '****'
+
 
 def mk_cmd_str(cmd, elide=None):
     shlex_join = getattr(shlex, 'join', ' '.join)  # shlex.join only exists in Python ≥3.8
@@ -61,6 +63,7 @@ def mk_cmd_str(cmd, elide=None):
         for s in elide:
             cmd_str = cmd_str.replace(s, ELIDED)
     return cmd_str
+
 
 def run(*cmd, dry_run=False, elide=None, **kwargs):
     '''Convenience wrapper for check_call'''
@@ -73,6 +76,7 @@ def run(*cmd, dry_run=False, elide=None, **kwargs):
         check_call(cmd, **kwargs)
 
 sh = run
+
 
 def output(*cmd, dry_run=False, err_ok=False, elide=None, **kwargs):
     '''Convenience wrapper for check_output'''
@@ -109,3 +113,5 @@ def check(*cmd, stdout=DEVNULL, stderr=DEVNULL, **kwargs):
     except CalledProcessError:
         return False
 
+
+__all__ = ['check','line','lines','output','run','sh',]

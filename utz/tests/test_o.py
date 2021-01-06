@@ -2,6 +2,7 @@ import json
 from pytest import raises
 from utz import o
 
+
 def test_kwargs():
     o1 = o(a=1,b=2)
     assert o1.a == 1

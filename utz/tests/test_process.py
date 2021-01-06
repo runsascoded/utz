@@ -1,5 +1,7 @@
 
+import json
 import pytest
+from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 
 from utz import process
@@ -24,7 +26,6 @@ def test_output():
 
 
 def test_json():
-    import json
     obj = [{
         'a': {
             'b': 123
@@ -53,9 +54,11 @@ def test_line():
     with pytest.raises(CalledProcessError):
         line('[','1','==','2',']')
 
+
 def test_check():
     assert check('which','echo')
     assert not check('which','echoz')
+
 
 def test_cmd_arg_flattening():
     assert output('echo','-n',None,strs,['aaa',[None,'bbb','ccc']]).decode() == ' '.join(strs + ['aaa','bbb','ccc',])
