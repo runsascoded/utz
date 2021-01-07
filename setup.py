@@ -5,9 +5,9 @@ setup(
         "GitPython",
         "joblib",
         "pandas",
-        "python-dateutil",
+        "python-dateutil==2.8.1",
         "pytz",
-        "pyyaml",
+        "pyyaml==5.3.1",
     ],
     extras_require={
         'pdf': [

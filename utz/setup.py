@@ -17,19 +17,8 @@ class Compute:
         '''Default to markdown format for `long_description`'''
         return "text/markdown"
 
-    VERSION_TAG_REGEX = r'v?(?P<version>(?P<base>\d+\.\d+\.\d+)(?P<rc>(?:r|c|rc|a|b)\d+)?(?:-(?P<commits_ahead>\d+)-g(?P<sha>[0-9a-f]{6,}))?)'
     def version(self):
-        '''Infer version from git tag of the form "v_._._" (which must be present)'''
-        try:
-            tag = line('git','describe','--tags','HEAD')
-            m = match(self.VERSION_TAG_REGEX, tag)
-            if not m:
-                raise ValueError('Unrecognized tag: %s' % tag)
-            version = m['version']
-        except CalledProcessError:
-            version = line('git','log','--format=%h','-n1')
-
-        return version
+        return git_version()
 
     def name(self):
         '''`name` defaults to the name of the containing directory'''

@@ -152,7 +152,11 @@ with _try:
 
 # requests
 with _try:
-    from requests import           get as   GET,          post as  POST,           put as   PUT,         patch as PATCH
+    from requests import \
+        get as   GET, \
+        post as  POST, \
+        put as   PUT, \
+        patch as PATCH
 
 
 # ## PyData / Scientific Python
@@ -164,3 +168,7 @@ with _try:
 with _try: import seaborn as sns
 with _try: import matplotlib.pyplot as plt
 with _try: from scipy.sparse import spmatrix, coo_matrix, csr_matrix, csc_matrix
+
+from .version import git_version, pkg_version
+
+__version__ = pkg_version('utz')
