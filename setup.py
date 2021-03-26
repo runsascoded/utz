@@ -7,7 +7,7 @@ setup(
         "pandas",
         "python-dateutil==2.8.1",
         "pytz",
-        "pyyaml==5.3.1",
+        "pyyaml==5.4",
     ],
     extras_require={
         'pdf': [
