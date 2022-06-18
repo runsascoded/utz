@@ -7,7 +7,7 @@ def _method(name):
         file = File._file
         if not file:
             raise RuntimeError('No active Dockerfile')
-        getattr(file,name)(*args,**kwargs)
+        getattr(file, name)(*args, **kwargs)
 
     return impl
 

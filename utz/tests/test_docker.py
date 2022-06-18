@@ -15,9 +15,9 @@ def test_docker_build_and_run():
     name = f'{image_name}-{hash(image)}'
     image.run(name)
     try:
-        assert line('docker','logs',name) == '/abc'
+        assert line('docker', 'logs', name) == '/abc'
     finally:
-        run('docker','container','rm',name)
+        run('docker', 'container', 'rm', name)
 
 
 def test_docker_file_contents():
@@ -29,9 +29,9 @@ def test_docker_file_contents():
             WORKDIR('/abc')
             NOTE('Set up some env vars')
             LN()
-            LABEL(**{'a.b c':'1 \n2 \n3','aaa':111})
-            ENV('aaa=AAA','b=B=B',c='333')
-            LABEL(r'a\\b=c\\d', bbb='BBB', **{r'e\f':'g\\h'})
+            LABEL(**{'a.b c': '1 \n2 \n3', 'aaa': 111})
+            ENV('aaa=AAA', 'b=B=B', c='333')
+            LABEL(r'a\\b=c\\d', bbb='BBB', **{r'e\f': 'g\\h'})
             ENTRYPOINT('a', 'b c', shell=True)
             ENTRYPOINT('pwd')
 
@@ -51,15 +51,15 @@ def test_docker_file_contents():
         now = datetime.now().strftime('%Y%m%d_%H%M%S')
         img_name = f'docker-label-env-test-{now}'
         image = file.build(img_name)
-        [img] = process.json('docker','inspect',img_name)
-        assert img['Config']['Labels'] == {'a.b c':'1 2 3','aaa':'111',r'a\b':r'c\d','bbb':'BBB','e\\f':'g\\h'}
+        [img] = process.json('docker', 'inspect', img_name)
+        assert img['Config']['Labels'] == {'a.b c': '1 2 3', 'aaa': '111', r'a\b': r'c\d', 'bbb': 'BBB', 'e\\f': 'g\\h'}
         container_name = f'{img_name}-{hash(image)}'
         image.run(container_name)
         try:
-            assert line('docker','logs',container_name) == '/abc'
+            assert line('docker', 'logs', container_name) == '/abc'
         finally:
-            run('docker','container','rm',container_name)
-            run('docker','image','rm',img_name)
+            run('docker', 'container', 'rm', container_name)
+            run('docker', 'image', 'rm', img_name)
 
 
 def test_docker_demo():
@@ -71,11 +71,11 @@ def test_docker_demo():
                 'apt-get update',
                 'apt-get install -y git',
             )
-            ENTRYPOINT('python','-V')
+            ENTRYPOINT('python', '-V')
 
     [
         build_python_git_image(pv, f'python-git:{pv}')
         for pv in ('3.7.9', '3.8.6', '3.9.1',)
     ]
 
-    assert lines('docker','run','python-git:3.9.1') == ['Python 3.9.1']
+    assert lines('docker', 'run', 'python-git:3.9.1') == ['Python 3.9.1']
