@@ -5,22 +5,22 @@ setup(
         "GitPython",
         "joblib",
         "pandas",
-        "python-dateutil==2.8.1",
+        "python-dateutil",
         "pytz",
-        "pyyaml==5.4.0",
+        "pyyaml",
     ],
     extras_require={
         'pdf': [
-            'reportlab==3.5.42',
-            'pyPDF2==1.26.0',
+            'reportlab',
+            'pyPDF2',
         ],
         'setup': [
-            'lxml==4.6.1',
-            'mistune>=0.8.1,<2',  # match nbconvert
+            'lxml',
+            'mistune',  # match nbconvert
         ],
         'test': [
-            'pytest==6.0.1',
-            'pytest-mock==3.3.1',
+            'pytest',
+            'pytest-mock',
         ],
     },
     url="https://github.com/runsascoded/utz",

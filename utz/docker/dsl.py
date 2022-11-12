@@ -18,6 +18,7 @@ ENV = _method('ENV')
 FROM = _method('FROM')
 LABEL = _method('LABEL')
 LN = _method('LN')
+LINE = LN
 NOTE = _method('NOTE')
 RUN = _method('RUN')
 WORKDIR = _method('WORKDIR')
