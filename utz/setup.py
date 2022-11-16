@@ -5,43 +5,43 @@ from utz import *
 
 
 class Compute:
-    '''Container for computing fallback values to pass to setup()'''
+    """Container for computing fallback values to pass to setup()"""
 
     def long_description(self):
-        '''Read in README.md as the `long_description`'''
+        """Read in README.md as the `long_description`"""
         if exists('README.md'):
             with open('README.md', "r") as fh:
                 return fh.read()
 
     def long_description_content_type(self):
-        '''Default to markdown format for `long_description`'''
+        """Default to markdown format for `long_description`"""
         return "text/markdown"
 
     def version(self):
         return git_version()
 
     def name(self):
-        '''`name` defaults to the name of the containing directory'''
+        """`name` defaults to the name of the containing directory"""
         return basename(getcwd())
 
     def author(self):
-        '''Infer author name from most recent commit'''
+        """Infer author name from most recent commit"""
         return line('git','log','-n1','--format=%an')
 
     def author_email(self):
-        '''Infer author email from most recent commit'''
+        """Infer author email from most recent commit"""
         return line('git','log','-n1','--format=%ae')
 
     def description(self):
-        '''Set `description` to the contents of a <p> first-child of an initial <h1>'''
+        """Set `description` to the contents of a <p> first-child of an initial <h1>"""
         try:
             import mistune
         except ImportError:
             import pip
-            pip.main(['install','mistune>=0.8.1,<2'])  # match nbconvert
+            pip.main(['install', 'mistune'])  # match nbconvert
             import mistune
 
-        html = mistune.Markdown()(self.long_description())
+        html = mistune.html(self.long_description())
 
         try:
             import lxml

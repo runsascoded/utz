@@ -1,17 +1,18 @@
-
+from unittest.mock import patch
 from utz import cd, dirname, join, line, match
 from utz.version import VERSION_TAG_REGEX, pkg_version
 
 
-def test_setup_gsmo(mocker):
+def test_setup_gsmo():
     cur_dir = dirname(__file__)
     gsmo_dir = join(cur_dir,'data','gsmo')
     with cd(gsmo_dir):
         from utz.setup import setup
         import setuptools
-        mocker.patch('setuptools.setup')
-        setup()
-        setuptools.setup.assert_called_once_with(
+        with patch.object(setuptools, 'setup', return_value=None) as mock_setup:
+            setup()
+
+        mock_setup.assert_called_once_with(
             **{
                 'name': 'gsmo',
                 'version': '0.1.1rc2',
@@ -43,4 +44,4 @@ def test_parse_version():
 
 
 def test_pkg_version():
-    assert pkg_version('python-dateutil') == '2.8.1'
+    assert pkg_version('python-dateutil') == '2.8.2'

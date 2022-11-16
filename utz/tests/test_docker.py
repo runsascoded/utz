@@ -1,3 +1,4 @@
+from os import getcwd
 from tempfile import NamedTemporaryFile
 
 from utz import docker, line, lines, process, run
@@ -21,7 +22,7 @@ def test_docker_build_and_run():
 
 
 def test_docker_file_contents():
-    with NamedTemporaryFile(prefix='Dockerfile.') as tmpfile:
+    with NamedTemporaryFile(prefix='Dockerfile.', dir=getcwd()) as tmpfile:
         path = tmpfile.name
         file = docker.File(path)
         with file:

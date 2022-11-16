@@ -33,34 +33,34 @@ def test_time():
     assert Δ1 == 0 or Δ2 == 0
 
 
-@pytest.mark.parametrize("debug",[False])  # set to true to print the expected values for new test cases
+@pytest.mark.parametrize("debug", [False])  # set to true to print the expected values for new test cases
 @pytest.mark.parametrize(
     "codec,cases,t2021",
     (
         (
             b64,
             (
-                o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z',        len_until='4182-03-14T03:28:00Z'),
-                o(unit='ms', ch='K', len=7, first_until='2022-04-19T08:50:27.008000Z', len_until='2111-08-01T07:19:33.184000Z'),
-                o(unit='us', ch='2', len=9, first_until='2023-08-29T14:01:57.037120Z', len_until='2549-11-30T12:09:02.965824Z'),
+                    o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z', len_until='4182-03-14T03:28:00Z'),
+                    o(unit='ms', ch='L', len=7, first_until='2024-06-22T17:35:03.744000Z', len_until='2111-08-01T07:19:33.184000Z'),
+                    o(unit='us', ch='2', len=9, first_until='2023-08-29T14:01:57.037120Z', len_until='2549-11-30T12:09:02.965824Z'),
             ),
             ('+SuZKz', 'KNuCZyz', '2gvgesKyz'),
         ),
         (
             b62,
             (
-                o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z',        len_until='3799-06-08T08:23:06Z'),
-                o(unit='ms', ch='b', len=7, first_until='2022-03-24T16:06:23.338000Z', len_until='2083-06-04T14:46:33.194000Z'),
-                o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
+                    o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z', len_until='3799-06-08T08:23:06Z'),
+                    o(unit='ms', ch='c', len=7, first_until='2024-01-11T01:56:58.922000Z', len_until='2083-06-04T14:46:33.194000Z'),
+                    o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
             ('At4G0V', 'bTwXvhz', 'GWAZusO3r',),
         ),
         (
             b90,
             (
-                o(unit= 's', ch='8', len=5, first_until='2021-12-31T21:46:30Z',        len_until='2159-03-22T15:46:30Z'),
-                o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
-                o(unit='us', ch='A', len=8, first_until='2021-07-20T02:07:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
+                    o(unit= 's', ch='9', len=5, first_until='2024-01-30T06:46:30Z', len_until='2159-03-22T15:46:30Z'),
+                    o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
+                    o(unit='us', ch='B', len=8, first_until='2023-01-24T16:09:22.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
             ('8Od[z', '#"R^v[z', 'AZK=Tv[z'),
         ),

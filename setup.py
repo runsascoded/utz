@@ -5,7 +5,7 @@ setup(
         "GitPython",
         "joblib",
         "pandas",
-        "python-dateutil",
+        "python-dateutil==2.8.2",
         "pytz",
         "pyyaml",
     ],

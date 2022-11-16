@@ -1,4 +1,3 @@
-
 import pytest
 
 import utz
@@ -12,14 +11,14 @@ def test_current_branch():
     with git.clone.tmp(base_repo, branch=branch, ref=sha):
         assert git.branch.current() == branch
         assert git.sha() == sha
-        run('git','checkout',sha)  # detach HEAD
+        run('git', 'checkout', sha)  # detach HEAD
         with pytest.raises(CalledProcessError):
             assert git.branch.current() == branch  # by default, no branch ⟹ error
         assert git.branch.current(sha_ok=True) == sha  # can return SHA instead
         assert git.branch.current(sha_ok=None) is None  # or None
 
 
-def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, files=None, rm=None,):
+def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, files=None, rm=None, ):
     if cwd:
         # Check that we're actually in the directory returned by the ctx mgr above:
         dir = realpath(getcwd())
@@ -32,10 +31,10 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
     if status:
         if status is True:
             # verify clone is clean
-            assert not lines('git','status','--short')
+            assert not lines('git', 'status', '--short')
         else:
             # verify status lines
-            assert lines('git','status','--short') == status
+            assert lines('git', 'status', '--short') == status
 
     # verify current branch
     if branch:
@@ -49,7 +48,7 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
 
     # verify various shas
     for sha, refs in shas.items():
-        if isinstance(refs, (list,tuple)):
+        if isinstance(refs, (list, tuple)):
             for ref in refs:
                 if ref is None:
                     assert git.sha() == sha
@@ -58,7 +57,7 @@ def check(cwd=None, name=None, status=True, branch=None, paths=None, shas=None, 
 
     if files:
         for path, lns in files.items():
-            assert lines('cat',path) == lns
+            assert lines('cat', path) == lns
 
     if rm:
         assert not exists(rm)
@@ -69,13 +68,13 @@ def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h', commit=True):
     with open(path, mode) as f:
         if isinstance(lines, str): lines = [lines]
         f.writelines('%s\n' % ln for ln in lines)
-    run('git','add',path)
+    run('git', 'add', path)
     if new_file:
         msg = f'add {path}: {lines}'
     else:
         msg = f'update {path}: {lines}'
     if commit:
-        run('git','commit','-m',msg)
+        run('git', 'commit', '-m', msg)
         if parent_sha:
             assert git.sha('HEAD^') == parent_sha
         return git.fmt(fmt)
@@ -88,14 +87,14 @@ def test_tmp_clone_remote_push_changes():
     sha0 = 'e0add3d'
     with git.clone.tmp(url, branch=branch, ref=sha0, push=True) as cwd:
         tmpdir = cwd
-        check(cwd=cwd, name='hailstone', shas={ sha0: (None, branch) })
-        sha1 = commit_file('test1.txt',['111','222'], sha0, fmt='%H')
+        check(cwd=cwd, name='hailstone', shas={sha0: (None, branch)})
+        sha1 = commit_file('test1.txt', ['111', '222'], sha0, fmt='%H')
 
     try:
         assert not exists(tmpdir)
         assert git.ls_remote(url, head=branch) == sha1
     finally:
-        run('git','push','--delete',url,branch)
+        run('git', 'push', '--delete', url, branch)
 
 
 def test_tmp_clone_local_pull_changes():
@@ -121,12 +120,12 @@ def test_tmp_clone_local_pull_changes():
         with git.clone.tmp(origin, branch=branch, pull=True) as wd:
             tmpdir = wd
             verify(wd, sha0)
-            sha1 = commit_file('test1.txt', ['123','456'], sha0)
+            sha1 = commit_file('test1.txt', ['123', '456'], sha0)
 
         check(
-            shas={ sha1: (None, branch) },
+            shas={sha1: (None, branch)},
             branch=branch,
-            files={ 'test1.txt': ['123','456'] },
+            files={'test1.txt': ['123', '456']},
             rm=tmpdir,  # verify the tmpdir is gone
         )
 
@@ -134,7 +133,7 @@ def test_tmp_clone_local_pull_changes():
         with git.clone.tmp(origin, branch=branch, pull=True) as wd:
             tmpdir = wd
             verify(wd, sha1)
-            sha2_2 = commit_file('test2.txt', ['abc','def'], sha1)
+            sha2_2 = commit_file('test2.txt', ['abc', 'def'], sha1)
 
             # meanwhile, make another change in origin (which will have to be merged w/ sha2)
             with cd(origin):
@@ -151,8 +150,8 @@ def test_tmp_clone_local_pull_changes():
             },
             branch=branch,
             files={
-                'test1.txt': ['123','456','789',],
-                'test2.txt': ['abc','def',],
+                'test1.txt': ['123', '456', '789', ],
+                'test2.txt': ['abc', 'def', ],
             },
             rm=tmpdir,
         )
@@ -180,8 +179,8 @@ def test_tmp_clone_local_pull_changes():
             },
             branch=branch,
             files={
-                'test1.txt': ['123','456','789',],
-                'test2.txt': ['abc','def','yyy',],
+                'test1.txt': ['123', '456', '789', ],
+                'test2.txt': ['abc', 'def', 'yyy', ],
             },
             rm=tmpdir,
         )
@@ -195,18 +194,18 @@ def test_bare_tmp_clone():
     branch = 'tmp'
     sha0 = 'e0add3d'
     with git.clone.tmp(base_repo, bare=True, branch=branch, ref=sha0) as origin:
-        check(cwd=origin, status=False, branch=branch, shas={ sha0: (None, branch) })
+        check(cwd=origin, status=False, branch=branch, shas={sha0: (None, branch)})
         with git.clone.tmp(origin, branch=branch) as wd:
-            check(cwd=wd, name='hailstone', shas={ sha0: (None, branch) })
-            sha1 = commit_file('test1.txt',['aaa','bbb'], sha0)
-            run('git','push','origin')
+            check(cwd=wd, name='hailstone', shas={sha0: (None, branch)})
+            sha1 = commit_file('test1.txt', ['aaa', 'bbb'], sha0)
+            run('git', 'push', 'origin')
             check(
                 branch=branch,
                 shas={
                     sha1: (None, branch, f'origin/{branch}'),
                     sha0: 'HEAD^',
                 },
-                files={ 'test1.txt': ['aaa','bbb'] },
+                files={'test1.txt': ['aaa', 'bbb']},
             )
         check(
             branch=branch,
@@ -225,8 +224,8 @@ def test_ls_remote_lines():
         f'{sha}	HEAD',
         f'{sha}	refs/heads/master',
     ]
-    assert parse_ls_remote_lines(hailstone_lines) == dict(head=sha, heads={'master':sha})
-    assert parse_ls_remote_lines(hailstone_lines, sha=sha) == dict(head=sha,heads={'master':sha})
+    assert parse_ls_remote_lines(hailstone_lines) == dict(head=sha, heads={'master': sha})
+    assert parse_ls_remote_lines(hailstone_lines, sha=sha) == dict(head=sha, heads={'master': sha})
     assert parse_ls_remote_lines(hailstone_lines, head='master') == sha
 
     utz_lines = [
@@ -251,8 +250,8 @@ def test_ls_remote_lines():
         'v0.2.1': 'a67870037d4c3006d515244ce9e9c51a6345e175',
         'v0.2.2': '12bbfa076261df4ed8069bb91044971bd47892a8',
     }
-    assert parse_ls_remote_lines(utz_lines) == dict(head=head, heads=heads, tags=tags,)
-    assert parse_ls_remote_lines(utz_lines, sha=head) == dict(head=head, heads={'py':head}, tags={'v0.2.2':head},)
+    assert parse_ls_remote_lines(utz_lines) == dict(head=head, heads=heads, tags=tags, )
+    assert parse_ls_remote_lines(utz_lines, sha=head) == dict(head=head, heads={'py': head}, tags={'v0.2.2': head}, )
     assert parse_ls_remote_lines(utz_lines, head='py') == head
     assert parse_ls_remote_lines(utz_lines, head='nope') is None
     assert parse_ls_remote_lines(utz_lines, tag='v0.2.2') == head
@@ -260,9 +259,10 @@ def test_ls_remote_lines():
     assert parse_ls_remote_lines(utz_lines, heads=True) == heads
     assert parse_ls_remote_lines(utz_lines, tags=True) == tags
     assert parse_ls_remote_lines(utz_lines, heads=True, tags=True) == dict(heads=heads, tags=tags)
-    assert parse_ls_remote_lines(utz_lines, sha=head, heads=True) == {'py':head}
-    assert parse_ls_remote_lines(utz_lines, sha=head, tags=True) == {'v0.2.2':head}
-    assert parse_ls_remote_lines(utz_lines, sha=head, heads=True, tags=True) == dict(heads={'py':head}, tags={'v0.2.2':head})
+    assert parse_ls_remote_lines(utz_lines, sha=head, heads=True) == {'py': head}
+    assert parse_ls_remote_lines(utz_lines, sha=head, tags=True) == {'v0.2.2': head}
+    assert parse_ls_remote_lines(utz_lines, sha=head, heads=True, tags=True) == dict(heads={'py': head},
+                                                                                     tags={'v0.2.2': head})
 
     assert git.ls_remote('https://gitlab.com/runsascoded/utz.git', tag='v0.2.2') == head
 
@@ -280,7 +280,7 @@ def test_atom():
 
         with git.txn(add='value') as txn:
             commit_file('value', ['6'], commit=False)
-            msg='set value=6'
+            msg = 'set value=6'
             txn.msg = msg
         sha1 = git.sha()
         assert git.msg() == msg
@@ -289,7 +289,7 @@ def test_atom():
                 sha1: (None, branch),
                 sha0: f'{branch}^',
             },
-            files={'value':['6']},
+            files={'value': ['6']},
         )
 
         # no additional commit is created with `add` param configured
@@ -303,7 +303,7 @@ def test_atom():
                 sha2: f'{branch}^2',
                 sha1: f'{branch}^',
             },
-            files={'value':['3']}
+            files={'value': ['3']}
         )
 
         msg = 'two more updates'
@@ -330,7 +330,7 @@ def test_atom():
             shas={
                 sha8: (None, branch),
                 sha7: f'{branch}^2',
-                sha6: (f'{branch}^2^',f'{branch}^',),
+                sha6: (f'{branch}^2^', f'{branch}^',),
             },
-            files={'value':['8']},
+            files={'value': ['8']},
         )

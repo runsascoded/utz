@@ -1,4 +1,3 @@
-
 from contextlib import AbstractContextManager
 import json
 from os.path import exists, join
@@ -41,8 +40,8 @@ class File(AbstractContextManager):
         self.copy_dir = copy_dir
 
         if extend:
-            with open(extend,'r') as f:
-                self.lines = [ line.rstrip('\n') for line in f.readlines() ]
+            with open(extend, 'r') as f:
+                self.lines = [line.rstrip('\n') for line in f.readlines()]
         else:
             self.lines = []
 
@@ -53,10 +52,10 @@ class File(AbstractContextManager):
         return self
 
     def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType]
+            self,
+            exc_type: Optional[Type[BaseException]],
+            exc_value: Optional[BaseException],
+            traceback: Optional[TracebackType]
     ):
         File._file = None
         if self.tag:
@@ -91,10 +90,10 @@ class File(AbstractContextManager):
                 fd.writelines('%s\n' % l for l in self.lines)
 
             sh(
-                'docker','build',
-                '-f',path,
-                '-t',tag,
-                [ ['--build-arg',f'{k}={v}'] for k,v in build_args.items() ],
+                'docker', 'build',
+                '-f', path,
+                '-t', tag,
+                [['--build-arg', f'{k}={v}'] for k, v in build_args.items()],
                 dir
             )
 
@@ -112,7 +111,7 @@ class File(AbstractContextManager):
         else:
             dir = self.copy_dir
         if dir:
-            srcs = [ join(dir, src) for src in srcs ]
+            srcs = [join(dir, src) for src in srcs]
         self.write(f'COPY {" ".join([*srcs, dst])}')
 
     def kvs(self, cmd, *args, **kwargs):
@@ -123,16 +122,16 @@ class File(AbstractContextManager):
             elif isinstance(arg, tuple):
                 if len(arg) != 2:
                     raise RuntimeError(f'Invalid tuple arg (required len 2): %s' % str(arg))
-                k,v = arg
+                k, v = arg
                 k = escape(str(k))
                 v = escape(str(v))
                 flattened.append(f'"{k}"="{v}"')
             elif isinstance(arg, dict):
-                for k,v in arg.items():
+                for k, v in arg.items():
                     flattened.append(f'"{escape(k)}"="{escape(v)}"')
             else:
                 raise ValueError(f'Unrecognized argument to {cmd}: {arg}')
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             flattened.append(f'"{escape(k)}"="{escape(v)}"')
         if flattened:
             self.write(f'{cmd} {" ".join(flattened)}')
@@ -163,9 +162,11 @@ class File(AbstractContextManager):
             repo = f'{repo}:{tag}'
         self.write(f'FROM {repo}')
 
-    def LN(self): self.write('')
+    def LN(self):
+        self.write('')
 
-    def WORKDIR(self, dst='/'): self.write(f'WORKDIR {dst}')
+    def WORKDIR(self, dst='/'):
+        self.write(f'WORKDIR {dst}')
 
     def ENTRYPOINT(self, *args, shell=False):
         if shell:
