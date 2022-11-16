@@ -38,7 +38,7 @@ class Compute:
             import mistune
         except ImportError:
             import pip
-            pip.main(['install', 'mistune'])  # match nbconvert
+            pip.main(['install', 'mistune'])
             import mistune
 
         html = mistune.html(self.long_description())

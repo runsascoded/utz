@@ -16,7 +16,7 @@ setup(
         ],
         'setup': [
             'lxml',
-            'mistune',  # match nbconvert
+            'mistune',
         ],
         'test': [
             'pytest',
