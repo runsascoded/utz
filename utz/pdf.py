@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from pathlib import Path
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -9,13 +10,13 @@ from subprocess import check_output
 
 def maybe_open_pdf(path, open_pdf):
     if open_pdf:
-        check_output(['open',path])
+        check_output(['open', path])
 
 
-def write(path, out, *args, page=0, open_pdf=False):
+def write(path, out, *args, page=0, font_size=None, open_pdf=False):
     path = str(path)
     out = str(out)
-    page_idx=page
+    page_idx = page
 
     if isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], str):
         args = [args]
@@ -23,13 +24,15 @@ def write(path, out, *args, page=0, open_pdf=False):
     packet = BytesIO()
     # create a new PDF with Reportlab
     can = canvas.Canvas(packet, pagesize=letter)
+    if font_size:
+        can.setFontSize(font_size)
     
     for x, y, s in args:
         can.drawString(x, y, s)
     
     can.save()
 
-    #move to the beginning of the StringIO buffer
+    # move to the beginning of the StringIO buffer
     packet.seek(0)
     new_pdf = PdfFileReader(packet)
     # read your existing PDF
@@ -42,16 +45,14 @@ def write(path, out, *args, page=0, open_pdf=False):
     output.addPage(page)
 
     # finally, write "output" to a real file
-    outputStream = open(out, "wb")
-    output.write(outputStream)
-    outputStream.close()
-    
+    with open(out, "wb") as f:
+        output.write(f)
+
     maybe_open_pdf(out, open_pdf)
 
 
-from pathlib import Path
 def cat(inputs, output, open_pdf=False):
-    '''https://stackoverflow.com/a/3444735'''
+    """https://stackoverflow.com/a/3444735"""
     input_streams = []
     try:
         # First open all the files, then produce the output file, and
@@ -80,4 +81,3 @@ def cat(inputs, output, open_pdf=False):
             f.close()
     
     maybe_open_pdf(output, open_pdf)
-
