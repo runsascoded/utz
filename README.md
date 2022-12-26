@@ -12,7 +12,7 @@ Import the whole kitchen sink:
 from utz import *
 ```
 
-See [__init__.py](utz/__init__.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
+See [`__init__.py`](utz/__init__.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
 
 ## Features
 Some noteworthy modules:
