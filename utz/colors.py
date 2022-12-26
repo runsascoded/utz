@@ -57,3 +57,12 @@ def color_interp(l_idx, l_n, r_colors):
 
 def colors_lengthen(colors, n):
     return [ color_interp(i, n - 1, colors) for i in range(n) ]
+
+
+def swatches(colors, sep=' ', width=6):
+    """Adapted from https://gist.github.com/wmayner/9b099a0e4a5f8e94f0c6ab2f570187a5"""
+    from IPython.display import Markdown, display
+    display(Markdown(sep.join(
+        f'<span style="font-family: monospace">{color} <span style="color: {color}">{chr(9608)*width}</span></span>'
+        for color in colors
+    )))
