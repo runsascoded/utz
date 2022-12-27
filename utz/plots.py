@@ -13,7 +13,7 @@ def save(
         pretty=False, margin=None,
         dir=None, w=None, h=None,
         xtitle=None, ytitle=None, ltitle=None,
-        xgrid=None, ygrid=None,
+        grid=None, xgrid=None, ygrid=None,
         **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations"""
@@ -50,8 +50,12 @@ def save(
         layout['legend'].update(**bottom_legend_kwargs)
     if xgrid:
         fig.update_xaxes(gridcolor=xgrid,)
+    elif grid:
+        fig.update_xaxes(gridcolor=grid,)
     if ygrid:
         fig.update_yaxes(gridcolor=ygrid,)
+    elif grid:
+        fig.update_yaxes(gridcolor=grid,)
     title_layout = dict(title=title, title_x=0.5)
     if png_title:
         layout.update(title_layout)
