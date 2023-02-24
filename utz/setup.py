@@ -47,7 +47,7 @@ class Compute:
             import lxml
         except ImportError:
             import pip
-            pip.main(['install','lxml'])
+            pip.main(['install', 'lxml'])
             import lxml
 
         from lxml.html import fragments_fromstring

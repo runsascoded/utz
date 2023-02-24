@@ -50,7 +50,6 @@ except ImportError:
     except ImportError as e:
         pass
 
-import functools
 from functools import partial, lru_cache, namedtuple, reduce, singledispatch
 
 from glob import glob
@@ -133,8 +132,9 @@ from .args_parser import *
 from .context import *
 
 with _try:
-    from .collections import coerce, singleton
+    from .collections import coerce, singleton, only
 
+from .defaultdict import DefaultDict, Unset
 
 # ## Optional Modules
 

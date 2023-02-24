@@ -37,20 +37,23 @@ class o(MutableMapping, dict):
         super().__init__(**data)
 
         for k, v in data.items():
-            if isinstance(v, dict) and not isinstance(v, o): v = o(v)
+            if type(v) is dict and not isinstance(v, o): v = o(v)
             super(o, self).__setattr__(k, v)
 
         super(o, self).__setattr__(K, data)
 
-    def merge(self, *args, **kwargs): return merge(self, *args, **kwargs)
+    def merge(self, *args, **kwargs):
+        return merge(self, *args, **kwargs)
 
     def update(self, *args, **kwargs):
         for arg in args:
             self.update(**arg)
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def __dict__(self): return dict(self._data)
+    def __items__(self):
+        for k, v in self._data.items():
+            yield k, v
 
     def __setattr__(self, k, v):
         if isinstance(v, dict) and not isinstance(v, o): v = o(v)
@@ -64,8 +67,11 @@ class o(MutableMapping, dict):
         except KeyError:
             raise AttributeError(f'Key {k}')
 
-    def __len__(self): return len(self._data)
-    def __delitem__(self, k): del self._data[k]
+    def __len__(self):
+        return len(self._data)
+
+    def __delitem__(self, k):
+        del self._data[k]
 
     def get(self, k, default=None):
         if k in self:
@@ -87,16 +93,27 @@ class o(MutableMapping, dict):
 
     def __getitem__(self, k):
         v = self._data[k]
-        if isinstance(v, dict) and not isinstance(v, o): v = o(v)
+        if type(v) is dict:
+            v = o(v)
         return v
-    def __setitem__(self, k, v): self._data[k] = v
-    def __contains__(self, k): return k in self._data
-    
-    def __str__(self): return str(self._data)
-    def __repr__(self): return repr(self._data)
 
-    def __iter__(self): return iter(self._data)
-    def items(self): return self._data.items()
+    def __setitem__(self, k, v):
+        self._data[k] = v
+
+    def __contains__(self, k):
+        return k in self._data
+    
+    def __str__(self):
+        return str(self._data)
+
+    def __repr__(self):
+        return repr(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def items(self):
+        return self._data.items()
 
     def __eq__(self, r):
         if isinstance(r, o):
@@ -112,4 +129,5 @@ class o(MutableMapping, dict):
             return self._data != r
         return NotImplemented
 
-    def __hash__(self): return hash(self._data)
+    def __hash__(self):
+        return hash(self._data)
