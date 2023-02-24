@@ -23,13 +23,13 @@ def test_time():
     n3 = now()
     Δ1 = float(n2) - float(n1)
     Δ2 = float(n3) - float(n2)
-    assert 0 <= Δ1 and Δ1 < .1, Δ1
-    assert 0 <= Δ2 and Δ2 < .1, Δ2
+    assert 0 <= Δ1 < .1, Δ1
+    assert 0 <= Δ2 < .1, Δ2
 
     Δ1 = int(n2) - int(n1)
     Δ2 = int(n3) - int(n2)
-    assert 0 <= Δ1 and Δ1 <= 1, Δ1
-    assert 0 <= Δ2 and Δ2 <= 1, Δ2
+    assert 0 <= Δ1 <= 1, Δ1
+    assert 0 <= Δ2 <= 1, Δ2
     assert Δ1 == 0 or Δ2 == 0
 
 
@@ -60,7 +60,7 @@ def test_time():
             (
                     o(unit= 's', ch='9', len=5, first_until='2024-01-30T06:46:30Z', len_until='2159-03-22T15:46:30Z'),
                     o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
-                    o(unit='us', ch='B', len=8, first_until='2023-01-24T16:09:22.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
+                    o(unit='us', ch='C', len=8, first_until='2024-07-31T06:10:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
             ('8Od[z', '#"R^v[z', 'AZK=Tv[z'),
         ),
