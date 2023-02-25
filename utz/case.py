@@ -1,12 +1,20 @@
+import re
+
 CAPS_RGX = re.compile(r'(?<!^)(?=[A-Z])')
 
 
-def dash_case(camel_case):
-    return CAPS_RGX.sub('-', camel_case).lower()
+def dash_case(orig):
+    if '_' in orig:
+        return re.sub("_", "-", orig)
+    else:
+        return CAPS_RGX.sub('-', orig).lower()
 
 
-def snake_case(camel_case):
-    return CAPS_RGX.sub('_', camel_case).lower()
+def snake_case(orig):
+    if '-' in orig:
+        return re.sub("-", "_", orig)
+    else:
+        return CAPS_RGX.sub('_', orig).lower()
 
 
 def camel_case(s):

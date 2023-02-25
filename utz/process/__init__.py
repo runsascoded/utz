@@ -122,4 +122,4 @@ def check(*cmd, stdout=DEVNULL, stderr=DEVNULL, **kwargs):
         return False
 
 
-__all__ = ['check', 'line', 'lines', 'output', 'run', 'sh', ]
+__all__ = ['check', 'err', 'line', 'lines', 'output', 'run', 'sh', ]

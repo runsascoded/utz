@@ -46,7 +46,7 @@ no = catch(NameError)
 
 
 def run_then_raise(fns, vals=None):
-    '''Run multiple functions, catching all Exceptions and raise-chaining them at the end'''
+    """Run multiple functions, catching all Exceptions and raise-chaining them at the end"""
     if not fns: return vals
     if not vals: vals = []
     (fn, *fns) = fns
@@ -60,6 +60,7 @@ def run_then_raise(fns, vals=None):
 
 
 def bind_exit(ctx): return lambda: ctx.__exit__(None, None, None)
+
 
 @contextmanager
 def ctxs(ctxs):
@@ -81,3 +82,14 @@ def ctxs(ctxs):
         fns = [ bind_exit(ctx) for ctx in reversed(ctxs) ]
         run_then_raise(fns)
 
+
+def contexts(ctxs):
+    @contextmanager
+    def fn(ctxs):
+        if not ctxs:
+            yield
+        else:
+            [ ctx, *rest ] = ctxs
+            with ctx as v, fn(rest) as vs:
+                yield [ v, *vs ]
+    return fn(ctxs)

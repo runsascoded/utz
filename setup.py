@@ -2,7 +2,7 @@ from utz.setup import setup
 
 setup(
     name="utz",
-    version="0.3.22",
+    version="0.3.23",
     install_requires=[
         "GitPython",
         "joblib",

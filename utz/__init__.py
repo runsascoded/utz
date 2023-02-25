@@ -50,7 +50,7 @@ except ImportError:
     except ImportError as e:
         pass
 
-from functools import partial, lru_cache, namedtuple, reduce, singledispatch
+from functools import partial, lru_cache, namedtuple, reduce, singledispatch, wraps
 
 from glob import glob
 
@@ -112,9 +112,14 @@ from .tmpdir import tmpdir
 from . import process
 from .process import *
 
+from . import fn
+from .fn import decos, args
+
 with _try:
     from . import pnds
     from .pnds import *
+
+from .cached_property import cached_property
 
 from .cd import cd
 
@@ -132,7 +137,7 @@ from .args_parser import *
 from .context import *
 
 with _try:
-    from .collections import coerce, singleton, only
+    from .collections import coerce, singleton, only, is_subsequence
 
 from .defaultdict import DefaultDict, Unset
 

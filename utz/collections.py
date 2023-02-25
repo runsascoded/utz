@@ -114,3 +114,11 @@ def coerce(value, choices, ε=1e-2, multi_ok=False, errors='raise', warn=True):
             )
         )
     return best['choice']
+
+
+def is_subsequence(seq, s):
+    if not seq:
+        return True
+    [ ch, *rest ] = seq
+    idx = s.find(ch)
+    return is_subsequence(rest, s[(idx+1):]) if idx >= 0 else False
