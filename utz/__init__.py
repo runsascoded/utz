@@ -128,6 +128,8 @@ from .docker.dsl import *
 
 from .o import o
 from .use import use
+with _try:
+    from .ym import YM
 
 with _try:
     from .git import Git, Repo, make_repo

@@ -2,15 +2,8 @@ from utz.setup import setup
 
 setup(
     name="utz",
-    version="0.3.23",
-    install_requires=[
-        "GitPython",
-        "joblib",
-        "pandas",
-        "python-dateutil==2.8.2",
-        "pytz",
-        "pyyaml",
-    ],
+    version="0.3.24",
+    install_requires=open('requirements.txt', 'r').read(),
     extras_require={
         'pdf': [
             'reportlab',
