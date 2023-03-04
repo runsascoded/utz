@@ -2,7 +2,7 @@ from utz.setup import setup
 
 setup(
     name="utz",
-    version="0.3.24",
+    version="0.3.25",
     install_requires=open('requirements.txt', 'r').read(),
     extras_require={
         'pdf': [
