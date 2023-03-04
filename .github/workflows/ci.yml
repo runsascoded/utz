@@ -18,7 +18,7 @@ jobs:
       - name: Install test dependencies
         run: |
           pip install --upgrade pip wheel
-          pip install utz[setup]==0.3.16   # bootstrap setup() helper
+          pip install utz[setup]==0.3.24   # bootstrap setup() helper
           pip install 'mistune>=2.0.0,<3'
           pip install -e .[setup,test]
           python -c 'import utz; print("utz version: %s, file: %s" % (utz.__version__, utz.__file__))'

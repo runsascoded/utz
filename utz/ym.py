@@ -121,7 +121,7 @@ class YM:
     def __sub__(self, n: int) -> 'YM':
         if not isinstance(n, int):
             raise ValueError('%s: can only add an integer to a Month, not %s: %s' % (str(self), str(type(n)), str(n)))
-        y, m = self.y, self.m - n
+        y, m = self.y, self.m - n - 1
         if m <= 0:
             years = int(ceil(-m / 12))
             y -= years
