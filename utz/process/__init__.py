@@ -78,9 +78,11 @@ def run(*cmd, dry_run=False, elide=None, log=err, **kwargs):
     cmd = parse_cmd(cmd)
     cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
-        log(f'Would run: {cmd_str}')
+        if log:
+            log(f'Would run: {cmd_str}')
     else:
-        log(f'Running: {cmd_str}')
+        if log:
+            log(f'Running: {cmd_str}')
         check_call(cmd, **kwargs)
 
 
@@ -92,10 +94,12 @@ def output(*cmd, dry_run=False, err_ok=False, elide=None, log=err, **kwargs):
     cmd = parse_cmd(cmd)
     cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
-        log(f'Would run: {cmd_str}')
+        if log:
+            log(f'Would run: {cmd_str}')
         return None
     else:
-        log(f'Running: {cmd_str}')
+        if log:
+            log(f'Running: {cmd_str}')
         try:
             return check_output(cmd, **kwargs)
         except CalledProcessError as e:
