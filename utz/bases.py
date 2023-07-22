@@ -52,6 +52,7 @@ class Converter:
     - etc.
     '''
     I2S = None
+
     def __init__(self):
         self.S2I = {ch:i for i, ch in enumerate(self.I2S)}
 

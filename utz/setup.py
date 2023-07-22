@@ -85,6 +85,7 @@ class Compute:
 
 def setup(**kwargs):
     c = Compute()
+
     def compute(*keys):
         for k in keys:
             if k not in kwargs:

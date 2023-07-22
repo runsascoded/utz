@@ -1,9 +1,16 @@
+from os import environ as env
 from os.path import exists
+from typing import Optional
 
 import plotly.graph_objects as go
+from IPython.display import Image
+
 
 DEFAULT_PLOTS_DIR = 'www/public/plots'
 DEFAULT_MARGIN = { 't': 0, 'r': 25, 'b': 0, 'l': 0, }
+
+# set this env var to a truthy string to return a static Image (instead of an interactive plot)
+PLOT_DISPLAY_IMG = 'PLOT_DISPLAY_IMG'
 
 
 def save(
@@ -14,6 +21,7 @@ def save(
         dir=None, w=None, h=None,
         xtitle=None, ytitle=None, ltitle=None,
         grid=None, xgrid=None, ygrid=None,
+        return_img: Optional[bool] = None,
         **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations"""
@@ -72,6 +80,12 @@ def save(
         )
     saved.update_layout(margin=margin or DEFAULT_MARGIN)
     saved.write_json(f'{dir}/{name}.json', pretty=pretty)
-    saved.write_image(f'{dir}/{name}.png', width=w, height=h)
+    png_path = f'{dir}/{name}.png'
+    saved.write_image(png_path, width=w, height=h)
 
-    return fig
+    if return_img is None:
+        return_img = bool(env.get(PLOT_DISPLAY_IMG))
+    if return_img:
+        return Image(filename=png_path)
+    else:
+        return fig
