@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from typing import Optional, Callable, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Unset:
@@ -14,21 +14,23 @@ class Unset:
 class DefaultDict(dict[str, T]):
     """`defaultdict` replacement where `in` reflects the presence of a fallback/default value.
 
-    Can be initialized from a list[str], where each element is either a `k=v` pair or a fallback value (with no `=`)."""
+    Can be initialized from a list[str], where each element is either a `k=v` pair or a fallback value (with no `=`).
+    """
+
     configs: dict[str, T]
     default: T = Unset
 
     @staticmethod
     def parse_configs(
-            configs: list[str],
-            name2value: Optional[Callable[[str], T]] = None,
-            fallback: Optional[T] = Unset,
+        configs: list[str],
+        name2value: Optional[Callable[[str], T]] = None,
+        fallback: Optional[T] = Unset,
     ) -> (T, dict[str, T]):
         default = fallback
         default_set = False
         kwargs: dict[str, T] = {}
         for write_config in configs:
-            kv = write_config.split('=', 1)
+            kv = write_config.split("=", 1)
             if len(kv) == 2:
                 k, name = kv
                 value = name2value(name) if name2value else name
@@ -36,7 +38,7 @@ class DefaultDict(dict[str, T]):
             elif len(kv) == 1:
                 [name] = kv
                 if default_set:
-                    raise ValueError(f'Multiple defaults found: {default}, {name}')
+                    raise ValueError(f"Multiple defaults found: {default}, {name}")
                 default = name2value(name) if name2value else name
                 default_set = True
             else:
@@ -44,8 +46,14 @@ class DefaultDict(dict[str, T]):
         return default, kwargs
 
     @staticmethod
-    def load(args: list[str], name2value: Optional[Callable] = None, fallback: Optional[T] = None) -> 'DefaultDict':
-        default, kwargs = DefaultDict.parse_configs(args, name2value=name2value, fallback=fallback)
+    def load(
+        args: list[str],
+        name2value: Optional[Callable] = None,
+        fallback: Optional[T] = None,
+    ) -> "DefaultDict":
+        default, kwargs = DefaultDict.parse_configs(
+            args, name2value=name2value, fallback=fallback
+        )
         return DefaultDict(configs=kwargs, default=default)
 
     def get_first(self, keys, fallback=None):
