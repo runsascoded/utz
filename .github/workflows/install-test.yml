@@ -1,0 +1,10 @@
+on:
+  push: { branches: [ "install" ] }
+  workflow_dispatch:
+jobs:
+  install:
+    name: Test `utz` install
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip list --format json
+      - run: pip install git+https://github.com/runsascoded/utz@${{ github.ref_name }}
