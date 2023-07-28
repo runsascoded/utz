@@ -1,5 +1,5 @@
 # utz
-*("oots")*: common imports and utilities exposed for easy wildcard-importing + boilerplate-reduction
+*("oots")*: imports and utilities for easy wildcard-importing + boilerplate-reduction
 
 ## Install
 ```bash
@@ -7,12 +7,12 @@ pip install utz
 ```
 
 ## Use
-Import the whole kitchen sink:
+Import everything:
 ```python
 from utz import *
 ```
 
-See [`__init__.py`](utz/__init__.py), which imports many of the modules below, as well as a bevy of handy stdlib methods and objects.
+See [`__init__.py`](utz/__init__.py), which imports many of the modules below, as well as a many standard-library methods and objects.
 
 ## Features
 Some noteworthy modules:
