@@ -26,36 +26,32 @@ class Compute:
 
     def author(self):
         """Infer author name from most recent commit"""
-        return line('git','log','-n1','--format=%an')
+        return line('git', 'log', '-n1', '--format=%an')
 
     def author_email(self):
         """Infer author email from most recent commit"""
-        return line('git','log','-n1','--format=%ae')
+        return line('git', 'log', '-n1', '--format=%ae')
 
     def description(self):
         """Set `description` to the contents of a <p> first-child of an initial <h1>"""
         try:
-            import mistune
-        except ImportError:
-            import pip
-            pip.main(['install', 'mistune'])
-            import mistune
-
-        html = mistune.html(self.long_description())
-
-        try:
             import lxml
+            import mistune
+            html = mistune.html(self.long_description())
+
+            from lxml.html import fragments_fromstring
+            [ h1, p, *_ ] = fragments_fromstring(html)
+            if h1.tag != 'h1' or p.tag != 'p':
+                raise ValueError('Expected initial <h1> followed by <p> while parsing `description` from README.md')
+
+            return p.text_content()
         except ImportError:
-            import pip
-            pip.main(['install', 'lxml'])
-            import lxml
-
-        from lxml.html import fragments_fromstring
-        [ h1, p, *_ ] = fragments_fromstring(html)
-        if h1.tag != 'h1' or p.tag != 'p':
-            raise ValueError('Expected initial <h1> followed by <p> while parsing `description` from README.md')
-
-        return p.text_content()
+            md = self.long_description()
+            md_lines = md.split('\n')
+            for line in md_lines:
+                if not re.match(r'[#\[!\-|<]', line):
+                    return line
+            return None
 
     def packages(self):
         return find_packages()
@@ -76,11 +72,11 @@ class Compute:
 
     def license(self):
         if exists('LICENSE'):
-            with open('LICENSE','r') as f:
+            with open('LICENSE', 'r') as f:
                 lines = f.readlines()
                 first_lines = [ line.strip() for line in lines[:2] ]
-                if first_lines == ['Apache License','Version 2.0, January 2004',]: return 'Apache v2'
-                if first_lines == ['MIT License','',]: return 'MIT'
+                if first_lines == ['Apache License', 'Version 2.0, January 2004',]: return 'Apache v2'
+                if first_lines == ['MIT License', '',]: return 'MIT'
 
 
 def setup(**kwargs):
