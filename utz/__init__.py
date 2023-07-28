@@ -149,7 +149,7 @@ from .defaultdict import DefaultDict, Unset
 # joblib: easy parallelization
 with _try:
     from joblib import Parallel, delayed
-    parallel = Parallel(n_jobs=cpu_count())
+from .parallel import parallel
 
 # yaml
 with _try:

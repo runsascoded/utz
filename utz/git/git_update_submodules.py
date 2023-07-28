@@ -6,35 +6,11 @@ from subprocess import Popen, PIPE
 from typing import Optional
 
 import click
-from git import Repo
 
 from utz import process, cd, git, DefaultDict, err
-
-
-def git_remote_sha(url: str, ref: str, **kwargs) -> str:
-    line = process.line('git', 'ls-remote', url, ref, **kwargs)
-    sha, _ = re.split(r'\s+', line, 1)
-    return sha
-
-
-_repo = None
-
-
-def git_repo():
-    global _repo
-    if not _repo:
-        _repo = Repo()
-    return _repo
-
-
-_submodule_map = None
-
-
-def git_submodules():
-    global _submodule_map
-    if not _submodule_map:
-        _submodule_map = { s.path: s for s in git_repo().submodules }
-    return _submodule_map
+from utz.git.remote import git_remote_sha
+from utz.git.repo import git_repo
+from utz.git.submodule import git_submodules
 
 
 def new_tree_lines(submodule_commits: dict, log=None) -> list[str]:

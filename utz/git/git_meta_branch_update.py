@@ -1,34 +1,15 @@
 #!/usr/bin/env python
 
 import re
-from os import cpu_count, environ
-from typing import Callable, Tuple, Optional
+from os import environ
+from typing import Tuple, Optional
 
 import click
 from git import Repo
-from utz import process, DefaultDict, err
+
+from utz import process, DefaultDict, err, parallel
 from utz.git.git_update_submodules import update_submodules, verbose_flag, no_reset_flag
-
-
-def parallel(elems, fn: Callable, n_jobs: int = 0):
-    try:
-        from joblib import Parallel, delayed
-        if not n_jobs:
-            n_jobs = cpu_count()
-        p = Parallel(n_jobs=n_jobs)
-        return p(delayed(fn)(elem) for elem in elems)
-    except ImportError:
-        return [ fn(elem) for elem in elems ]
-
-
-def git_remote_sha(url: str, ref: str, **kwargs):
-    line = process.line('git', 'ls-remote', url, ref, **kwargs)
-    new_sha, _ = re.split(r'\s+', line, 1)
-    return new_sha
-
-
-GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
-GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
+from utz.git.remote import git_remote_sha, GITHUB_HTTPS_URL_RGX, GITHUB_SSH_URL_RGX
 
 
 @click.command('git-meta-branch-update')
@@ -85,6 +66,8 @@ def main(github_step_summary, no_push, no_reset, verbose, ref_strs):
                         m = re.fullmatch(GITHUB_SSH_URL_RGX, submodule.url)
                         if m:
                             submodule_name_with_owner = m.group('nameWithOwner')
+                        else:
+                            raise ValueError(f'Could not parse submodule url: {submodule.url}')
                     bullet_str = f'- {name}: [`{cur_sha}..{new_sha}`](https://github.com/{submodule_name_with_owner}/compare/{cur_sha}..{new_sha})'
                     bullet_strs.append(bullet_str)
 

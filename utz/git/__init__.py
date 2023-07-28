@@ -1,7 +1,10 @@
+from utz import process
+
 try:
     from git import Repo, Git, InvalidGitRepositoryError
     from functools import partial
     import os
+
     def make_repo(*args, exist_ok=False, search_parent_directories=True, gitignore=None, msg=None, **kwargs):
         load_kwargs = kwargs.copy()
         load_kwargs['search_parent_directories'] = search_parent_directories
@@ -30,8 +33,9 @@ from . import branch, clone, diff, head, remote, submodule
 from .ctx import txn
 from .head import fmt, sha
 from .log import msg
-from .remote import push, ls_remote
-from ..process import run
+from .remote import push, ls_remote, git_remote_sha
+from .repo import git_repo
+from .submodule import git_submodules
 
 
 from ._checkout import Checkout
@@ -39,21 +43,24 @@ checkout = Checkout()
 
 
 def merge(ref, msg=None, ff=None):
-    cmd = ['git','merge','--no-edit']
+    cmd = ['git', 'merge', '--no-edit']
 
-    if ff == True: cmd += ['--ff-only']
-    elif ff == False: cmd += ['--no-ff']
+    if ff is True:
+        cmd += ['--ff-only']
+    elif ff is False:
+        cmd += ['--no-ff']
 
-    if msg: cmd += ['-m',msg]
+    if msg:
+        cmd += ['-m', msg]
 
     cmd += [ref]
 
-    run(cmd)
+    process.run(cmd)
 
 
 def commit(msg=None, all=False, amend=False):
-    cmd = ['git','commit']
+    cmd = ['git', 'commit']
     if amend: cmd += ['--amend']
     if all: cmd += ['-a']
-    if msg: cmd += ['-m',msg]
-    run(cmd)
+    if msg: cmd += ['-m', msg]
+    process.run(cmd)

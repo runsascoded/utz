@@ -1,12 +1,20 @@
+import re
 from re import match
+from subprocess import CalledProcessError
+
+from utz import process
 
 from ..process import *
 
 
-def ls(): return lines('git','remote')
+def ls(): return lines('git', 'remote')
 
 
-LS_REMOTE_LINE_REGEX = '(?P<sha>[0-9a-f]{40})\s+(?:refs/(?P<type>[^/]+)/(?P<name>.*)|(?P<head>HEAD))'
+GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
+GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
+LS_REMOTE_LINE_REGEX = r'(?P<sha>[0-9a-f]{40})\s+(?:refs/(?P<type>[^/]+)/(?P<name>.*)|(?P<head>HEAD))'
+
+
 def parse_ls_remote_lines(lns, head=None, tag=None, sha=None, heads=False, tags=False):
     d = {}
     for ln in lns:
@@ -30,12 +38,12 @@ def parse_ls_remote_lines(lns, head=None, tag=None, sha=None, heads=False, tags=
         return d.get('tags', {}).get(tag)
     if sha:
         r = {}
-        for k,v in d.items():
+        for k, v in d.items():
             if k == 'head':
                 if v.startswith(sha):
                     r[k] = v
             else:
-                typ = { name:id for name,id in v.items() if id.startswith(sha) }
+                typ = { name: id for name, id in v.items() if id.startswith(sha) }
                 if typ:
                     r[k] = typ
         d = r
@@ -49,7 +57,7 @@ def parse_ls_remote_lines(lns, head=None, tag=None, sha=None, heads=False, tags=
 
 
 def ls_remote(remote, *args, head=None, tag=None, sha=None, heads=False, tags=False):
-    cmd = ['git','ls-remote']
+    cmd = ['git', 'ls-remote']
     if head or heads: cmd += ['--heads']
     if tag or tags: cmd += ['--tags']
     cmd += (remote,) + args
@@ -71,7 +79,7 @@ def url(name, *args, **kwargs):
 
         return default
     
-    return line('git','remote','get-url',name)
+    return line('git', 'remote', 'get-url', name)
 _url = url
 
 
@@ -79,27 +87,27 @@ def init(name, url, branch=None, remote_branch=None, fetch=True, checkout=True, 
     if exists(name):
         existing_url = _url(name)
         if existing_url != url:
-            run('git','remote','set-url',name,url)
+            run('git', 'remote', 'set-url', name, url)
     else:
-        run('git','remote','add',name,url)
+        run('git', 'remote', 'add', name, url)
     
     if fetch:
-        run('git','fetch',name)
+        run('git', 'fetch', name)
     
     if branch:
         remote_branch = remote_branch or 'master'
         upstream = f'{name}/{remote_branch}'
         try:
-            run('git','branch','-u',upstream,branch)
+            run('git', 'branch', '-u', upstream, branch)
         except CalledProcessError as e:
             if push:
                 print(f'Failed to track upstream branch {upstream}; attempting to push {branch}:{remote_branch}')
-                run('git','push',name,f'{branch}:{remote_branch}')
-                run('git','branch','-u',upstream,branch)
+                run('git', 'push', name, f'{branch}:{remote_branch}')
+                run('git', 'branch', '-u', upstream, branch)
             else:
                 raise e
         if checkout:
-            run('git','checkout',branch)
+            run('git', 'checkout', branch)
 
 
 def push(name=None, local=None, remote=None):
@@ -110,5 +118,10 @@ def push(name=None, local=None, remote=None):
         else:
             refspec = f'{local}:{local}'
     
-    run('git','push',name,refspec)
+    run('git', 'push', name, refspec)
 
+
+def git_remote_sha(url: str, ref: str, **kwargs):
+    line = process.line('git', 'ls-remote', url, ref, **kwargs)
+    new_sha, _ = re.split(r'\s+', line, 1)
+    return new_sha
