@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import re
-from os import cpu_count
+from os import cpu_count, environ
 from typing import Callable, Tuple, Optional
 
 import click
@@ -21,40 +21,80 @@ def parallel(elems, fn: Callable, n_jobs: int = 0):
         return [ fn(elem) for elem in elems ]
 
 
+def git_remote_sha(url: str, ref: str, **kwargs):
+    line = process.line('git', 'ls-remote', url, ref, **kwargs)
+    new_sha, _ = re.split(r'\s+', line, 1)
+    return new_sha
+
+
+GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
+GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
+
+
 @click.command('git-meta-branch-update')
+@click.option('-g/-G', '--github-step-summary/--no-github-step-summary', is_flag=True, default=None)
 @click.option('-P', '--no-push', is_flag=True, help='Skip pushing')
 @no_reset_flag
 @verbose_flag
 @click.argument('ref_strs', nargs=-1)
-def main(no_push, no_reset, verbose, ref_strs):
+def main(github_step_summary, no_push, no_reset, verbose, ref_strs):
     refs = DefaultDict.load(ref_strs, fallback='HEAD')
     if not refs:
         if verbose:
             err("No refs found, exiting")
         return
 
-    def get_new_sha_entry(submodule) -> Optional[Tuple[str, str]]:
+    def get_new_sha_entry(submodule) -> Optional[Tuple[str, Tuple[str, str]]]:
         ref = refs[submodule]
         if not ref:
             return
         cur_sha = submodule.hexsha
-        line = process.line('git', 'ls-remote', submodule.url, ref, log=err if verbose else None)
-        new_sha, _ = re.split(r'\s+', line, 1)
-        if cur_sha != new_sha:
-            return submodule.name, new_sha
-        else:
-            return None
+        new_sha = git_remote_sha(submodule.url, ref, log=err if verbose else None)
+        return submodule.name, (cur_sha, new_sha)
 
     repo = Repo()
     submodules = repo.submodules
-    new_shas = dict(filter(None, parallel(submodules, get_new_sha_entry)))
+    submodules_dict = { submodule.name: submodule for submodule in submodules }
+    shas = dict(parallel(submodules, get_new_sha_entry))
 
+    new_shas = {
+        name: new_sha
+        for name, (cur_sha, new_sha) in shas.items()
+        if cur_sha != new_sha
+    }
     for name, sha in new_shas.items():
         err(f'{name}: {sha}')
 
     new_commit_sha = update_submodules(new_shas, no_reset=no_reset, verbose=verbose)
     if new_commit_sha and not no_push:
         process.run('git', 'push')
+
+        if github_step_summary is not False:
+            GITHUB_STEP_SUMMARY = environ.get('GITHUB_STEP_SUMMARY')
+            if GITHUB_STEP_SUMMARY:
+                name_with_owner = process.json('gh', 'repo', 'view', '--json', 'nameWithOwner', log=err if verbose else None)['nameWithOwner']
+                bullet_strs = []
+                for name, (cur_sha, new_sha) in shas.items():
+                    if name not in new_shas:
+                        continue
+                    submodule = submodules_dict[name]
+                    m = re.fullmatch(GITHUB_HTTPS_URL_RGX, submodule.url)
+                    if m:
+                        submodule_name_with_owner = m.group('nameWithOwner')
+                    else:
+                        m = re.fullmatch(GITHUB_SSH_URL_RGX, submodule.url)
+                        if m:
+                            submodule_name_with_owner = m.group('nameWithOwner')
+                    bullet_str = f'- {name}: [`{cur_sha}..{new_sha}`](https://github.com/{submodule_name_with_owner}/compare/{cur_sha}..{new_sha})'
+                    bullet_strs.append(bullet_str)
+
+                bullets_str = "\n".join(bullet_strs)
+                md = f'''Pushed submodule update ([`{new_commit_sha[:7]}`](https://github.com/{name_with_owner}/commit/{new_commit_sha})):
+
+    {bullets_str}
+    '''
+                with open(GITHUB_STEP_SUMMARY, 'a') as f:
+                    f.write(md)
 
 
 if __name__ == '__main__':
