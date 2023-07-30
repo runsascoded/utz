@@ -1,5 +1,9 @@
-from utz import contextmanager, git, line, o, run
-
+from contextlib import contextmanager
+from git import Repo
+import utz.git.diff as diff
+from utz.git.head import sha
+from utz.o import o
+from utz.process import line, run
 
 @contextmanager
 def txn(start=None, msg=None, add=None,):
@@ -8,7 +12,7 @@ def txn(start=None, msg=None, add=None,):
 
     The yielded value is an o() dict-wrapper whose `msg` and `add` attrs will be used to configure a final commit
     '''
-    start = start or git.sha()
+    start = start or sha()
     ctx = o()
     if add:
         ctx.add = add
@@ -19,21 +23,21 @@ def txn(start=None, msg=None, add=None,):
     if ctx('exit'):
         return
 
-    end = git.sha()
+    end = sha()
 
     add = ctx('add')
     msg = ctx('msg') or f'merge txn: {start}, {end}'
 
     if add:
-        run('git','add', add)
+        run('git', 'add', add)
 
-    if git.diff.exists(untracked=False, unstaged=False):
-        run('git','commit','-m',msg)
+    if diff.exists(untracked=False, unstaged=False):
+        run('git', 'commit', '-m', msg)
     elif ctx('empty'):
-        run('git','commit','--allow-empty','-m',msg)
+        run('git', 'commit', '--allow-empty', '-m', msg)
 
     if start != end:
-        repo = git.Repo()
+        repo = Repo()
         tree = repo.tree().hexsha
-        head = line('git','commit-tree',tree,'-p',start,'-p',end,'-m',msg)
-        run('git','reset',head)
+        head = line('git', 'commit-tree', tree, '-p', start, '-p', end, '-m', msg)
+        run('git', 'reset', head)
