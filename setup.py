@@ -19,10 +19,4 @@ setup(
         ],
     },
     url="https://github.com/runsascoded/utz",
-    entry_points={
-        'console_scripts': [
-            'git-update-submodules=utz.git.git_update_submodules:main',
-            'git-meta-branch-update=utz.git.git_meta_branch_update:main',
-        ],
-    },
 )
