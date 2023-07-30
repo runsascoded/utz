@@ -10,8 +10,6 @@ from ..process import *
 def ls(): return lines('git', 'remote')
 
 
-GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
-GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
 LS_REMOTE_LINE_REGEX = r'(?P<sha>[0-9a-f]{40})\s+(?:refs/(?P<type>[^/]+)/(?P<name>.*)|(?P<head>HEAD))'
 
 
