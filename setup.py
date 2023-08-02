@@ -9,10 +9,6 @@ setup(
             'reportlab',
             'pyPDF2',
         ],
-        'setup': [
-            'lxml',
-            'mistune',
-        ],
         'test': [
             'pytest',
             'pytest-mock',

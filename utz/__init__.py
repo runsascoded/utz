@@ -132,7 +132,11 @@ with _try:
     from .ym import YM
     from .ymd import YMD
 
-from .git import github, Git, Repo, make_repo
+with _try:
+    from git import Git, Repo
+    from .git import make_repo
+
+from .git import github
 
 from .context import *
 
