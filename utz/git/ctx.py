@@ -1,7 +1,7 @@
 from contextlib import contextmanager
-from git import Repo
 import utz.git.diff as diff
 from utz.git.head import sha
+from utz.git.repo import git_repo
 from utz.o import o
 from utz.process import line, run
 
@@ -37,7 +37,7 @@ def txn(start=None, msg=None, add=None,):
         run('git', 'commit', '--allow-empty', '-m', msg)
 
     if start != end:
-        repo = Repo()
+        repo = git_repo()
         tree = repo.tree().hexsha
         head = line('git', 'commit-tree', tree, '-p', start, '-p', end, '-m', msg)
         run('git', 'reset', head)
