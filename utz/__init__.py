@@ -1,112 +1,19 @@
-#!/usr/bin/env python
+# Import most of the Python standard library
+from stdlb import *
 
-# # imports
-# Common Jupyter imports and helpers to wildcard import from other notebooks
-
-# Helper for optional imports:
-
-import contextlib
-from contextlib import suppress
+# Optional-import helper
 from .imports import _try
 
-# ## stdlib
-# Common imports (and associated helpers) from the Python standard library:
-
 # ### Date/Time
-
-import datetime
-from datetime import datetime as dt, date
-fromtimestamp = dt.fromtimestamp
-fromisoformat = dt.fromisoformat
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
 from .time import now, today
 
-# ### Paths
-from pathlib import Path
-from .path import mkdir, mkpar
-
-# ### Other
-import argparse
-from argparse import ArgumentParser
-
-from base64 import b64decode, b64encode, b85decode, b85encode
-from .bases import b62, b64, b90
-
-import configparser
-from configparser import ConfigParser
-
-import dataclasses
-from dataclasses import dataclass
-
-import functools
-try:
-    # Python 3.8
-    from functools import cached_property, singledispatchmethod
-except ImportError:
-    try:
-        # Python ≤3.7; pip install cached-property
-        from cached_property import cached_property
-    except ImportError as e:
-        pass
-
-from functools import partial, lru_cache, namedtuple, reduce, singledispatch, wraps
-
-from glob import glob
-
-import hashlib
-from hashlib import md5, sha256
-
-import io
-from io import BytesIO, StringIO
-
-import itertools
-from itertools import combinations, combinations_with_replacement, permutations
-
-import json
-
-import math
-from math import acos, asin, atan, ceil, floor, pi, exp, log, log2, log10, cos, sin, sqrt, tan
-
-import os
-from os import chdir, cpu_count, environ as env, getcwd, listdir
-from os.path import abspath, basename, dirname, exists, expanduser, expandvars, isabs, isdir, isfile, islink, join, normpath, realpath, relpath, sep, splitext
-
-import re
-from re import match, fullmatch, IGNORECASE, MULTILINE, DOTALL, search, split, sub
-
-import shlex
-import shutil
-from shutil import copy, copyfileobj, move, rmtree
-
-import subprocess
-from subprocess import check_call, check_output, CalledProcessError, DEVNULL, PIPE, Popen
-
-import sys
-from sys import stdout, stderr, executable as python, exit, platform
-
-import tempfile
-from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
-
-import time
-from time import sleep
-
-import traceback
-from traceback import print_exc
-
-import typing
-from typing import Any, Callable, Collection, Generator, Iterable, Iterator, List, Optional, Sequence, Set, Sized, Union
-
-import urllib
-from urllib.parse import urlparse
-
-import uuid
-from uuid import uuid1
-
-# ## Sibling modules
 # Import other utilities from this repo:
 
 from .backoff import backoff
+from .bases import b62, b64, b90
+from .path import mkdir, mkpar
 from .tmpdir import tmpdir
 
 from . import process
@@ -118,8 +25,6 @@ from .fn import decos, args
 with _try:
     from . import pnds
     from .pnds import *
-
-from .cached_property import cached_property
 
 from .cd import cd
 
@@ -166,7 +71,6 @@ with _try:
         post as  POST, \
         put as   PUT, \
         patch as PATCH
-
 
 # ## PyData / Scientific Python
 
