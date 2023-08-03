@@ -1,6 +1,8 @@
 # Optional-import helper
 from .imports import _try
 
+from os import environ as env
+
 # Import most of the Python standard library
 with _try: from stdlb import *
 
