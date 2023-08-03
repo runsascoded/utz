@@ -2,30 +2,28 @@
 
 # # Pandas imports / aliases / helpers
 
-try:
-    from dateutil.parser import parse
-except ImportError:
-    pass
-
 from pathlib import Path
 
-from numpy import nan, array, ndarray
 from os import remove
 from os.path import exists, isdir, splitext
 
-import pandas as pd
-from pandas import \
-    concat, \
-    DataFrame as DF, \
-    Series, \
-    isna, \
-    read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table, \
-    date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
-    get_option, set_option
+from utz.imports import _try
+with _try:
+    from dateutil.parser import parse
+with _try:
+    from numpy import nan, array, ndarray
+    import pandas as pd
+    from pandas import \
+        concat, \
+        DataFrame as DF, \
+        Series, \
+        isna, \
+        read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table, \
+        date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
+        get_option, set_option
 
 from shutil import rmtree
 
-# ## Config
 
 def display(r=None, c=None):
     '''Set the default number of rows and columns for Pandas to display'''

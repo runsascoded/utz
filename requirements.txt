@@ -1,7 +1,1 @@
 click
-GitPython
-joblib
-pandas
-python-dateutil
-pytz
-pyyaml

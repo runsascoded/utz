@@ -6,10 +6,6 @@ import re
 from math import ceil
 from typing import Tuple, Union, Generator
 
-import pandas as pd
-from click import option
-from pandas.core.tools.datetimes import DatetimeScalar
-
 
 # Types that can be passed to the Month constructor
 Monthy = Union['YM', str, int, None]
@@ -100,7 +96,8 @@ class YM:
         return url.format(ym=str(self), y=str(self.y), m=str(self.m), **kwargs)
 
     @property
-    def dt(self) -> DatetimeScalar:
+    def dt(self):
+        import pandas as pd
         return pd.to_datetime('%d-%02d' % (self.y, self.m))
 
     @property
@@ -147,6 +144,7 @@ def dates(*flags, default_start=None, default_end=None, help=None):
         flags = ('-d', '--dates')
 
     def _dates(fn):
+        from click import option
         @option('-d', '--dates', help=help)
         @wraps(fn)
         def _fn(*args, dates=None, **kwargs):

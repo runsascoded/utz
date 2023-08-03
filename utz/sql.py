@@ -1,16 +1,8 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
 
 import dask.dataframe as dd
 import pandas as pd
-from sqlalchemy import create_engine
 from os import cpu_count
-
-
-# In[ ]:
 
 
 def to_sql(
@@ -22,7 +14,7 @@ def to_sql(
         divisions = pd.Series(table.divisions, name='divisions')
         divisions.to_sql(f'{name}/divisions', db_path, if_exists=if_exists)
 
-        
+
 def from_sql(
     name, db_path, index_col=None, dask=True,
 ):
@@ -38,9 +30,6 @@ def from_sql(
     return table
 
 
-# In[ ]:
-
-
 def table_to_sql(
     table_name,
     db_path,
@@ -51,6 +40,7 @@ def table_to_sql(
     force_db_refresh=False,
     **kwargs
 ):
+    from sqlalchemy import create_engine
     engine = create_engine(db_path)
 
     if npartitions is not None:
@@ -78,4 +68,3 @@ def table_to_sql(
         to_sql(csv, table_name, db_path, force=force_db_refresh)
 
     return from_sql(table_name, db_path, index_col=index_col, dask=dask)
-

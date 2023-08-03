@@ -3,10 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime as dt, date, timedelta
 from functools import wraps
 from typing import Union, Generator
+from utz.imports import _try
 
-import pandas as pd
-from click import option
-from pandas.core.tools.datetimes import DatetimeScalar
 
 # Types that can be passed to the Month constructor
 Monthy = Union['YMD', str, int, None]
@@ -109,7 +107,8 @@ class YMD:
         return url.format(ymd=str(self), y=str(self.y), m=str(self.m), d=str(self.d), **kwargs)
 
     @property
-    def dt(self) -> DatetimeScalar:
+    def dt(self):
+        import pandas as pd
         return pd.to_datetime('%d-%02d-%02d' % (self.y, self.m, self.d))
 
     @property
@@ -139,6 +138,7 @@ def dates(*flags, default_start=None, default_end=None, help=None):
     if not flags:
         flags = ('-d', '--dates')
 
+    from click import option
     def _dates(fn):
         @option(*flags, help=help)
         @wraps(fn)

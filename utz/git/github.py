@@ -1,4 +1,3 @@
-import click
 from functools import wraps
 from os import environ
 import re
@@ -36,6 +35,7 @@ def repository_option(
         flag_args = ('-R', '--repository')
 
     def option(fn):
+        import click
         @click.option(*flag_args, help=help, **flag_kwargs)
         @wraps(fn)
         def _fn(*args, repository=None, **kwargs):

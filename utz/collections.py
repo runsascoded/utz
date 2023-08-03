@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from pandas import Series
+try:
+    from pandas import Series
+except ImportError:
+    Series = None
 from math import exp, log
-from numpy import nan
 from sys import stderr
 
 
@@ -35,7 +37,7 @@ class WrongKeys(ValueError):
 
 
 def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True, key=None):
-    if isinstance(elems, Series):
+    if Series and isinstance(elems, Series):
         elems = elems.unique().tolist()
     elif isinstance(elems, dict):
         if key:
@@ -102,6 +104,10 @@ def coerce(value, choices, ε=1e-2, multi_ok=False, errors='raise', warn=True):
         if warn:
             stderr.write(msg + '\n')
         if errors == 'coerce':
+            try:
+                from numpy import nan
+            except ImportError:
+                nan = None
             return nan
         else:
             return value
