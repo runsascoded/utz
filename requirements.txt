@@ -1,1 +1,1 @@
-stdlb
+stdlb>=0.0.2
