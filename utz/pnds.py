@@ -21,18 +21,17 @@ with _try:
         read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table, \
         date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
         get_option, set_option
+    def display(r=None, c=None):
+        '''Set the default number of rows and columns for Pandas to display'''
+        if r:
+            pd.options.display.max_rows = r
+        if c:
+            pd.options.display.max_columns = c
+
+    display(100, 100)
+
 
 from shutil import rmtree
-
-
-def display(r=None, c=None):
-    '''Set the default number of rows and columns for Pandas to display'''
-    if r:
-        pd.options.display.max_rows = r
-    if c:
-        pd.options.display.max_columns = c
-
-display(100, 100)
 
 
 # ## Concat / Creation

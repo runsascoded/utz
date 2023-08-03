@@ -1,12 +1,14 @@
 
 from contextlib import contextmanager
 from os.path import basename
+from re import match
 from sys import stderr
+from traceback import print_exc
 from typing import Iterable
 
-import utz
-from utz import check, git, line, match, now, print_exc, run, tmpdir
-
+from utz import now, tmpdir
+from utz.cd import cd
+from utz.process import check, line, run
 
 @contextmanager
 def tmp(
@@ -40,7 +42,7 @@ def tmp(
     - `name`: basename for the temporary clone directory (defaults to basename of `url`)
     - `bare`: clone a bare repository
     '''
-
+    from utz import git
     name = name or basename(url)
     if name.endswith('.git'): name = name[:-len('.git')]
     with tmpdir(name, dir=dir) as repo_dir:
@@ -54,7 +56,7 @@ def tmp(
         cmd += [ url, repo_dir, ]
         run(*cmd, **run_kwargs)
         if ref:
-            with utz.cd(repo_dir):
+            with cd(repo_dir):
                 if ref is True:
                     ref = git.branch.current()
 
@@ -78,7 +80,7 @@ def tmp(
         if cd:
             if not ref:
                 # if `checkout or init`, we've already cd'd and yielded above
-                with utz.cd(repo_dir):
+                with cd(repo_dir):
                     yield repo_dir
         else:
             yield repo_dir
@@ -86,7 +88,7 @@ def tmp(
         # optionally cd into upstream `url` dir (assumed to be a local directory if `pull` is set) and pull changes
         # from the temporary `repo_dir`
         if pull:
-            with utz.cd(url):
+            with cd(url):
                 if not branch: branch = git.branch.current()
                 run('git','fetch',repo_dir)
                 try:
@@ -112,7 +114,7 @@ def tmp(
 
         # optionally push back upstream
         if push:
-            with utz.cd(repo_dir):
+            with cd(repo_dir):
                 cmd = ['git','push',]
                 if isinstance(push, str):
                     cmd += ['origin',f'{push}:{push}',]

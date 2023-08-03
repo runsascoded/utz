@@ -1,8 +1,8 @@
-# Import most of the Python standard library
-from stdlb import *
-
 # Optional-import helper
 from .imports import _try
+
+# Import most of the Python standard library
+with _try: from stdlb import *
 
 # ### Date/Time
 with _try: from dateutil.parser import parse
@@ -61,6 +61,7 @@ from .parallel import parallel
 with _try:
     import yaml
     # Fix a bad default in PyYAML (cf. https://github.com/yaml/pyyaml/issues/110)
+    from functools import partial
     yaml.dump = partial(yaml.dump, sort_keys=False)
     yaml.safe_dump = partial(yaml.safe_dump, sort_keys=False)
 
