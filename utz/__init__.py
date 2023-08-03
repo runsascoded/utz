@@ -16,6 +16,7 @@ from .time import now, today
 from .backoff import backoff
 from .bases import b62, b64, b90
 from .path import mkdir, mkpar
+from os import path
 from .tmpdir import tmpdir
 
 from . import process
