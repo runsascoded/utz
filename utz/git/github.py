@@ -29,7 +29,7 @@ GITHUB_REPOSITORY = 'GITHUB_REPOSITORY'
 def repository_option(
         *flag_args,
         env=GITHUB_REPOSITORY,
-        help='Repository name with owner, e.g. "owner/repo"', **flag_kwargs,
+        help='Repository name (with owner, e.g. "owner/repo"), defaults to $GITHUB_REPOSITORY then `gh repo view --json nameWithOwner`', **flag_kwargs,
 ):
     if not flag_args:
         flag_args = ('-R', '--repository')
