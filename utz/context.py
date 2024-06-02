@@ -4,23 +4,7 @@
 
 # General/Common imports:
 
-from contextlib import AbstractContextManager, contextmanager, suppress
-
-
-# ## `nullcontext`
-# Define `nullcontext` in a cross-version way:
-try:
-    # Python ≥3.7
-    from contextlib import nullcontext
-except ImportError:
-    # Python <3.7
-    class nullcontext(object):
-        def __enter__(self): pass
-        def __exit__(self, *args): pass
-
-
-# Verify it works:
-with nullcontext(): pass
+from contextlib import AbstractContextManager, contextmanager, nullcontext, suppress
 
 
 # ## `catch`: context manager for catching+verifying `Exception`s
