@@ -1,14 +1,12 @@
 #!/usr/bin/env python
-
+from functools import partial
 from json import loads
 import shlex
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL
 from sys import stderr
 
 
-def err(msg):
-    stderr.write(msg)
-    stderr.write('\n')
+err = partial(print, file=stderr)
 
 
 def parse_cmd(cmd):
