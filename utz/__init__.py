@@ -60,6 +60,14 @@ with _try:
     from joblib import Parallel, delayed
 from .parallel import parallel
 
+try:
+    from . import plots
+    from .plots import plot
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ImportError:
+    pass
+
 # yaml
 with _try:
     import yaml
