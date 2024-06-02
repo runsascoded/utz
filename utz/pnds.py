@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+from functools import partial
 # # Pandas imports / aliases / helpers
 
 from pathlib import Path
@@ -21,8 +20,9 @@ with _try:
         read_csv, read_excel, read_json, read_parquet, read_sql, read_sql_query, read_sql_table, \
         date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
         get_option, set_option
+
     def display(r=None, c=None):
-        '''Set the default number of rows and columns for Pandas to display'''
+        """Set the default number of rows and columns for Pandas to display"""
         if r:
             pd.options.display.max_rows = r
         if c:
@@ -33,11 +33,39 @@ with _try:
 
 from shutil import rmtree
 
+# ## crosstab
+xtab = pd.crosstab
+xtabn = partial(pd.crosstab, dropna=False)
+
+# ## value_counts
+def vc(p, **kwargs):
+    return p.value_counts(**kwargs)
+
+
+def vcs(p, **kwargs):
+    return p.value_counts(**kwargs).sort_index()
+
+
+def vcn(p, **kwargs):
+    return p.value_counts(dropna=False, **kwargs)
+
+
+def vcns(p, **kwargs):
+    return p.value_counts(dropna=False, **kwargs).sort_index()
+
+
+def vcvc(p, **kwargs):
+    return p.value_counts(**kwargs).value_counts()
+
+
+def vcvcs(p, **kwargs):
+    return p.value_counts(**kwargs).value_counts().sort_index()
+
 
 # ## Concat / Creation
 
 def sxs(*dfs, **kwargs):
-    '''Concat some DataFrames "side by side"'''
+    """Concat some DataFrames "side by side\""""
     return concat(dfs, axis=1, **kwargs)
 
 
@@ -66,7 +94,7 @@ def sort_by_series(df, series):
 
 # ## File paths
 
-def file_dict(path):
+def file_dict(path: Path):
     name = path.name
     pieces = name.rsplit('.', 1)
     if len(pieces) == 2:
