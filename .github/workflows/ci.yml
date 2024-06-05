@@ -9,11 +9,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.9
       - name: Fetch submodule tags
@@ -21,25 +21,23 @@ jobs:
         run: git fetch --tags origin
       - name: Install test dependencies
         run: |
-          pip install --upgrade pip wheel
-          pip install utz[setup]==0.3.28   # bootstrap setup() helper
           pip install -e .[all]
           python -c 'import utz; print("utz version: %s, file: %s" % (utz.__version__, utz.__file__))'
       - name: Test
         run: |
-          git config --global user.name 'ci'
-          git config --global user.email 'ci'
+          git config --global user.name ci
+          git config --global user.email ci
           mkdir ~/.ssh
           echo "${{ secrets.GITLAB_HAILSTONE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-          pytest -v --ignore=utz/tests/data/gsmo
+          pytest -v
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          pip install setuptools twine
+          pip install setuptools twine wheel
           python setup.py sdist bdist_wheel
           twine upload dist/*

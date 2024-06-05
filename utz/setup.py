@@ -21,6 +21,12 @@ class Compute:
         """Default to markdown format for `long_description`"""
         return "text/markdown"
 
+    def install_requires(self):
+        """Read in requirements.txt as `install_requires`"""
+        if exists('requirements.txt'):
+            with open('requirements.txt', "r") as fh:
+                return fh.read()
+
     def version(self):
         return git_version()
 
@@ -72,7 +78,7 @@ class Compute:
 
         return classifiers
 
-    def python_requires(self): return '>=3.6'
+    def python_requires(self): return '>=3.8'
 
     def license(self):
         if exists('LICENSE'):
@@ -84,6 +90,7 @@ class Compute:
 
 
 def setup(**kwargs):
+    """Wrapper for setuptools.setup(), with convenient fallback values for common keys."""
     c = Compute()
 
     def compute(*keys):
@@ -102,6 +109,7 @@ def setup(**kwargs):
         'description',
         'long_description',
         'long_description_content_type',
+        'install_requires',
         'license',
         'author',
         'author_email',
