@@ -65,6 +65,7 @@ try:
     from .plots import plot
     import plotly.express as px
     import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
 except ImportError:
     pass
 

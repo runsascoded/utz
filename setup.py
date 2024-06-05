@@ -19,6 +19,10 @@ extras_require = {
         'reportlab',
         'pyPDF2',
     ],
+    'plot': [
+        'kaleido',
+        'plotly',
+    ],
     'setup': [
         'setuptools',
     ],
