@@ -11,6 +11,9 @@ with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
 from .time import now, today
 
+# ### Jupyter
+with _try: from IPython.display import HTML, Image, Markdown, display
+
 # Import other utilities from this repo:
 
 from .backoff import backoff
