@@ -1,4 +1,3 @@
-
 from contextlib import contextmanager
 from os.path import basename
 from re import match
@@ -7,25 +6,25 @@ from traceback import print_exc
 from typing import Iterable
 
 from utz import now, tmpdir
-from utz.cd import cd
 from utz.process import check, line, run
+
 
 @contextmanager
 def tmp(
-    url,
-    *clone_args,
-    branch=None,
-    ref=None,
-    submodules=True,
-    push=False,
-    pull=False,
-    cd=True,
-    name=None,
-    bare=False,
-    dir=None,
-    **run_kwargs,
+        url,
+        *clone_args,
+        branch=None,
+        ref=None,
+        submodules=True,
+        push=False,
+        pull=False,
+        cd=True,
+        name=None,
+        bare=False,
+        dir=None,
+        **run_kwargs,
 ):
-    '''contextmanager for creating a Git repo in a temporary directory, and optionally cd'ing into it and upstreaming
+    """contextmanager for creating a Git repo in a temporary directory, and optionally cd'ing into it and upstreaming
     commits from it
 
     - `url`: local or remote path to Git repository to be cloned
@@ -41,20 +40,20 @@ def tmp(
     - `cd` (bool): move into the temporary clone dir before `yield`ing
     - `name`: basename for the temporary clone directory (defaults to basename of `url`)
     - `bare`: clone a bare repository
-    '''
+    """
     import utz
     from utz import git
     name = name or basename(url)
     if name.endswith('.git'): name = name[:-len('.git')]
     with tmpdir(name, dir=dir) as repo_dir:
-        cmd = ['git','clone']
+        cmd = ['git', 'clone']
         if submodules: cmd += ['--recurse-submodules']
         if bare: cmd += ['--bare']
         if branch and not ref:
             # branch must already exist and we want to clone and work on it
-            cmd += ['-b',branch]
+            cmd += ['-b', branch]
         cmd += clone_args
-        cmd += [ url, repo_dir, ]
+        cmd += [url, repo_dir, ]
         run(*cmd, **run_kwargs)
         if ref:
             with utz.cd(repo_dir):
@@ -71,10 +70,10 @@ def tmp(
 
                 if make_branch:
                     if bare:
-                        run('git','branch',branch,ref)
-                        run('git','symbolic-ref','HEAD',f'refs/heads/{branch}')
+                        run('git', 'branch', branch, ref)
+                        run('git', 'symbolic-ref', 'HEAD', f'refs/heads/{branch}')
                     else:
-                        run('git','checkout','-b',branch,ref)
+                        run('git', 'checkout', '-b', branch, ref)
 
                 if cd:
                     yield repo_dir
@@ -91,11 +90,11 @@ def tmp(
         if pull:
             with utz.cd(url):
                 if not branch: branch = git.branch.current()
-                run('git','fetch',repo_dir)
+                run('git', 'fetch', repo_dir)
                 try:
-                    ref_line = line('git','ls-remote',repo_dir,f'refs/heads/{branch}')
+                    ref_line = line('git', 'ls-remote', repo_dir, f'refs/heads/{branch}')
                     m = match(
-                        '(?P<sha>[0-9a-f]{40})\s+refs/heads/%s' % branch,
+                        r'(?P<sha>[0-9a-f]{40})\s+refs/heads/%s' % branch,
                         ref_line,
                     )
                     if m:
@@ -107,21 +106,22 @@ def tmp(
                     print_exc()
                     sha = git.sha('FETCH_HEAD')
 
-                if not check('git','merge','-m','\n'.join([f'Merge {branch} from tmpdir','',repo_dir]),sha):
+                if not check('git', 'merge', '-m', '\n'.join([f'Merge {branch} from tmpdir', '', repo_dir]), sha):
                     tmp_branch = f'conflict-{sha}'
-                    run('git','branch',tmp_branch,sha)
+                    run('git', 'branch', tmp_branch, sha)
                     stderr.write('Pulling from %s failed, aborting merge, saving to %s\n' % (repo_dir, tmp_branch))
-                    run('git','merge','--abort')
+                    run('git', 'merge', '--abort')
 
         # optionally push back upstream
         if push:
             with utz.cd(repo_dir):
-                cmd = ['git','push',]
+                cmd = [ 'git', 'push', ]
+                remote = line('git', 'remote')
                 if isinstance(push, str):
-                    cmd += ['origin',f'{push}:{push}',]
+                    cmd += [ remote, f'{push}:{push}', ]
                 elif isinstance(push, Iterable):
                     cmd += push
                 elif push is True:
                     if branch:
-                        cmd += ['origin',f'{branch}:{branch}',]
+                        cmd += [ remote, f'{branch}:{branch}', ]
                 run(*cmd)

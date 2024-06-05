@@ -1,7 +1,7 @@
 import pytest
 
 import utz
-from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run
+from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run, line
 
 
 def test_current_branch():
@@ -198,11 +198,12 @@ def test_bare_tmp_clone():
         with git.clone.tmp(origin, branch=branch) as wd:
             check(cwd=wd, name='hailstone', shas={sha0: (None, branch)})
             sha1 = commit_file('test1.txt', ['aaa', 'bbb'], sha0)
-            run('git', 'push', 'origin')
+            remote = line('git', 'remote')
+            run('git', 'push', remote)
             check(
                 branch=branch,
                 shas={
-                    sha1: (None, branch, f'origin/{branch}'),
+                    sha1: (None, branch, f'{remote}/{branch}'),
                     sha0: 'HEAD^',
                 },
                 files={'test1.txt': ['aaa', 'bbb']},

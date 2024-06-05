@@ -3,7 +3,7 @@ from utz.setup import setup
 extras_require = {
     'dt': [
         'click',
-        'python-dateutil',
+        'python-dateutil==2.8.2',
         'pytz',
     ],
     'git': [
