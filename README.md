@@ -30,6 +30,7 @@ Some noteworthy modules:
 - [git](utz/git): git helpers / wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)
 - [pnds](utz/pnds.py): common [pandas](https://pandas.pydata.org/) imports and helpers
 - [collections](utz/collections.py): collection/list helpers
+- [plots](utz/plots.py): plotly helpers
 
 ### auto-`setup.py`
 [`utz/setup.py`](utz/setup.py) provides defaults for various `setuptools.setup()` params:
