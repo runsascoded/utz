@@ -6,6 +6,7 @@ from pytz import UTC
 from utz import b62, b64, b90, now, o, today
 to_dt = now.to_dt
 
+
 def test_time():
     fmt = '%Y-%m-%dT%H:%M:%SZ'
     assert fmt == now.FMTS.iso
@@ -42,7 +43,7 @@ def test_time():
             (
                     o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z', len_until='4182-03-14T03:28:00Z'),
                     o(unit='ms', ch='L', len=7, first_until='2024-06-22T17:35:03.744000Z', len_until='2111-08-01T07:19:33.184000Z'),
-                    o(unit='us', ch='2', len=9, first_until='2023-08-29T14:01:57.037120Z', len_until='2549-11-30T12:09:02.965824Z'),
+                    o(unit='us', ch='3', len=9, first_until='2032-07-30T09:31:33.747776Z', len_until='2549-11-30T12:09:02.965824Z'),
             ),
             ('+SuZKz', 'KNuCZyz', '2gvgesKyz'),
         ),
@@ -50,7 +51,7 @@ def test_time():
             b62,
             (
                     o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z', len_until='3799-06-08T08:23:06Z'),
-                    o(unit='ms', ch='c', len=7, first_until='2024-01-11T01:56:58.922000Z', len_until='2083-06-04T14:46:33.194000Z'),
+                    o(unit='ms', ch='d', len=7, first_until='2025-10-29T11:47:34.506000Z', len_until='2083-06-04T14:46:33.194000Z'),
                     o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
             ('At4G0V', 'bTwXvhz', 'GWAZusO3r',),
@@ -58,7 +59,7 @@ def test_time():
         (
             b90,
             (
-                    o(unit= 's', ch='9', len=5, first_until='2024-01-30T06:46:30Z', len_until='2159-03-22T15:46:30Z'),
+                    o(unit= 's', ch=':', len=5, first_until='2026-02-27T15:46:30Z', len_until='2159-03-22T15:46:30Z'),
                     o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
                     o(unit='us', ch='C', len=8, first_until='2024-07-31T06:10:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
