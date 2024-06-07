@@ -1,4 +1,4 @@
-from pkg_resources import DistributionNotFound
+from importlib.metadata import version, PackageNotFoundError
 from re import fullmatch
 from subprocess import CalledProcessError
 
@@ -23,9 +23,7 @@ def git_version():
 
 
 def pkg_version(name=None):
-    from pkg_resources import get_distribution
     try:
-        pkg = get_distribution(name)
-        return pkg.version
-    except DistributionNotFound:
+        return version(name)
+    except PackageNotFoundError:
         return git_version()
