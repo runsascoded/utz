@@ -21,10 +21,12 @@ PLOT_DIR_VAR = 'UTZ_PLOT_DIR'
 PLOT_MARGIN_VAR = 'UTZ_PLOT_MARGIN'
 PLOT_BG_VAR = 'UTZ_PLOT_BG'
 PLOT_GRID_VAR = 'UTZ_PLOT_GRID'
+PLOT_SUBTITLE_SIZE_VAR = 'UTZ_PLOT_SUBTITLE_SIZE'
 
 DEFAULT_BG = 'white'
 DEFAULT_SHOW = 'html'
 DEFAULT_GRID = '#ccc'
+DEFAULT_SUBTITLE_SIZE = '0.8em'
 
 
 class Unset:
@@ -34,18 +36,38 @@ class Unset:
 _Unset = type(Unset)
 
 
+Title = str | list[str] | None
+
+
+def title(s: Title, subtitle_size: str | None = None) -> str | None:
+    if isinstance(s, list):
+        if subtitle_size is None:
+            subtitle_size = env.get(PLOT_SUBTITLE_SIZE_VAR, DEFAULT_SUBTITLE_SIZE)
+
+        title, *subtitles = s
+        prefix = f'<br><span style="font-size:{subtitle_size}">'
+        suffix = '</span>'
+        title = prefix.join([title] + [ f'{subtitle}{suffix}' for subtitle in subtitles ])
+        return title
+    else:
+        return s
+
+
+make_title = title
+
+
 def save(fig, title, name, **kwargs):
     return plot(fig, title, name=name, **kwargs)
 
 
 def plot(
         fig: Figure,
-        title: str | list[str] | None,
+        title: Title,
         name: str | None = None,
         bg: str | None | _Unset = Unset,
-        subtitle_size='0.8em',
+        subtitle_size: str | None = None,
         hoverx: bool = False,
-        hovertemplate: str | list[str] | None = None,
+        hovertemplate: Title = None,
         png_title: bool = True,
         yrange: str | None = 'tozero',
         legend: Union[bool, dict, None] = None,
@@ -55,9 +77,9 @@ def plot(
         dir: str | None = None,
         w: int | None = None,
         h: int | None = None,
-        xtitle: str | None = None,
-        ytitle: str | None = None,
-        ltitle: str | None = None,
+        xtitle: Title = None,
+        ytitle: Title = None,
+        ltitle: Title = None,
         grid: str | None | _Unset = Unset,
         xgrid: str | None = None,
         ygrid: str | None = None,
@@ -75,7 +97,7 @@ def plot(
         title: Title string or list of strings (tail will be converted to "subtitle" lines)
         name: "Stem" for output file paths
         bg: Background color, falls back to $UTZ_PLOT_BG, defaults to `DEFAULT_BG` ("white")
-        subtitle_size: Subtitle font size
+        subtitle_size: Subtitle font size; falls back to $UTZ_PLOT_SUBTITLE_SIZE, defaults to "0.8em"
         hoverx: Alias for `hovermode="x"`
         hovertemplate: Hover template; `list[str]` will be `<br>.join()`'d.
         png_title: Whether to include the title in PNG (sometimes nice to disable this, e.g. for PNGs that will be embedded in Markdown that includes the title).
@@ -85,12 +107,12 @@ def plot(
         pretty: Pretty-print JSON output
         margin: Margin size or dict of sizes (falls back to $UTZ_PLOT_MARGIN)
         dir: Output directory (falls back to $UTZ_PLOT_DIR)
-        w: Width
-        h: Height
-        xtitle: X-axis title
-        ytitle: Y-axis title
-        ltitle: Legend title
-        grid: Grid color
+        w: Width; applied to Figure and any resulting PNG output
+        h: Height; applied to Figure and any resulting PNG output
+        xtitle: X-axis title; string or list of strings (tail will be converted to "subtitle" lines)
+        ytitle: Y-axis title; string or list of strings (tail will be converted to "subtitle" lines)
+        ltitle: Legend title; string or list of strings (tail will be converted to "subtitle" lines)
+        grid: Grid color (x- and y-axes)
         xgrid: X-axis grid color
         ygrid: Y-axis grid color
         x: X-axis configuration (passed to `update_xaxes`)
@@ -99,10 +121,16 @@ def plot(
         show: Format to return the Figure in: 'png' ⇒ return PNG `Image`, 'file' ⇒ return `Image(filename=…)` pointing to output `.png`, 'html' ⇒ return default Plotly Figure HTML, False ⇒ None (don't show figure, if `plot(…)` call is last expression in a notebook cell). Falls back to $UTZ_PLOT_SHOW, defaults to 'html'.
         zerolines: Whether to show zero lines; 'x' ⇒ only on x-axis, 'y' ⇒ only on y-axis, True (default) ⇒ on both axes
     """
+    mk_title = partial(make_title, subtitle_size=subtitle_size)
+    xtitle = mk_title(xtitle)
     if xtitle:
         fig.update_xaxes(title=dict(text=xtitle))
+
+    ytitle = mk_title(ytitle)
     if ytitle:
         fig.update_yaxes(title=dict(text=ytitle))
+
+    ltitle = mk_title(ltitle)
     layout['legend_title'] = layout.get('legend_title', ltitle or '')
 
     if w is not None:
@@ -185,12 +213,7 @@ def plot(
     elif isinstance(y, dict):
         fig.update_yaxes(**y)
 
-    if isinstance(title, list):
-        title, *subtitles = title
-        prefix = f'<br><span style="font-size:{subtitle_size}">'
-        suffix = '</span>'
-        title = prefix.join([title] + [ f'{subtitle}{suffix}' for subtitle in subtitles ])
-
+    title = mk_title(title)
     title_layout = dict(title_text=title, title_x=0.5) if title else {}
     if png_title:
         layout.update(title_layout)
