@@ -9,6 +9,10 @@ from sys import stderr
 err = partial(print, file=stderr)
 
 
+def silent(*args):
+    pass
+
+
 def parse_cmd(cmd):
     """Stringify and potentially unwrap a command"""
 
@@ -124,4 +128,5 @@ def check(*cmd, stdout=DEVNULL, stderr=DEVNULL, **kwargs):
         return False
 
 
-__all__ = ['check', 'err', 'line', 'lines', 'output', 'run', 'sh', ]
+# Omit "json", to avoid colliding with stdlib
+__all__ = ['check', 'err', 'line', 'lines', 'output', 'run', 'sh', 'silent', ]
