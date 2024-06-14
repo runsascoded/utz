@@ -23,6 +23,7 @@ PLOT_MARGIN_VAR = 'UTZ_PLOT_MARGIN'
 PLOT_BG_VAR = 'UTZ_PLOT_BG'
 PLOT_GRID_VAR = 'UTZ_PLOT_GRID'
 PLOT_SUBTITLE_SIZE_VAR = 'UTZ_PLOT_SUBTITLE_SIZE'
+PLOT_HTML_VAR = 'UTZ_PLOT_HTML'
 
 DEFAULT_BG = 'white'
 DEFAULT_SHOW = 'html'
@@ -89,6 +90,7 @@ def plot(
         log: TextIOWrapper | bool | None = stderr,
         show: Literal['png', 'file', 'html'] | bool | None = None,
         zerolines: bool | Literal['x', 'y'] | None = True,
+        html: dict | bool | None | _Unset = Unset,
         **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations.
@@ -121,6 +123,7 @@ def plot(
         log: Whether/where to print log info (e.g. about files written); defaults to stderr
         show: Format to return the Figure in: 'png' ⇒ return PNG `Image`, 'file' ⇒ return `Image(filename=…)` pointing to output `.png`, 'html' ⇒ return default Plotly Figure HTML, False ⇒ None (don't show figure, if `plot(…)` call is last expression in a notebook cell). Falls back to $UTZ_PLOT_SHOW, defaults to 'html'.
         zerolines: Whether to show zero lines; 'x' ⇒ only on x-axis, 'y' ⇒ only on y-axis, True (default) ⇒ on both axes
+        html: When truthy, save plot as HTML. Value is interpreted as kwargs for Figure.to_html; falls back to json.loads($UTZ_PLOT_HTML).
     """
     mk_title = partial(make_title, subtitle_size=subtitle_size)
     xtitle = mk_title(xtitle)
@@ -261,6 +264,17 @@ def plot(
         log(f"Wrote plot JSON to {png_path}")
         saved.write_image(png_path)
         log(f"Wrote plot image to {png_path}")
+        if html is Unset:
+            html = env.get(PLOT_HTML_VAR)
+            if html:
+                html = json.loads(html)
+        if html:
+            html_path = join(dir, f'{name}.html')
+            html_kwargs = dict(include_plotlyjs='cdn')
+            if isinstance(html, dict):
+                html_kwargs.update(html)
+            saved.write_html(html_path, **html_kwargs)
+            log(f"Wrote HTML to {html_path}: {html}")
 
     if show is None:
         show = env.get(PLOT_SHOW_VAR)
