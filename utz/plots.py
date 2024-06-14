@@ -1,6 +1,7 @@
+import json
 from functools import partial
 from io import TextIOWrapper
-from os import environ as env
+from os import environ as env, makedirs
 from os.path import exists, join
 from sys import stderr
 from typing import Union, Literal
@@ -243,8 +244,9 @@ def plot(
     elif log:
         log = partial(print, file=log)
     else:
-        log = lambda: ()
+        log = lambda _: ()
 
+    png_path = None
     if name:
         if dir is None:
             dir = env.get(PLOT_DIR_VAR)
@@ -265,7 +267,10 @@ def plot(
         if show is None:
             show = DEFAULT_SHOW
     if show == 'file':
-        return Image(filename=png_path)
+        if png_path:
+            return Image(filename=png_path)
+        else:
+            raise ValueError("No `name` passed, for `show='file'`")
     elif show == 'png':
         return Image(fig.to_image())
     elif show is None or show is False:
