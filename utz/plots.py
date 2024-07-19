@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from os import environ as env, makedirs
 from os.path import exists, join
 from sys import stderr
-from typing import Union, Literal
+from typing import Union, Literal, Tuple
 
 from IPython.display import Image
 
@@ -41,16 +41,34 @@ _Unset = type(Unset)
 Title = str | list[str] | None
 
 
-def title(s: Title, subtitle_size: str | None = None) -> str | None:
+def title(s: Title, subtitle_size: str | list[str] | None = None) -> str | None:
+    """Convert a list of strings into a `<br>`-joined plot title, with optional font-size styling.
+
+    If `subtitle_size` is a `str`, all elements of `s` after the first (subtitles) will be given that size.
+    If it's a `list[str]`, the sizes will be applied to each element of `s`, with the last "size" repeated out to the
+    length of the `s` list."""
     if isinstance(s, list):
         if subtitle_size is None:
             subtitle_size = env.get(PLOT_SUBTITLE_SIZE_VAR, DEFAULT_SUBTITLE_SIZE)
 
-        title, *subtitles = s
-        prefix = f'<br><span style="font-size:{subtitle_size}">'
-        suffix = '</span>'
-        title = prefix.join([title] + [ f'{subtitle}{suffix}' for subtitle in subtitles ])
-        return title
+        title0, *subtitles = s
+        if isinstance(subtitle_size, list) and subtitle_size:
+            sizes = [
+                subtitle_size[i] if i < len(subtitle_size) else subtitle_size[-1]
+                for i in range(len(s))
+            ]
+            title_size, *subtitle_sizes = sizes
+            title0 = f'<span style="font-size:{title_size}">{title0}</span>'
+            subtitles = [
+                f'<span style="font-size:{subtitle_size}">{subtitle}</span>'
+                for subtitle_size, subtitle in zip(subtitle_sizes, subtitles)
+            ]
+        elif isinstance(subtitle_size, str):
+            subtitles = [
+                f'<span style="font-size:{subtitle_size}">{subtitle}</span>'
+                for subtitle in subtitles
+            ]
+        return '<br>'.join([title0, *subtitles ])
     else:
         return s
 
