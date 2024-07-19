@@ -42,7 +42,7 @@ def test_time():
             b64,
             (
                     o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z', len_until='4182-03-14T03:28:00Z'),
-                    o(unit='ms', ch='L', len=7, first_until='2024-06-22T17:35:03.744000Z', len_until='2111-08-01T07:19:33.184000Z'),
+                    o(unit='ms', ch='M', len=7, first_until='2026-08-27T02:19:40.480000Z', len_until='2111-08-01T07:19:33.184000Z'),
                     o(unit='us', ch='3', len=9, first_until='2032-07-30T09:31:33.747776Z', len_until='2549-11-30T12:09:02.965824Z'),
             ),
             ('+SuZKz', 'KNuCZyz', '2gvgesKyz'),
