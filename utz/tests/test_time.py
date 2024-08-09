@@ -61,7 +61,7 @@ def test_time():
             (
                     o(unit= 's', ch=':', len=5, first_until='2026-02-27T15:46:30Z', len_until='2159-03-22T15:46:30Z'),
                     o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
-                    o(unit='us', ch='C', len=8, first_until='2024-07-31T06:10:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
+                    o(unit='us', ch='D', len=8, first_until='2026-02-04T20:12:22.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
             ('8Od[z', '#"R^v[z', 'AZK=Tv[z'),
         ),
