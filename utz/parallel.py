@@ -3,6 +3,8 @@ from typing import Callable
 
 
 def parallel(elems, fn: Callable, n_jobs: int = 0):
+    if n_jobs == 1:
+        return [ fn(elem) for elem in elems ]
     try:
         from joblib import Parallel, delayed
         if not n_jobs:
