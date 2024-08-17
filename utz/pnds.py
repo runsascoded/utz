@@ -21,6 +21,10 @@ with _try:
         date_range, to_datetime as to_dt, Timedelta as Δ, NaT, \
         get_option, set_option
 
+    # ## crosstab
+    xtab = pd.crosstab
+    xtabn = partial(pd.crosstab, dropna=False)
+
     def display(r=None, c=None):
         """Set the default number of rows and columns for Pandas to display"""
         if r:
@@ -32,10 +36,6 @@ with _try:
 
 
 from shutil import rmtree
-
-# ## crosstab
-xtab = pd.crosstab
-xtabn = partial(pd.crosstab, dropna=False)
 
 # ## value_counts
 def vc(p, **kwargs):
