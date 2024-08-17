@@ -4,28 +4,31 @@ from functools import partial
 from json import loads
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL, Popen, PIPE, STDOUT
 from sys import stderr
-from typing import Optional, List, Tuple, Callable, Union
+from typing import Optional, List, Tuple, Callable, Union, Dict
 
 err = partial(print, file=stderr)
+Log = Optional[Callable[..., None]]
+Arg = Union[None, str, int, List['Arg'], Tuple['Arg']]
 
 
-def silent(*args):
+def silent(*args) -> None:
     pass
 
 
-def parse_cmd(cmd: Tuple[str, ...]) -> List[str]:
-    """Stringify and potentially unwrap a command"""
+def flatten(args: Union[List[Arg], Tuple[Arg, ...]]) -> Tuple:
+    """Recursively flatten a nested list of arguments."""
+    if isinstance(args, list) or isinstance(args, tuple):
+        return tuple(
+            a
+            for arg in args
+            for a in flatten(arg)
+        )
+    else:
+        return (args,)
 
-    def flatten(args):
-        if isinstance(args, list) or isinstance(args, tuple):
-            return tuple(
-                a
-                for arg in args
-                for a in flatten(arg)
-            )
-        else:
-            return (args,)
 
+def parse_cmd(cmd: Tuple[Arg, ...]) -> List[str]:
+    """Flatten and stringify a command."""
     return [
         str(arg)
         for arg in flatten(cmd)
@@ -33,17 +36,14 @@ def parse_cmd(cmd: Tuple[str, ...]) -> List[str]:
     ]
 
 
-Arg = Union[None, str, list['Arg']]
-
-
 def lines(
-        *cmd: Arg,
-        keep_trailing_newline: bool = False,
-        dry_run: bool = False,
-        err_ok: bool = False,
-        **kwargs,
+    *cmd: Arg,
+    keep_trailing_newline: bool = False,
+    dry_run: bool = False,
+    err_ok: bool = False,
+    **kwargs,
 ) -> Optional[List[str]]:
-    """Return the lines written to stdout by a command"""
+    """Return the lines written to stdout by a command."""
     out = output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
     if err_ok and out is None:
         return None
@@ -60,8 +60,13 @@ def lines(
     return lines
 
 
-def line(*cmd: str, empty_ok: bool = False, err_ok: bool = False, **kwargs) -> Optional[str]:
-    """Run a command, verify that it returns a single line of output, and return that line"""
+def line(
+    *cmd: Arg,
+    empty_ok: bool = False,
+    err_ok: bool = False,
+    **kwargs,
+) -> Optional[str]:
+    """Run a command, verify that it returns a single line of output, and return that line."""
     _lines = lines(*cmd, err_ok=err_ok, **kwargs)
     if (empty_ok or err_ok) and not _lines:
         return None
@@ -72,11 +77,11 @@ def line(*cmd: str, empty_ok: bool = False, err_ok: bool = False, **kwargs) -> O
 
 
 ELIDED = '****'
-Elides = Optional[List[str]]
-Log = Optional[Callable[..., None]]
+Elides = Union[None, str, List[str]]
 
 
 def mk_cmd_str(cmd: List[str], elide: Elides = None) -> str:
+    """Convert a command to a string, optionally eliding known sensitive values."""
     cmd_str = shlex.join(cmd)
     if elide:
         if isinstance(elide, str):
@@ -87,13 +92,13 @@ def mk_cmd_str(cmd: List[str], elide: Elides = None) -> str:
 
 
 def run(
-        *cmd: str,
-        dry_run: bool = False,
-        elide: Elides = None,
-        log: Log = err,
-        **kwargs,
+    *cmd: Arg,
+    dry_run: bool = False,
+    elide: Elides = None,
+    log: Log = err,
+    **kwargs,
 ) -> None:
-    """Convenience wrapper for check_call"""
+    """Convenience wrapper for ``subprocess.check_call``."""
     cmd = parse_cmd(cmd)
     cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
@@ -131,15 +136,15 @@ def interleaved_output(cmd: List[str], err_ok: bool = False) -> bytes:
 
 
 def output(
-        *cmd: Arg,
-        dry_run: bool = False,
-        both: bool = False,
-        err_ok: bool = False,
-        elide: Elides = None,
-        log: Log = err,
-        **kwargs,
+    *cmd: Arg,
+    dry_run: bool = False,
+    both: bool = False,
+    err_ok: bool = False,
+    elide: Elides = None,
+    log: Log = err,
+    **kwargs,
 ) -> Optional[bytes]:
-    """Convenience wrapper for `check_output`
+    """Convenience wrapper for ``subprocess.check_output``.
 
     By default, logs commands to `err` (stderr) before running (pass `log=None` to disable).
 
@@ -147,6 +152,7 @@ def output(
 
     If `both=True`, stdout and stderr will both be captured (interleaved), and returned.
     """
+
     cmd = parse_cmd(cmd)
     cmd_str = mk_cmd_str(cmd, elide)
     if dry_run:
@@ -168,16 +174,25 @@ def output(
                     raise e
 
 
-def json(*cmd: str, dry_run: bool = False, **kwargs) -> Optional[dict]:
-    """Run a command, parse the output as JSON, and return the parsed object"""
+def json(
+    *cmd: Arg,
+    dry_run: bool = False,
+    **kwargs,
+) -> Union[None, List, Dict, str, int, float, bool]:
+    """Run a command, parse the output as JSON, and return the parsed object."""
     out = output(*cmd, dry_run=dry_run, **kwargs)
     if out is None:
         return None
     return loads(out.decode())
 
 
-def check(*cmd: str, stdout=DEVNULL, stderr=DEVNULL, **kwargs) -> bool:
-    """Return True iff a command run successfully (i.e. exits with code 0)"""
+def check(
+    *cmd: Arg,
+    stdout=DEVNULL,
+    stderr=DEVNULL,
+    **kwargs,
+):
+    """Run a command, return True iff it runs successfully (i.e. exits with code 0)."""
     try:
         run(*cmd, stdout=stdout, stderr=stderr, **kwargs)
         return True
@@ -186,4 +201,4 @@ def check(*cmd: str, stdout=DEVNULL, stderr=DEVNULL, **kwargs) -> bool:
 
 
 # Omit "json", to avoid colliding with stdlib
-__all__ = [ 'check', 'err', 'interleaved_output', 'line', 'lines', 'output', 'run', 'sh', 'silent', ]
+__all__ = [ 'check', 'err', 'flatten', 'interleaved_output', 'line', 'lines', 'output', 'run', 'sh', 'silent', ]
