@@ -3,7 +3,7 @@ from functools import partial
 
 from pathlib import Path
 
-from os import remove
+from os import environ, remove
 from os.path import exists, isdir, splitext
 
 from utz.imports import _try
@@ -32,7 +32,10 @@ with _try:
         if c:
             pd.options.display.max_columns = c
 
-    display(100, 100)
+    display(
+        int(environ.get("PANDAS_DEFAULT_DISPLAY_ROWS", "100")),
+        int(environ.get("PANDAS_DEFAULT_DISPLAY_COLS", "100")),
+    )
 
 
 from shutil import rmtree
