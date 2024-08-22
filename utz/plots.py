@@ -182,6 +182,11 @@ def plot(
     if yrange:
         layout['yaxis_rangemode'] = yrange
 
+    if legend is False:
+        layout['showlegend'] = False
+    elif isinstance(legend, dict):
+        layout['legend'] = legend
+
     bottom_legend_kwargs = dict(
         orientation='h',
         x=0.5,
@@ -192,11 +197,6 @@ def plot(
         if 'legend' not in layout:
             layout['legend'] = {}
         layout['legend'].update(**bottom_legend_kwargs)
-
-    if legend is False:
-        layout['showlegend'] = False
-    elif isinstance(legend, dict):
-        layout['legend'] = legend
 
     if grid is Unset:
         grid = env.get(PLOT_GRID_VAR)
