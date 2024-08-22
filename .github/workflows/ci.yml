@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: '3.10'
       - name: Fetch submodule tags
         working-directory: utz/tests/data/gsmo
         run: git fetch --tags origin

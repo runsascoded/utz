@@ -40,4 +40,5 @@ setup(
     install_requires=open('requirements.txt', 'r').read(),
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
+    python_requires=">=3.10",
 )
