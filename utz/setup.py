@@ -78,7 +78,7 @@ class Compute:
 
         return classifiers
 
-    def python_requires(self): return '>=3.8'
+    def python_requires(self): return '>=3.9'
 
     def license(self):
         if exists('LICENSE'):

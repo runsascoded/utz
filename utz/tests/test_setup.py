@@ -26,7 +26,7 @@ def test_setup_gsmo():
                 'author_email': 'ryan@runsascoded.com',
                 'packages': ['gsmo', 'gsmo.util'],
                 'classifiers': ['Programming Language :: Python :: 3', 'Operating System :: OS Independent'],
-                'python_requires': '>=3.8',
+                'python_requires': '>=3.9',
             }
         )
 
