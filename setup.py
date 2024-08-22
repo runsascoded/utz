@@ -20,6 +20,7 @@ extras_require = {
         'pyPDF2',
     ],
     'plot': [
+        'jupyter',
         'kaleido',
         'plotly',
     ],

@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from os import environ as env, makedirs
 from os.path import exists, join, relpath
 from sys import stderr
-from typing import Union, Literal, Tuple
+from typing import Union, Literal
 
 from IPython.display import Image
 
@@ -97,6 +97,7 @@ def plot(
         dir: str | None = None,
         w: int | None = None,
         h: int | None = None,
+        png: dict | None = None,
         xtitle: Title = None,
         ytitle: Title = None,
         ltitle: Title = None,
@@ -130,6 +131,7 @@ def plot(
         dir: Output directory (falls back to $UTZ_PLOT_DIR)
         w: Width; applied to Figure and any resulting PNG output
         h: Height; applied to Figure and any resulting PNG output
+        png: layout options specific to saved/static representations of the plot (omitted from JSON, included in PNG/HTML); "w" and "h" are short-hands for "width" and "height"
         xtitle: X-axis title; string or list of strings (tail will be converted to "subtitle" lines)
         ytitle: Y-axis title; string or list of strings (tail will be converted to "subtitle" lines)
         ltitle: Legend title; string or list of strings (tail will be converted to "subtitle" lines)
@@ -280,6 +282,14 @@ def plot(
         saved.write_json(json_path, pretty=pretty)
         png_path = join(dir, f'{name}.png')
         log(f"Wrote plot JSON to {relpath(json_path)}")
+        if png:
+            if 'w' in png:
+                saved.update_layout(width=png['w'])
+                del png['w']
+            if 'h' in png:
+                saved.update_layout(height=png['h'])
+                del png['h']
+            saved.update_layout(**png)
         saved.write_image(png_path)
         log(f"Wrote plot image to {relpath(png_path)}")
         if html is Unset:
