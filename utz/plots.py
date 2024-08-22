@@ -2,7 +2,7 @@ import json
 from functools import partial
 from io import TextIOWrapper
 from os import environ as env, makedirs
-from os.path import exists, join
+from os.path import exists, join, relpath
 from sys import stderr
 from typing import Union, Literal, Tuple
 
@@ -279,9 +279,9 @@ def plot(
         json_path = join(dir, f'{name}.json')
         saved.write_json(json_path, pretty=pretty)
         png_path = join(dir, f'{name}.png')
-        log(f"Wrote plot JSON to {png_path}")
+        log(f"Wrote plot JSON to {relpath(json_path)}")
         saved.write_image(png_path)
-        log(f"Wrote plot image to {png_path}")
+        log(f"Wrote plot image to {relpath(png_path)}")
         if html is Unset:
             html = env.get(PLOT_HTML_VAR)
             if html:
@@ -292,7 +292,7 @@ def plot(
             if isinstance(html, dict):
                 html_kwargs.update(html)
             saved.write_html(html_path, **html_kwargs)
-            log(f"Wrote HTML to {html_path}: {html}")
+            log(f"Wrote HTML to {relpath(html_path)}: {html}")
 
     if show is None:
         show = env.get(PLOT_SHOW_VAR)
