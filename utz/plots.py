@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from os import environ as env, makedirs
 from os.path import exists, join, relpath
 from sys import stderr
-from typing import Union, Literal
+from typing import Union, Literal, Tuple, Callable
 
 from IPython.display import Image
 
@@ -76,41 +76,51 @@ def title(s: Title, subtitle_size: str | list[str] | None = None) -> str | None:
 make_title = title
 
 
-def save(fig, title, name, **kwargs):
-    return plot(fig, title, name=name, **kwargs)
+def save(
+    fig: Figure,
+    name: str,
+    title: Title = None,
+    **kwargs
+):
+    """Wrapper around `plot` that enforces non-``None`` ``name``, and allows passing ``name`` then ``title`` as positional args."""
+    if not name:
+        raise ValueError("`name` must be nonempty")
+    return plot(fig, name=name, title=title, **kwargs)
 
 
 def plot(
-        fig: Figure,
-        title: Title,
-        name: str | None = None,
-        bg: str | None | _Unset = Unset,
-        subtitle_size: str | None = None,
-        hoverx: bool = False,
-        hovertemplate: Title = None,
-        png_title: bool = True,
-        yrange: str | None = 'tozero',
-        legend: Union[bool, dict, None] = None,
-        bottom_legend: Union[bool, Literal['all']] = False,
-        pretty: bool = False,
-        margin: Union[None, int, dict, _Unset] = Unset,
-        dir: str | None = None,
-        w: int | None = None,
-        h: int | None = None,
-        png: dict | None = None,
-        xtitle: Title = None,
-        ytitle: Title = None,
-        ltitle: Title = None,
-        grid: str | None | _Unset = Unset,
-        xgrid: str | None = None,
-        ygrid: str | None = None,
-        x: dict | str | None = None,
-        y: dict | str | None = None,
-        log: TextIOWrapper | bool | None = stderr,
-        show: Literal['png', 'file', 'html'] | bool | None = None,
-        zerolines: bool | Literal['x', 'y'] | None = True,
-        html: dict | bool | None | _Unset = Unset,
-        **layout,
+    fig: Figure,
+    title: Title = None,
+    name: str | None = None,
+    *,
+    bg: str | None | _Unset = Unset,
+    subtitle_size: str | None = None,
+    hoverx: bool = False,
+    hovertemplate: Title = None,
+    png_title: bool = True,
+    yrange: str | None = 'tozero',
+    legend: bool | dict | Literal['reversed'] | None = None,
+    bottom_legend: Union[bool, Literal['all']] = False,
+    pretty: bool = False,
+    margin: Union[None, int, dict, _Unset] = Unset,
+    dir: str | None = None,
+    w: int | None = None,
+    h: int | None = None,
+    png: dict | int | Tuple[int] | Tuple[int, int] | None = None,
+    xtitle: Title = None,
+    ytitle: Title = None,
+    ltitle: Title = None,
+    grid: str | None | _Unset = Unset,
+    xgrid: str | None | _Unset = Unset,
+    ygrid: str | None | _Unset = Unset,
+    x: dict | str | None = None,
+    y: dict | str | None = None,
+    log: TextIOWrapper | bool | None = stderr,
+    show: Literal['png', 'file', 'html'] | bool | None = None,
+    zerolines: bool | Literal['x', 'y'] | None = True,
+    html: dict | bool | None | _Unset = Unset,
+    title_suffix: str | None = None,
+    **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations.
 
@@ -131,7 +141,7 @@ def plot(
         dir: Output directory (falls back to $UTZ_PLOT_DIR)
         w: Width; applied to Figure and any resulting PNG output
         h: Height; applied to Figure and any resulting PNG output
-        png: layout options specific to saved/static representations of the plot (omitted from JSON, included in PNG/HTML); "w" and "h" are short-hands for "width" and "height"
+        png: layout options specific to saved/static representations of the plot (omitted from JSON, included in PNG/HTML); "w" and "h" are short-hands for "width" and "height", a pair of ints will be interpreted as (w, h), and a single int or (int,) tuple will be interpreted as width.
         xtitle: X-axis title; string or list of strings (tail will be converted to "subtitle" lines)
         ytitle: Y-axis title; string or list of strings (tail will be converted to "subtitle" lines)
         ltitle: Legend title; string or list of strings (tail will be converted to "subtitle" lines)
@@ -143,17 +153,10 @@ def plot(
         log: Whether/where to print log info (e.g. about files written); defaults to stderr
         show: Format to return the Figure in: 'png' ⇒ return PNG `Image`, 'file' ⇒ return `Image(filename=…)` pointing to output `.png`, 'html' ⇒ return default Plotly Figure HTML, False ⇒ None (don't show figure, if `plot(…)` call is last expression in a notebook cell). Falls back to $UTZ_PLOT_SHOW, defaults to 'html'.
         zerolines: Whether to show zero lines; 'x' ⇒ only on x-axis, 'y' ⇒ only on y-axis, True (default) ⇒ on both axes
+        title_suffix: When saving static plots (e.g. PNG), and this is set, two versions will be saved: one including the title, and one not. This string will be appended to the filename stem of the former. Assumes the default is the "untitled" version. Useful when embedding in contexts where it looks nicer to render the title in surrounding Markdown/HTML.
         html: When truthy, save plot as HTML. Value is interpreted as kwargs for Figure.to_html; falls back to json.loads($UTZ_PLOT_HTML).
     """
     mk_title = partial(make_title, subtitle_size=subtitle_size)
-    xtitle = mk_title(xtitle)
-    if xtitle:
-        fig.update_xaxes(title=dict(text=xtitle))
-
-    ytitle = mk_title(ytitle)
-    if ytitle:
-        fig.update_yaxes(title=dict(text=ytitle))
-
     ltitle = mk_title(ltitle)
     layout['legend_title'] = layout.get('legend_title', ltitle or '')
 
@@ -184,6 +187,8 @@ def plot(
 
     if legend is False:
         layout['showlegend'] = False
+    elif legend == 'reversed':
+        layout['legend'] = dict(traceorder='reversed')
     elif isinstance(legend, dict):
         layout['legend'] = legend
 
@@ -203,39 +208,39 @@ def plot(
         if grid is None:
             grid = DEFAULT_GRID
 
-    if xgrid:
-        fig.update_xaxes(gridcolor=xgrid)
-    elif grid:
-        fig.update_xaxes(gridcolor=grid)
+    def update_axis(
+        xy: str | dict | None,
+        xy_name: str,
+        update_axes: Callable,
+        xy_title: Title,
+        xy_grid: str | None | Unset,
+    ):
+        if isinstance(xy, str):
+            update_axes(title_text=xy)
+        elif isinstance(xy, dict):
+            if 'title' in xy:
+                xy['title_text'] = xy['title']
+                del xy['title']
+            update_axes(**xy)
 
-    if ygrid:
-        fig.update_yaxes(gridcolor=ygrid)
-    elif grid:
-        fig.update_yaxes(gridcolor=grid)
+        if xy_grid is not Unset:
+            update_axes(gridcolor=xy_grid)
+        elif grid:
+            update_axes(gridcolor=grid)
 
-    if zerolines == 'x' or zerolines is True:
-        fig.update_xaxes(
-            zeroline=True,
-            zerolinecolor=xgrid or grid,
-            zerolinewidth=1,
-        )
+        if zerolines == xy_name or zerolines is True:
+            update_axes(
+                zeroline=True,
+                zerolinecolor=xy_grid or grid,
+                zerolinewidth=1,
+            )
 
-    if zerolines == 'y' or zerolines is True:
-        fig.update_yaxes(
-            zeroline=True,
-            zerolinecolor=ygrid or grid,
-            zerolinewidth=1,
-        )
+        xy_title = mk_title(xy_title)
+        if xy_title:
+            update_axes(title=dict(text=xy_title))
 
-    if isinstance(x, str):
-        fig.update_xaxes(title_text=x)
-    elif isinstance(x, dict):
-        fig.update_xaxes(**x)
-
-    if isinstance(y, str):
-        fig.update_yaxes(title_text=y)
-    elif isinstance(y, dict):
-        fig.update_yaxes(**y)
+    update_axis(x, 'x', fig.update_xaxes, xtitle, xgrid)
+    update_axis(y, 'y', fig.update_yaxes, ytitle, ygrid)
 
     title = mk_title(title)
     title_layout = dict(title_text=title, title_x=0.5) if title else {}
@@ -283,15 +288,43 @@ def plot(
         png_path = join(dir, f'{name}.png')
         log(f"Wrote plot JSON to {relpath(json_path)}")
         if png:
+            # Convert `int | Tuple[int] | Tuple[int, int]` to `dict`
+            if isinstance(png, tuple):
+                if len(png) == 1:
+                    png = dict(w=png[0])
+                elif len(png) == 2:
+                    w, h = png
+                    png = dict(w=w, h=h)
+                else:
+                    raise ValueError(f"Invalid PNG tuple: {png}")
+            elif isinstance(png, int):
+                png = dict(w=png)
+
+            # `png` is a `dict`
             if 'w' in png:
                 saved.update_layout(width=png['w'])
                 del png['w']
             if 'h' in png:
                 saved.update_layout(height=png['h'])
                 del png['h']
+            if 'title' in png and isinstance(png['title'], str):
+                saved.update_layout(title_text=png['title'])
+                del png['title']
+
             saved.update_layout(**png)
-        saved.write_image(png_path)
-        log(f"Wrote plot image to {relpath(png_path)}")
+
+        if title_suffix:
+            no_title = go.Figure(saved)
+            no_title.update_layout(title_text='')
+            title_path = join(dir, f'{name}{title_suffix}.png')
+            no_title.write_image(png_path)
+            log(f"Wrote plot image to {relpath(png_path)}")
+            saved.write_image(title_path)
+            log(f"Wrote plot image to {relpath(title_path)}")
+        else:
+            saved.write_image(png_path)
+            log(f"Wrote plot image to {relpath(png_path)}")
+
         if html is Unset:
             html = env.get(PLOT_HTML_VAR)
             if html:
