@@ -54,7 +54,7 @@ def test_time():
                     o(unit='ms', ch='d', len=7, first_until='2025-10-29T11:47:34.506000Z', len_until='2083-06-04T14:46:33.194000Z'),
                     o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
-            ('At4G0V', 'bTwXvhz', 'GWAZusO3r',),
+            ('At4G0V', 'bTwXvhz', 'GWAZusO3r'),
         ),
         (
             b90,
