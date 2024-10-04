@@ -4,11 +4,11 @@ import pytest
 
 @contextmanager
 def raises(exc, msg):
-    with pytest.raises(exc) as ex:
+    with pytest.raises(exc) as exc:
         yield
     if isinstance(msg, list):
         msgs = msg
-        assert str(ex.value) in msgs
+        assert str(exc.value) in msgs
     else:
-        assert str(ex.value) == msg, f'{ex.value} != {msg}'
+        assert str(exc.value) == msg, f'{exc.value} != {msg}'
 

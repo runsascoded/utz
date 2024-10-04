@@ -10,9 +10,10 @@ IVAR_KWARG_NAME = 'ivars'
 METHOD_KWARG_NAME = 'methods'
 CMETHOD_KWARG_NAMES = ['cmethods','classmethods']
 SMETHOD_KWARG_NAMES = ['smethods','staticmethods']
-SMEMbER_KWARG_NAMES = ['smembers','staticmembers']
+SMEMBER_KWARG_NAMES = ['smembers', 'staticmembers']
 PROP_KWARG_NAMES = ['props','properties']
 CACHED_PROP_KWARG_NAMES = ['cached_props','cached_properties']
+
 
 @contextmanager
 def use(o, local_conflict='ignore', **kwargs):
@@ -71,7 +72,7 @@ def use(o, local_conflict='ignore', **kwargs):
                 if k == METHOD_KWARG_NAME: methods = True
                 if k in CMETHOD_KWARG_NAMES: cmethods = True
                 if k in SMETHOD_KWARG_NAMES: smethods = True
-                if k in SMEMbER_KWARG_NAMES: smembers = True
+                if k in SMEMBER_KWARG_NAMES: smembers = True
                 if k in PROP_KWARG_NAMES: properties = True
                 if k in CACHED_PROP_KWARG_NAMES: cached_properties = True
         else:
@@ -90,7 +91,7 @@ def use(o, local_conflict='ignore', **kwargs):
                     if k == METHOD_KWARG_NAME: methods = False
                     if k in CMETHOD_KWARG_NAMES: cmethods = False
                     if k in SMETHOD_KWARG_NAMES: smethods = False
-                    if k in SMEMbER_KWARG_NAMES: smembers = False
+                    if k in SMEMBER_KWARG_NAMES: smembers = False
                     if k in PROP_KWARG_NAMES: properties = False
                     if k in CACHED_PROP_KWARG_NAMES: cached_properties = False
             else:
@@ -99,7 +100,7 @@ def use(o, local_conflict='ignore', **kwargs):
                     if k == METHOD_KWARG_NAME: methods = bool(v)
                     if k in CMETHOD_KWARG_NAMES: cmethods = bool(v)
                     if k in SMETHOD_KWARG_NAMES: smethods = bool(v)
-                    if k in SMEMbER_KWARG_NAMES: smembers = bool(v)
+                    if k in SMEMBER_KWARG_NAMES: smembers = bool(v)
                     if k in PROP_KWARG_NAMES:
                         if v == 'all':
                             pass

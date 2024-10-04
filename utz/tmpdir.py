@@ -5,8 +5,8 @@ from tempfile import TemporaryDirectory
 
 
 @contextmanager
-def tmpdir(name=None, dir=None):
-    '''contextmanager for creating a temporary directory with an optional `name`'''
+def tmpdir(name: str = None, dir: str = None):
+    """``contextmanager`` for creating a temporary directory with an optional ``name``"""
     if name:
         with TemporaryDirectory(dir=dir) as tmpdir:
             dir = join(tmpdir, name)

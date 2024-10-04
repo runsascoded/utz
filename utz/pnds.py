@@ -1,12 +1,12 @@
-from functools import partial
 # # Pandas imports / aliases / helpers
-
-from pathlib import Path
-
+from functools import partial
 from os import environ, remove
 from os.path import exists, isdir, splitext
+from pathlib import Path
+from shutil import rmtree
 
 from utz.imports import _try
+
 with _try:
     from dateutil.parser import parse
 with _try:
@@ -37,8 +37,6 @@ with _try:
         int(environ.get("PANDAS_DEFAULT_DISPLAY_COLS", "100")),
     )
 
-
-from shutil import rmtree
 
 # ## value_counts
 def vc(p, **kwargs):

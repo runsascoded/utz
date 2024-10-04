@@ -4,6 +4,7 @@ from sys import stderr
 
 from .o import o
 
+
 class now:
     try:
         from pytz import UTC
@@ -15,17 +16,20 @@ class now:
         def tz(d): return d
 
     EPOCH = dt(1970,1,1).replace(tzinfo=UTC)
-
     FMTS = o(
         iso='%Y-%m-%dT%H:%M:%SZ',
         short='%Y%m%dT%H%M%SZ',
         micro='%Y-%m-%dT%H:%M:%S.%fZ',
     )
+
     @property
-    def fmts(self): return self.FMTS
+    def fmts(self):
+        return self.FMTS
+
     def __init__(self, fmt=None, d=None):
         FMTS = self.FMTS
-        if fmt is None: fmt = FMTS.iso
+        if fmt is None:
+            fmt = FMTS.iso
         elif isinstance(fmt, str):
             if hasattr(FMTS, fmt):
                 fmt = getattr(FMTS, fmt)
@@ -55,10 +59,13 @@ class now:
 
     @property
     def s(self): return int(self)
+
     @property
     def ms(self): return int(float(self) * 1e3)
+
     @property
     def μs(self): return int(float(self) * 1e6)
+
     @property
     def us(self): return int(float(self) * 1e6)
 
@@ -69,14 +76,19 @@ class now:
         if not parsed.tzinfo:
             parsed = parsed.replace(tzinfo=now.UTC)
         return parsed
+
     @staticmethod
     def fromtimestamp(s, tz=UTC): return dt.fromtimestamp(s, tz=tz)
+
     @staticmethod
     def from_s(s): return now.fromtimestamp(s)
+
     @staticmethod
     def from_ms(ms): return now.fromtimestamp(ms / 1e3)
+
     @staticmethod
     def from_μs(us): return now.fromtimestamp(us / 1e6)
+
     @staticmethod
     def from_us(us): return dt.fromtimestamp(us / 1e6, tz=now.UTC)
 
@@ -86,4 +98,3 @@ class today(now):
         iso='%Y-%m-%d',
         short='%Y%m%d',
     )
-
