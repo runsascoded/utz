@@ -3,13 +3,14 @@ import re
 from re import escape, finditer
 
 
-def split(s, ch, max=0):
-    '''Split `s` on character `ch`, unescaping backslash-escaped instances of `ch` (and unescaping double-backslashes to
-    single backslashes)
+def split(s, ch, max: int = 0):
+    """Split ``s`` on character ``ch``, unescaping backslash-escaped instances of ``ch`` (and
+    unescaping double-backslashes to single backslashes).
 
-    If `max` is passed, `max` groups will be extracted, and a final (max+1)th group will be appended to the returned
-    list with the remainder of `s` (with no unescaping performed)
-    '''
+    If ``max`` is passed, ``max`` groups will be extracted, and a final ``(max+1)``-th group will
+    be appended to the returned list, containing the remainder of ``s`` (with no unescaping
+    performed).
+    """
     idx = 0
     strs = []
     n = 0
@@ -43,18 +44,19 @@ def split(s, ch, max=0):
     return strs
 
 
-def join(strs, ch, max=0):
-    '''Escape and `ch`-join a list of strings; inverse of `split` above
+def join(strs, ch: str, max: int = 0):
+    """Escape and ``ch``-join a list of strings; inverse of ``split`` above.
 
     In the returned string:
     - backslashes are escaped (turned into double-backslashes)
-    - instances of `ch` are escpaed (preceded by a backslash)
+    - instances of `ch` are escaped (preceded by a backslash)
 
-    If `max` is passed and `strs`' length is one more than `max`, the final element of `strs` is taken to to have been a
-    final, raw group from a corresponding call to split(…, max=…), and is directly appended to the final string
-    (skipping the escaping steps above).
-    '''
+    If ``max`` is passed and ``len(strs) == max + 1``, the final element of ``strs`` is taken to to
+    have been a raw group from a corresponding call to split(…, max=…), and is directly appended to
+    the final string (skipping the escaping steps above).
+    """
     escaped_ch = escape(ch)
+
     def esc(s):
         s = re.sub(r'\\', r'\\\\', s)
         s = re.sub(escaped_ch, '\\' + escaped_ch, s)
