@@ -1,24 +1,53 @@
-import typing
 from dataclasses import fields
+from typing import get_args, get_origin, Union
 
 
-def from_dict(cls, d):
-    """See https://stackoverflow.com/a/54769644/544236."""
+def from_dict(cls, v):
+    """Parse a dataclass instance from a dictionary.
+
+    Recursively parses instance-vars' types.
+    """
+    for typ in (int, float, str, bool, type(None)):
+        if cls is typ:
+            if type(v) is not typ:
+                raise ValueError(f"{v} ({type(v).__name__}) is not of expected type {typ.__name__}")
+            return v
+
+    if get_origin(cls) is list:
+        [elem_cls] = get_args(cls)
+        if type(v) is not list:
+            raise ValueError(f"Non-list class: {v} ({type(v)})")
+        return [
+            from_dict(elem_cls, _v)
+            for _v in v
+        ]
+    elif get_origin(cls) is dict:
+        if not isinstance(v, dict):
+            raise ValueError(f"Expected {cls}, got {v})")
+        [key_cls, value_cls] = get_args(cls)
+        return {
+            from_dict(key_cls, k): from_dict(value_cls, _v)
+            for k, _v in v.items()
+        }
+    elif get_origin(cls) is Union:
+        args = get_args(cls)
+        for arg in args:
+            try:
+                return from_dict(arg, v)
+            except (TypeError, ValueError) as e:
+                pass
+        raise ValueError(f"Invalid value '{v}' (expected one of {[ c.__name__ for c in get_args(cls) ]})")
+
     try:
-        fieldtypes = {f.name: f.type for f in fields(cls)}
-        kwargs = {}
-        for k, v in d.items():
-            fieldtype = fieldtypes[k]
-            if typing.get_origin(fieldtype) is list:
-                [elem_cls] = typing.get_args(fieldtype)
-                if type(v) is not list:
-                    raise ValueError(f"Non-list class: {v} ({type(v)})")
-                kwargs[k] = [
-                    from_dict(elem_cls, _v)
-                    for _v in v
-                ]
-            else:
-                kwargs[k] = from_dict(fieldtype, v)
-        return cls(**kwargs)
-    except TypeError as e:
-        return d  # Not a dataclass field
+        fieldtypes = { f.name: f.type for f in fields(cls) }
+    except TypeError:
+        raise TypeError(f"`fields` must be called with a dataclass type or instance, not {getattr(cls, '__name__', cls)}")
+
+    if not isinstance(v, dict):
+        raise ValueError(f"Expected dict (representing a {cls.__name__}), got {v}")
+
+    kwargs = {}
+    for k, _v in v.items():
+        fieldtype = fieldtypes[k]
+        kwargs[k] = from_dict(fieldtype, _v)
+    return cls(**kwargs)
