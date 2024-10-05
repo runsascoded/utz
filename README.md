@@ -25,6 +25,7 @@
 ```bash
 pip install utz
 ```
+0 dependencies, but several "extras" [available][extras].
 
 ## Use <a id="use"></a>
 
@@ -244,6 +245,7 @@ Misc other modules:
 
 
 [utz]: https://pypi.org/project/utz/
+[extras]: https://github.com/runsascoded/utz/blob/main/setup.py#L3-L34
 [`stdlb`]: https://pypi.org/project/stdlb/
 [`utz.process`]: utz/process/__init__.py
 [`subprocess`]: https://docs.python.org/3/library/subprocess.html
