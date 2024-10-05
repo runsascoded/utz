@@ -71,16 +71,16 @@ def test_roundtrips():
 
 
 def test_bad_dicts():
-    with raises(TypeError, "A.__init__() missing 1 required positional argument: 'n'"):
+    with raises(TypeError, ["A.__init__() missing 1 required positional argument: 'n'"]):
         from_dict(A, { 's': 'aa' })
 
     with raises(KeyError, "'c'"):
         from_dict(A, { 's': 'aa', 'n': 11, 'c': 'invalid key' })
 
-    with raises(ValueError, "Invalid value '!!!' (expected one of ['bool', 'NoneType'])"):
+    with raises(ValueError, ["Invalid value '!!!' (expected one of ['bool', 'NoneType'])"]):
         from_dict(A, { 's': 'aa', 'n': 11, 'b': '!!!' })
 
-    with raises(ValueError, "111 (int) is not of expected type float"):
+    with raises(ValueError, ["111 (int) is not of expected type float"]):
         from_dict(B, { 'f': 111, 'arr': [], 'obj': {} })
 
 

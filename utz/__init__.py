@@ -56,6 +56,8 @@ with _try:
 
 from .defaultdict import DefaultDict, Unset
 
+from .test import parametrize, raises
+
 # ## Optional Modules
 
 # joblib: easy parallelization

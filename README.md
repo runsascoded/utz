@@ -13,6 +13,9 @@
     - [`utz.fn`](#utz.fn)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
+    - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
+        - [`utz.parametrize`: `pytest.mark.parametrize` wrapper, accepts `dataclass` instances](#utz.parametrize)
+        - [`utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings](#utz.raises)
     - [Misc](#misc)
 <!-- /toc -->
 
@@ -187,6 +190,45 @@ The `setup` helper can be installed via a pip "extra":
 pip install utz[setup]
 ``` 
 
+### [`utz.test`]: `dataclass` test cases, `raises` helper <a id="utz.test"></a>
+
+#### `utz.parametrize`: [`pytest.mark.parametrize`] wrapper, accepts [`dataclass`] instances <a id="utz.parametrize"></a>
+
+```python
+from utz import parametrize
+from dataclasses import dataclass
+
+
+def fn(f: float, fmt: str) -> str:
+    """Example function, to be tested with ``Case``s below."""
+    return f"{f:{fmt}}"
+
+
+@dataclass
+class case:
+    """Container for a test-case; float, format, and expected output."""
+    f: float
+    fmt: str
+    expected: str
+
+    @property
+    def id(self):
+        return f"fmt-{self.f}-{self.fmt}"
+
+
+@parametrize(
+    case(1.23, "0.1f", "1.2"),
+    case(123.456, "0.1e", "1.2e+02"),
+    case(-123.456, ".0f", "-123"),
+)
+def test_fn(f, fmt, expected):
+    """Example test, "paraametrized" by several ``Cases``s."""
+    assert fn(f, fmt) == expected
+```
+
+Example above is from [`test_parametrize.py`], `parametrize` is adapted from [TileDB-SOMA][tdbs parametrize_cases] ([example use][roundtrips]).
+
+#### `utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings <a id="utz.raises"></a>
 
 ### Misc <a id="misc"></a>
 Other noteworthy modules:
@@ -218,4 +260,11 @@ Other noteworthy modules:
 [`utz.plot`]: utz/plots.py
 [Plotly]: https://plotly.com/python/
 [hudcostreets/nj-crashes utz.plots]: https://github.com/search?q=repo%3Ahudcostreets%2Fnj-crashes%20utz.plot&type=code
-[ryan-williams/arrayloader-benchmarks utz.plots]: https://github.com/search?q=repo%3Aryan-williams%2Farrayloader-benchmarks%20utz.plot&type=code 
+[ryan-williams/arrayloader-benchmarks utz.plots]: https://github.com/search?q=repo%3Aryan-williams%2Farrayloader-benchmarks%20utz.plot&type=code
+
+[tdbs parametrize_cases]: https://github.com/single-cell-data/TileDB-SOMA/blob/1.14.2/apis/python/tests/parametrize_cases.py
+[roundtrips]: https://github.com/single-cell-data/TileDB-SOMA/blob/1.14.2/apis/python/tests/test_dataframe_io_roundtrips.py
+[`utz.test`]: utz/test.py
+[`test_parametrize.py`]: utz/tests/test_parametrize.py
+[`pytest.mark.parametrize`]: https://docs.pytest.org/en/stable/how-to/parametrize.html
+[`dataclass`]: https://docs.python.org/3/library/dataclasses.html
