@@ -6,17 +6,19 @@
 <!-- toc -->
 - [Install](#install)
 - [Use](#use)
-    - [`utz.process`](#utz.process)
-    - [`utz.collections`](#utz.collections)
+    - [`utz.process`: `subprocess` wrappers; shell out to commands, parse output](#utz.process)
+    - [`utz.collections`: Collection/list helpers](#utz.collections)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.ctxs`: compose `contextmanager`s](#utz.ctxs)
-    - [`utz.fn`](#utz.fn)
+    - [`utz.fn`: decorator/function utilities](#utz.fn)
+        - [`utz.decos`: compose decorators](#utz.decos)
+        - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
         - [`utz.parametrize`: `pytest.mark.parametrize` wrapper, accepts `dataclass` instances](#utz.parametrize)
         - [`utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings](#utz.raises)
-    - [Misc](#misc)
+    - [`utz.docker`, `utz.tmpdir`, etc.](#misc)
 <!-- /toc -->
 
 ## Install <a id="install"></a>
@@ -35,9 +37,7 @@ This imports most standard library modules/functions (via [`stdlb`]), as well as
 
 Some specific modules, in rough order of how often I use them:
 
-### [`utz.process`] <a id="utz.process"></a>
-
-[`subprocess`] wrappers; shell out to commands, parse output:
+### [`utz.process`]: [`subprocess`] wrappers; shell out to commands, parse output <a id="utz.process"></a>
 
 ```python
 from utz.process import *
@@ -62,9 +62,7 @@ err("This will be output to stderr")
 
 See also: [`test_process.py`].
 
-### [`utz.collections`] <a id="utz.collections"></a>
-
-Collection/list helpers:
+### [`utz.collections`]: Collection/list helpers <a id="utz.collections"></a>
 
 ```python
 from utz.collections import *
@@ -93,9 +91,9 @@ with ctxs(NamedTemporaryFile(), NamedTemporaryFile()) as (f1, f2):
 See also: [`test_context.py`].
 
 
-### [`utz.fn`] <a id="utz.fn"></a>
+### [`utz.fn`]: decorator/function utilities <a id="utz.fn"></a>
 
-Compose decorators:
+#### `utz.decos`: compose decorators <a id="utz.decos"></a>
 ```python
 from utz import decos
 from click import option
@@ -114,7 +112,7 @@ def subcmd2(n: int, v: bool):
     ...
 ```
 
-Only pass expected `kwargs` to functions:
+#### `utz.call`: only pass expected `kwargs` to functions <a id="utz.call"></a>
 ```python
 from utz.fn import call
 def fn1(a, b):
@@ -230,8 +228,9 @@ Example above is from [`test_parametrize.py`], `parametrize` is adapted from [Ti
 
 #### `utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings <a id="utz.raises"></a>
 
-### Misc <a id="misc"></a>
-Other noteworthy modules:
+### [`utz.docker`](utz/docker/), [`utz.tmpdir`](utz/tmpdir.py), etc. <a id="misc"></a>
+
+Misc other modules:
 - [o](utz/o.py): `dict` wrapper exposing keys as attrs (e.g.: `o({'a':1}).a == 1`)
 - [docker](utz/docker/): DSL for programmatically creating Dockerfiles (and building images from them)
 - [ssh](utz/ssh.py): SSH tunnel wrapped in a context manager
