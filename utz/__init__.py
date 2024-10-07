@@ -18,6 +18,7 @@ with _try: from IPython.display import HTML, Image, Markdown, display
 
 from .backoff import backoff
 from .bases import b62, b64, b90
+from .hash import hash_file, HashName
 from .path import mkdir, mkpar
 from os import path
 from .tmpdir import tmpdir

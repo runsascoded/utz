@@ -18,6 +18,7 @@
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
         - [`utz.parametrize`: `pytest.mark.parametrize` wrapper, accepts `dataclass` instances](#utz.parametrize)
         - [`utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings](#utz.raises)
+    - [`utz.hash_file`](#utz.hash_file)
     - [`utz.docker`, `utz.tmpdir`, etc.](#misc)
 <!-- /toc -->
 
@@ -228,6 +229,14 @@ def test_fn(f, fmt, expected):
 Example above is from [`test_parametrize.py`], `parametrize` is adapted from [TileDB-SOMA][tdbs parametrize_cases] ([example use][roundtrips]).
 
 #### `utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings <a id="utz.raises"></a>
+
+### [`utz.hash_file`](utz/hash.py) <a id="utz.hash_file"></a>
+
+```python
+from utz import hash_file
+hash_file("path/to/file")  # sha256 by default
+hash_file("path/to/file", 'md5')
+```
 
 ### [`utz.docker`](utz/docker/), [`utz.tmpdir`](utz/tmpdir.py), etc. <a id="misc"></a>
 
