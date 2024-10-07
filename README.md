@@ -221,7 +221,7 @@ class case:
     case(-123.456, ".0f", "-123"),
 )
 def test_fn(f, fmt, expected):
-    """Example test, "paraametrized" by several ``Cases``s."""
+    """Example test, "parametrized" by several ``Cases``s."""
     assert fn(f, fmt) == expected
 ```
 
