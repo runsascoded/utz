@@ -1,7 +1,7 @@
 import dataclasses
 from contextlib import contextmanager
 from dataclasses import asdict, replace
-from inspect import getfullargspec, getmembers
+from inspect import getfullargspec, getmembers, isfunction
 from typing import TypeVar, Type, Optional, Union, Iterable, Any
 
 Case = TypeVar('Case')  # Dataclass type
@@ -10,13 +10,13 @@ Case = TypeVar('Case')  # Dataclass type
 def parametrize(*cases: Case | Iterable[Case], **sweeps):
     """"Parametrize" [sic] a test function with a list of test-"case"s (instances of a dataclass).
 
-    Fields and `@property``s of each case are passed as keyword arguments to the test function, but
-    any that don't match the test function's argument names are ignored. Test functions can also
-    declare an argument named ``case`` to receive the full ``Case`` object.
+    Fields, `@property``s, and nullary methods of each ``case`` are passed as keyword arguments to
+    the test function, but any that don't match the test function's argument names are ignored.
+    Test functions can also declare an argument named ``case`` to receive the full ``Case`` object.
 
-    ``id``s (used by pytest for display purposes, for each test case) are taken from each
-    ``Case``'s ```id`` attribute, if present. Otherwise, an ID is generated from the non-default
-    dataclass field values.
+    Test-case "ID"s (used by pytest for display and lookup purposes, for each test case) are taken
+    from each ``Case``'s ```id`` attribute, if present. Otherwise, an ID is generated from the
+    non-default dataclass field values.
 
     Adapted/Extended from https://github.com/single-cell-data/TileDB-SOMA/blob/1.14.2/apis/python/tests/parametrize_cases.py.
     """
@@ -24,7 +24,7 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
     # to ``parametrize`` (e.g. to construct parameter sweeps with a loop), or otherwise build one
     # or more ``Sequence``s of ``Case``s to pass to ``parametrize``.
     if len(cases) == 1 and isinstance(cases[0], list):
-        # Special-case, to save many redundant traversals when ``sweeps`` are provided (see
+        # Special-case, to save ``O(N)`` redundant traversals when N ``sweeps`` are provided (see
         # recursive ``sweeps`` unroll block below)
         cases = cases[0]
     else:
@@ -55,21 +55,28 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
             )
 
     def wrapper(fn):
-        """Parameterize a test ``fn``, converting the ``cases`` above to pytest-style "ID"s and
-        kwarg keys/values.
+        """Parameterize a test ``fn``, converting the ``cases`` above to "ID"s, key,
+        and value lists that Pytest expects.
 
-        The wrapped function's argument list can be any subset of the "Case" dataclass' fields and
-        ``@property``s; fields not "declared" by the test function are not passed.
+        The wrapped function's argument list can be any subset of the "Case" dataclass' fields,
+        ``@property``s, and nullary methods. Fields not "declared" by the test function are not
+        passed.
         """
-        # Dicts of ``@property`` and ``@dataclass`` fields
+        # Dicts of ``@property``s, nullary methods, and ``@dataclass`` fields.
         props = {
             name: prop
             for name, prop
             in getmembers(cls, lambda o: isinstance(o, property))
         }
+        methods = {
+            name: method
+            for name, method
+            in getmembers(cls, isfunction)
+            if not name.startswith('_')
+        }
         fields = { f.name: f for f in dataclasses.fields(cls) }
 
-        def get_case_id(case) -> str:
+        def get_case_id(case: Case) -> str:
             """Generate a test-case ID from a "Case" object.
 
             Concatenate string reprs of all non-default field values, separated by hyphens."""
@@ -81,47 +88,56 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
             for name, field in fields.items():
                 val = case_kvs[name]
                 if val == field.default:
-                    # Skip fields that match the default value
-                    # (Fields with no default are always included / never skipped)
+                    # Skip fields that match the default value. Fields with no default are
+                    # trivially never skipped, because ``field.default`` is
+                    # ``dataclasses._MISSING_TYPE``.
                     continue
                 non_default_vals.append(f"{val}")
             return '-'.join(non_default_vals)
 
-        # Test-case IDs
+        # Test-case IDs, used by Pytest for display and lookup purposes
         ids = [ get_case_id(case) for case in cases ]
 
         # Full list of fields that can be passed to the test function
         # "case" is the dataclass instance itself
-        cls_names: list[str] = list(fields.keys()) + list(props.keys()) + ['case']
+        cls_names: list[str] = [
+            *fields.keys(),
+            *props.keys(),
+            *methods.keys(),
+            'case',
+        ]
+
         # Intersect the test function's argument names with the eligible field names above
         spec = getfullargspec(fn)
-        fn_arg_names: list[str] = [ arg for arg in spec.args if arg in cls_names ]
-        # Dicts of all eligible field keys and values, one per case
-        cases_kvs: list[dict[str, Any]] = [
-            dict(
-                **asdict(case),
-                **{
-                    name: prop.fget(case)
-                    for name, prop
-                    in props.items()
-                },
-                case=case,
-            )
-            for case in cases
+        fn_arg_names: list[str] = [
+            arg
+            for arg in spec.args
+            if arg in cls_names
         ]
-        # Filter case dicts to just the values corresponding to keys that the test function accepts
-        values: list[list[Any]] = [
-            [ case_kvs[name] for name in fn_arg_names ]
-            for case_kvs in cases_kvs
-        ]
+
+        # Dicts of keys and values, one per ``case``, for the keys (kwargs) expected by ``fn``
+        # cases_kvs: list[dict[str, Any]] = []
+        values_lists: list[list[Any]] = []
+        for case in cases:
+            values = []
+            for name in fn_arg_names:
+                if name == 'case':
+                    values.append(case)
+                elif name in fields:
+                    values.append(getattr(case, name))
+                elif name in props:
+                    values.append(props[name].fget(case))
+                elif name in methods:
+                    values.append(getattr(case, name)())
+            values_lists.append(values)
 
         import pytest
 
         # Delegate to PyTest `parametrize`
         return pytest.mark.parametrize(
-            fn_arg_names,  # list of kwarg ("key") names
-            values,        # list of arg-value lists
-            ids=ids,       # list of test-case names
+            fn_arg_names,  # List of kwarg ("key") names that match eligible ``Case`` class members
+            values_lists,  # List of arg-value lists, one per test ``case``
+            ids=ids,       # List of test-case names
         )(fn)
 
     return wrapper

@@ -113,9 +113,9 @@ def json_load(path: str) -> Any:
 
 @dataclass
 class case3:
-    obj: Any
-    dir: Optional[str] = None
-    suffix: Optional[str] = None
+    obj: Any  # Object to JSON-serde
+    dir: Optional[str] = None  # Perform JSON-serde roundtrip in this directory
+    suffix: Optional[str] = None  # Suffix for the temporary file
 
     @contextmanager
     def dir_ctx(self):
@@ -128,7 +128,7 @@ class case3:
                 makedirs(self.dir)
                 rm_dir = True
             try:
-                yield
+                yield self.dir
             finally:
                 if rm_dir:
                     rmtree(self.dir)
@@ -150,12 +150,12 @@ class case3:
     dir=[ None, 'tmp/test_json_roundtrip', ],
     suffix=[ None, ".json", ]
 )
-def test_json_roundtrip_sweeps(case, request):
+def test_json_roundtrip_sweeps(obj, roundtrip, request):
     """Example testing a function that writes and reads a JSON file.
 
     Also reflects over the "swept" (kwargs) arguments above, verifying that 8 test cases are
     generated, having the expected IDs."""
-    assert case.obj == case.roundtrip()
+    assert obj == roundtrip
 
     # Swept test-case IDs
     ids = [
@@ -176,3 +176,15 @@ def test_json_roundtrip_sweeps(case, request):
         "test_json_roundtrip_sweeps[[11, 22, 33]-tmp/test_json_roundtrip]",
         "test_json_roundtrip_sweeps[[11, 22, 33]-tmp/test_json_roundtrip-.json]",
     ]
+
+
+@parametrize(
+    case3('aaa', dir='tmp/test_json_roundtrip'),
+)
+def test_contextmanager(case, dir_ctx):
+    """Example testing a context manager."""
+    assert not exists(case.dir)
+    with dir_ctx as tmpdir:
+        assert exists(case.dir)
+        assert case.dir == tmpdir
+    assert not exists(case.dir)
