@@ -1,22 +1,46 @@
 import dataclasses
 from contextlib import contextmanager
-from dataclasses import asdict, replace
+from dataclasses import replace
 from inspect import getfullargspec, getmembers, isfunction
-from typing import TypeVar, Type, Optional, Union, Iterable, Any
+from typing import Any, Callable, Iterable, Optional, Type, TypeVar, Union
 
 Case = TypeVar('Case')  # Dataclass type
+IdFmtField = Callable[[Any], str]
+IdFmts = dict[str, IdFmtField]
+IdFmtsInput = dict[str | tuple[str], IdFmtField]
 
 
-def parametrize(*cases: Case | Iterable[Case], **sweeps):
+def default_field_fmt(val: Any) -> str:
+    """Default field-formatting function for ``Case`` IDs."""
+    return f"{val}"
+
+
+def normalize(id_fmts: IdFmtsInput) -> IdFmts:
+    return {
+        key: fn
+        for keys, fn in id_fmts.items()
+        for key in (keys if isinstance(keys, tuple) else [keys])
+    }
+
+
+def parametrize(
+    *cases: Case | Iterable[Case],
+    delim: str = "-",
+    id_fmts: Optional[dict[str | tuple[str], IdFmtField]] = None,
+    **sweeps,
+):
     """"Parametrize" [sic] a test function with a list of test-"case"s (instances of a dataclass).
 
-    Fields, `@property``s, and nullary methods of each ``case`` are passed as keyword arguments to
-    the test function, but any that don't match the test function's argument names are ignored.
-    Test functions can also declare an argument named ``case`` to receive the full ``Case`` object.
+    Fields, `@property``s, and methods of each ``case`` may be passed as keyword arguments to the
+    test function, if it declares arguments with matching names. Test functions can also declare an
+     argument named ``case`` to receive the full ``Case`` object.
 
     Test-case "ID"s (used by pytest for display and lookup purposes, for each test case) are taken
     from each ``Case``'s ```id`` attribute, if present. Otherwise, an ID is generated from the
-    non-default dataclass field values.
+    dataclass-fields whose values differ among ``cases``.
+
+    ``**sweeps`` supports parameter sweeps, where ``cases`` is "Cartesian product"-ed against a
+     series of ``(str, list[Any])`` pairs (where the "key" is a dataclass-field name).
 
     Adapted/Extended from https://github.com/single-cell-data/TileDB-SOMA/blob/1.14.2/apis/python/tests/parametrize_cases.py.
     """
@@ -35,14 +59,18 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
         ]
 
     if sweeps:
-        k = next(iter(sweeps.keys()))
-        vs = sweeps.pop(k)
+        # Pop first ``(key,vals)`` pair
+        key = next(iter(sweeps.keys()))
+        vals = sweeps.pop(key)
+        # Sweep over ``vals``, recurse until no ``sweeps`` remain
         return parametrize(
             [
-                replace(case, **{k: v})
+                replace(case, **{ key: val })
                 for case in cases
-                for v in vs
+                for val in vals
             ],
+            delim=delim,
+            id_fmts=id_fmts,
             **sweeps,
         )
 
@@ -54,46 +82,60 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
                 f"Expected all cases to be of type {cls}, but found {case.__class__}"
             )
 
+    # Dicts of ``@property``s, methods, and ``@dataclass`` fields.
+    props = {
+        name: prop
+        for name, prop
+        in getmembers(cls, lambda o: isinstance(o, property))
+    }
+    methods = {
+        name: method
+        for name, method
+        in getmembers(cls, isfunction)
+        if not name.startswith('_')
+    }
+    fields = { f.name: f for f in dataclasses.fields(cls) }
+
+    # Find fields that differ among the ``cases``; used for auto-generating test-case IDs
+    differing_fields = {}
+    if cases:
+        case0, *rest = cases
+        for name, field in fields.items():
+            val0 = getattr(case0, name)
+            for case in rest:
+                val = getattr(case, name)
+                if val != val0:
+                    differing_fields[name] = field
+                    break
+
+    id_fmts = normalize(id_fmts) if id_fmts else {}
+    _id_fmts = normalize(getattr(cls, '_id_fmts', {}))
+    id_fmts = {
+        name: id_fmts.get(name, _id_fmts.get(name, default_field_fmt))
+        for name in differing_fields.keys()
+    }
+
     def wrapper(fn):
         """Parameterize a test ``fn``, converting the ``cases`` above to "ID"s, key,
         and value lists that Pytest expects.
 
         The wrapped function's argument list can be any subset of the "Case" dataclass' fields,
-        ``@property``s, and nullary methods. Fields not "declared" by the test function are not
-        passed.
+        ``@property``s, and methods. Fields not "declared" by the test function are not passed.
         """
-        # Dicts of ``@property``s, nullary methods, and ``@dataclass`` fields.
-        props = {
-            name: prop
-            for name, prop
-            in getmembers(cls, lambda o: isinstance(o, property))
-        }
-        methods = {
-            name: method
-            for name, method
-            in getmembers(cls, isfunction)
-            if not name.startswith('_')
-        }
-        fields = { f.name: f for f in dataclasses.fields(cls) }
-
         def get_case_id(case: Case) -> str:
             """Generate a test-case ID from a "Case" object.
 
-            Concatenate string reprs of all non-default field values, separated by hyphens."""
+            Hyphen-delimited string reprs of all fields that differ among ``cases``."""
             case_id = getattr(case, 'id', None)
             if case_id:
                 return case_id
-            non_default_vals = []
-            case_kvs = asdict(case)
-            for name, field in fields.items():
-                val = case_kvs[name]
-                if val == field.default:
-                    # Skip fields that match the default value. Fields with no default are
-                    # trivially never skipped, because ``field.default`` is
-                    # ``dataclasses._MISSING_TYPE``.
-                    continue
-                non_default_vals.append(f"{val}")
-            return '-'.join(non_default_vals)
+            id_vals = []
+            for name, field in differing_fields.items():
+                val = getattr(case, name)
+                fmt_fn = id_fmts[name]
+                val_str = fmt_fn(val)
+                id_vals.append(val_str)
+            return delim.join(id_vals)
 
         # Test-case IDs, used by Pytest for display and lookup purposes
         ids = [ get_case_id(case) for case in cases ]
@@ -128,7 +170,7 @@ def parametrize(*cases: Case | Iterable[Case], **sweeps):
                 elif name in props:
                     values.append(props[name].fget(case))
                 elif name in methods:
-                    values.append(getattr(case, name)())
+                    values.append(getattr(case, name))
             values_lists.append(values)
 
         import pytest
