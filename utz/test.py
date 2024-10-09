@@ -1,13 +1,13 @@
 import dataclasses
 from contextlib import contextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from inspect import getfullargspec, getmembers
 from typing import TypeVar, Type, Optional, Union, Iterable, Any
 
 Case = TypeVar('Case')  # Dataclass type
 
 
-def parametrize(*cases: Case | Iterable[Case]):
+def parametrize(*cases: Case | Iterable[Case], **sweeps):
     """"Parametrize" [sic] a test function with a list of test-"case"s (instances of a dataclass).
 
     Fields and `@property``s of each case are passed as keyword arguments to the test function, but
@@ -23,11 +23,28 @@ def parametrize(*cases: Case | Iterable[Case]):
     # Flatten the ``cases`` varargs. Sometimes it's convenient to pass a Generator as a single arg
     # to ``parametrize`` (e.g. to construct parameter sweeps with a loop), or otherwise build one
     # or more ``Sequence``s of ``Case``s to pass to ``parametrize``.
-    cases = [
-        case
-        for arg in cases
-        for case in (arg if isinstance(arg, Iterable) else [arg])
-    ]
+    if len(cases) == 1 and isinstance(cases[0], list):
+        # Special-case, to save many redundant traversals when ``sweeps`` are provided (see
+        # recursive ``sweeps`` unroll block below)
+        cases = cases[0]
+    else:
+        cases = [
+            case
+            for arg in cases
+            for case in (arg if isinstance(arg, Iterable) else [arg])
+        ]
+
+    if sweeps:
+        k = next(iter(sweeps.keys()))
+        vs = sweeps.pop(k)
+        return parametrize(
+            [
+                replace(case, **{k: v})
+                for case in cases
+                for v in vs
+            ],
+            **sweeps,
+        )
 
     # Verify and extract a single ``class`` type from ``cases``.
     cls = cases[0].__class__

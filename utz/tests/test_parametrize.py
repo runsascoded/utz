@@ -1,5 +1,12 @@
-from utz import parametrize
+from contextlib import nullcontext, contextmanager
 from dataclasses import dataclass
+from os import makedirs
+from os.path import dirname, exists, relpath
+from shutil import rmtree
+from tempfile import NamedTemporaryFile
+from typing import Any, Optional
+
+from utz import parametrize
 
 
 def fn(f: float, fmt: str) -> str:
@@ -88,3 +95,84 @@ def test_case2_id_extra(request):
 def test_pow2(n, sq):
     """Example unpacking a `@property` field (``sq``) from a "case" class."""
     assert pow2(n) == sq
+
+
+def json_dump(obj: Any, path: str):
+    """Example function to be tested by ``case3``s below."""
+    import json
+    with open(path, 'w') as f:
+        json.dump(obj, f)
+
+
+def json_load(path: str) -> Any:
+    """Example function to be tested by ``case3``s below."""
+    import json
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
+@dataclass
+class case3:
+    obj: Any
+    dir: Optional[str] = None
+    suffix: Optional[str] = None
+
+    @contextmanager
+    def dir_ctx(self):
+        if not self.dir:
+            with nullcontext():
+                yield
+        else:
+            rm_dir = False
+            if not exists(self.dir):
+                makedirs(self.dir)
+                rm_dir = True
+            try:
+                yield
+            finally:
+                if rm_dir:
+                    rmtree(self.dir)
+
+    def roundtrip(self) -> Any:
+        """JSON serialization round-trip."""
+        with self.dir_ctx():
+            with NamedTemporaryFile(dir=self.dir, suffix=self.suffix) as f:
+                path = f.name
+                if self.dir:
+                    assert dirname(relpath(path)) == self.dir
+                json_dump(self.obj, path)
+                return json_load(path)
+
+
+@parametrize(
+    case3({'a': 1}),
+    case3([ 11, 22, 33 ]),
+    dir=[ None, 'tmp/test_json_roundtrip', ],
+    suffix=[ None, ".json", ]
+)
+def test_json_roundtrip_sweeps(case, request):
+    """Example testing a function that writes and reads a JSON file.
+
+    Also reflects over the "swept" (kwargs) arguments above, verifying that 8 test cases are
+    generated, having the expected IDs."""
+    assert case.obj == case.roundtrip()
+
+    # Swept test-case IDs
+    ids = [
+        item.name
+        for item in request.session.items
+        if item.originalname == 'test_json_roundtrip_sweeps'
+    ]
+    # Current test-case ID
+    cur = request.node.name
+    assert cur in ids
+    assert ids == [
+        "test_json_roundtrip_sweeps[{'a': 1}]",
+        "test_json_roundtrip_sweeps[{'a': 1}-.json]",
+        "test_json_roundtrip_sweeps[{'a': 1}-tmp/test_json_roundtrip]",
+        "test_json_roundtrip_sweeps[{'a': 1}-tmp/test_json_roundtrip-.json]",
+        "test_json_roundtrip_sweeps[[11, 22, 33]]",
+        "test_json_roundtrip_sweeps[[11, 22, 33]-.json]",
+        "test_json_roundtrip_sweeps[[11, 22, 33]-tmp/test_json_roundtrip]",
+        "test_json_roundtrip_sweeps[[11, 22, 33]-tmp/test_json_roundtrip-.json]",
+    ]
