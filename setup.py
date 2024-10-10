@@ -39,5 +39,5 @@ setup(
     version="0.9.2",
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
-    python_requires=">=3.10",
+    python_requires=">=3.9",
 )

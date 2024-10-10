@@ -1,10 +1,10 @@
 # # Context Manager utilities
 
 from contextlib import AbstractContextManager, contextmanager, nullcontext, suppress
-from typing import ContextManager, Sequence
+from typing import ContextManager, Sequence, Union
 
 
-def contexts(*ctxs: ContextManager | Sequence[ContextManager]) -> ContextManager:
+def contexts(*ctxs: Union[ContextManager, Sequence[ContextManager]]) -> ContextManager:
     """Compose context managers."""
     ctxs = [
         ctx

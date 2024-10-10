@@ -2,12 +2,12 @@ import dataclasses
 from contextlib import contextmanager
 from dataclasses import replace
 from inspect import getfullargspec, getmembers, isfunction
-from typing import Any, Callable, Iterable, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Iterable, Optional, Type, TypeVar, Union, Dict, Tuple
 
 Case = TypeVar('Case')  # Dataclass type
 IdFmtField = Callable[[Any], str]
-IdFmts = dict[str, IdFmtField]
-IdFmtsInput = dict[str | tuple[str], IdFmtField]
+IdFmts = Dict[str, IdFmtField]
+IdFmtsInput = Dict[Union[str, Tuple[str]], IdFmtField]
 
 
 def default_field_fmt(val: Any) -> str:
@@ -24,9 +24,9 @@ def normalize(id_fmts: IdFmtsInput) -> IdFmts:
 
 
 def parametrize(
-    *cases: Case | Iterable[Case],
+    *cases: Union[Case, Iterable[Case]],
     delim: str = "-",
-    id_fmts: Optional[dict[str | tuple[str], IdFmtField]] = None,
+    id_fmts: Optional[IdFmtsInput] = None,
     **sweeps,
 ):
     """"Parametrize" [sic] a test function with a list of test-"case"s (instances of a dataclass).

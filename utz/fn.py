@@ -1,10 +1,10 @@
 from inspect import getfullargspec
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Union
 
 Deco = Callable[[Callable], Callable]
 
 
-def decos(*args: Deco | Sequence[Deco]):
+def decos(*args: Union[Deco, Sequence[Deco]]):
     """Compose decorators."""
     decos = [ deco for decos in args for deco in decos ]
 

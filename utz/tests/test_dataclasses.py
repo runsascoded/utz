@@ -71,7 +71,8 @@ def test_roundtrips():
 
 
 def test_bad_dicts():
-    with raises(TypeError, ["A.__init__() missing 1 required positional argument: 'n'"]):
+    # Python 3.9 doesn't include the "A." at the start
+    with raises(TypeError, r"(?:A.)?__init__\(\) missing 1 required positional argument: 'n'"):
         from_dict(A, { 's': 'aa' })
 
     with raises(KeyError, "'c'"):
