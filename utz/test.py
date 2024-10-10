@@ -202,7 +202,8 @@ def raises(
         msgs = match
         with pytest.raises(exc_type) as exc:
             yield
-        assert str(exc.value) in msgs
+        expected = str(exc.value)
+        assert expected in msgs, f'Expected "{expected}" to be in {msgs}'
     else:
         with pytest.raises(exc_type, *args, match=match, **kwargs):
             yield
