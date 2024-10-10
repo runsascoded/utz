@@ -1,5 +1,5 @@
 # utz
-*("yoots")*: utilities I've missed in the Python standard library
+*("yoots")*: utilities I've missed in the Python standard library, Pytest, Pandas, Plotly, …
 
 [![](https://img.shields.io/pypi/v/utz?color=blue&style=flat-square)][utz]
 
@@ -26,7 +26,7 @@
 ```bash
 pip install utz
 ```
-0 dependencies, but several "extras" [available][extras].
+The base package has no dependencies, but "extras" are [available][extras].
 
 ## Use <a id="use"></a>
 
@@ -226,7 +226,7 @@ def test_fn(f, fmt, expected):
     assert fn(f, fmt) == expected
 ```
 
-Example above is from [`test_parametrize.py`], `parametrize` is adapted from [TileDB-SOMA][tdbs parametrize_cases] ([example use][roundtrips]).
+[`test_parametrize.py`] contains more examples, customizing test "ID"s, adding parameter sweeps, etc.
 
 #### `utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings <a id="utz.raises"></a>
 
