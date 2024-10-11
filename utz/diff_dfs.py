@@ -5,6 +5,7 @@ from IPython.display import HTML
 from pandas import concat, Index, IndexSlice, isna, MultiIndex
 from re import sub
 
+
 def neq(l, r):
     return l != r and not (isna(l) and isna(r))
 

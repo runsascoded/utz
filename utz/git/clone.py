@@ -44,11 +44,14 @@ def tmp(
     import utz
     from utz import git
     name = name or basename(url)
-    if name.endswith('.git'): name = name[:-len('.git')]
+    if name.endswith('.git'):
+        name = name[:-len('.git')]
     with tmpdir(name, dir=dir) as repo_dir:
         cmd = ['git', 'clone']
-        if submodules: cmd += ['--recurse-submodules']
-        if bare: cmd += ['--bare']
+        if submodules:
+            cmd += ['--recurse-submodules']
+        if bare:
+            cmd += ['--bare']
         if branch and not ref:
             # branch must already exist and we want to clone and work on it
             cmd += ['-b', branch]
@@ -89,7 +92,8 @@ def tmp(
         # from the temporary `repo_dir`
         if pull:
             with utz.cd(url):
-                if not branch: branch = git.branch.current()
+                if not branch:
+                    branch = git.branch.current()
                 run('git', 'fetch', repo_dir)
                 try:
                     ref_line = line('git', 'ls-remote', repo_dir, f'refs/heads/{branch}')
@@ -101,7 +105,7 @@ def tmp(
                         sha = m['sha']
                     else:
                         raise RuntimeError(f'Unrecognized ls-remote line: {ref_line}')
-                except Exception as e:
+                except RuntimeError:
                     stderr.write('%s\n' % f'Error fetching branch {branch} from remote {repo_dir}')
                     print_exc()
                     sha = git.sha('FETCH_HEAD')
