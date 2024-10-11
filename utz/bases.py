@@ -41,15 +41,18 @@ def b2s(b, chars):
 
 
 class Converter:
-    """Base-class for converters between non-negative integers and strings comprised of a given alphabet
+    """Convert between non-negative integers and strings comprised of a given alphabet.
 
-    See "base" 62, 64, and 90 versions below, but note that they work differently than e.g. standard base64; these
-    encodings are isomorphisms between all natural numbers and all strings:
+    Several instantiations follow, but note that e.g. ``b64`` differs from standard
+    base64-encoding; ``Converter``s provide isomorphisms between all natural numbers and all
+    strings (given an "alphabet"):
     - 0 ⟺ ''
     - [1,N) ⟺ <1-char strings>
     - [N, N²+N) ⟺ <2-char strings>
     - [N²+N, N³+N²+N) ⟺ <3-char strings>
     - etc.
+
+    They also preserve ordering; alphabets are ASCII-ordered.
     """
     i2s: str
 
@@ -68,6 +71,11 @@ class Converter:
             raise ValueError(f'Unrecognized type ({type(v)}): {v}')
 
 
+b26u = Converter('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+b26l = Converter('abcdefghijklmnopqrstuvwxyz')
+b36u = Converter('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+b36l = Converter('0123456789abcdefghijklmnopqrstuvwxyz')
+b52 = Converter('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
 b62 = Converter('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')
 b64 = Converter('+/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
 b90 = Converter('!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz')
