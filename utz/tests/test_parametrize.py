@@ -157,7 +157,7 @@ class case3:
             if isinstance(obj, dict)
             else str(obj).replace(' ', '')
         ),
-        ('dir', 'suffix'): lambda s: str(s) if s else '""',
+        ('dir', 'suffix'): lambda s: str(s) if s else None,  # None ⟹ omit from ID
     },
 )
 def test_json_roundtrip_sweeps(obj, roundtrip, request):
@@ -177,13 +177,13 @@ def test_json_roundtrip_sweeps(obj, roundtrip, request):
     cur = request.node.name
     assert cur in ids
     assert ids == [
-        'test_json_roundtrip_sweeps[a=1-""-""]',
-        'test_json_roundtrip_sweeps[a=1-""-.json]',
-        'test_json_roundtrip_sweeps[a=1-tmp/test_json_roundtrip-""]',
+        'test_json_roundtrip_sweeps[a=1]',
+        'test_json_roundtrip_sweeps[a=1-.json]',
+        'test_json_roundtrip_sweeps[a=1-tmp/test_json_roundtrip]',
         'test_json_roundtrip_sweeps[a=1-tmp/test_json_roundtrip-.json]',
-        'test_json_roundtrip_sweeps[[11,22,33]-""-""]',
-        'test_json_roundtrip_sweeps[[11,22,33]-""-.json]',
-        'test_json_roundtrip_sweeps[[11,22,33]-tmp/test_json_roundtrip-""]',
+        'test_json_roundtrip_sweeps[[11,22,33]]',
+        'test_json_roundtrip_sweeps[[11,22,33]-.json]',
+        'test_json_roundtrip_sweeps[[11,22,33]-tmp/test_json_roundtrip]',
         'test_json_roundtrip_sweeps[[11,22,33]-tmp/test_json_roundtrip-.json]',
     ]
 

@@ -4,9 +4,14 @@ from dataclasses import replace
 from inspect import getfullargspec, getmembers, isfunction
 from typing import Any, Callable, Iterable, Optional, Type, TypeVar, Union, Dict, Tuple
 
-Case = TypeVar('Case')  # Dataclass type
-IdFmtField = Callable[[Any], str]
+# Dataclass type
+Case = TypeVar('Case')
+# Input field value, output string repr (for test-case "ID"s; ``None`` ⟹ omit)
+IdFmtField = Callable[[Any], Optional[str]]
+# Format function for each dataclass field.
 IdFmts = Dict[str, IdFmtField]
+# Unprocessed version of ``IdFmts``, supports key-tuple shorthand for assigning a format-fn value
+# to multiple keys.
 IdFmtsInput = Dict[Union[str, Tuple[str]], IdFmtField]
 
 
@@ -133,8 +138,9 @@ def parametrize(
             for name, field in differing_fields.items():
                 val = getattr(case, name)
                 fmt_fn = id_fmts[name]
-                val_str = fmt_fn(val)
-                id_vals.append(val_str)
+                val_str = fmt_fn(val) if fmt_fn else None
+                if val_str is not None:
+                    id_vals.append(val_str)
             return delim.join(id_vals)
 
         # Test-case IDs, used by Pytest for display and lookup purposes
