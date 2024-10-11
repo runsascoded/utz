@@ -1,7 +1,8 @@
 import pytest
 
 import utz
-from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run, line
+from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run, line, \
+    now, b62
 
 
 def test_current_branch():
@@ -83,7 +84,8 @@ def commit_file(path, lines, parent_sha=None, mode='w', fmt='%h', commit=True):
 def test_tmp_clone_remote_push_changes():
     # set this HAILSTONE_SSH_URL to a different fork or repo if developing without access to this one
     url = env.get('HAILSTONE_SSH_URL', 'git@gitlab.com:gsmo/examples/hailstone.git')
-    branch = 'tmp'
+    nonce = b62(now().ms)
+    branch = f'tmp-{nonce}'
     sha0 = 'e0add3d'
     with git.clone.tmp(url, branch=branch, ref=sha0, push=True) as cwd:
         tmpdir = cwd
