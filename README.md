@@ -26,7 +26,7 @@
 ```bash
 pip install utz
 ```
-The base package has no dependencies, but "extras" are [available][extras].
+The base package has one dependency, [`stdlb`], but "extras" are [available][extras].
 
 ## Use <a id="use"></a>
 
