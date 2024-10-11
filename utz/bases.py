@@ -51,29 +51,23 @@ class Converter:
     - [N²+N, N³+N²+N) ⟺ <3-char strings>
     - etc.
     """
-    I2S = None
+    i2s: str
 
-    def __init__(self):
-        self.S2I = { ch: i for i, ch in enumerate(self.I2S) }
+    def __init__(self, i2s: str):
+        self.i2s = i2s
+        self.s2i = { ch: i for i, ch in enumerate(self.i2s) }
 
     def __call__(self, v):
         if isinstance(v, str):
-            return s2i(v, self.S2I)
+            return s2i(v, self.s2i)
         elif isinstance(v, int):
-            return i2s(v, self.I2S)
+            return i2s(v, self.i2s)
         elif isinstance(v, bytes):
-            return b2s(v, self.I2S)
+            return b2s(v, self.i2s)
         else:
             raise ValueError(f'Unrecognized type ({type(v)}): {v}')
 
 
-class B62(Converter): I2S = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-b62 = B62()
-
-
-class B64(Converter): I2S = '+/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-b64 = B64()
-
-
-class B90(Converter): I2S = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz'
-b90 = B90()
+b62 = Converter('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')
+b64 = Converter('+/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
+b90 = Converter('!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz')

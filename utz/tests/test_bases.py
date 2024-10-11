@@ -23,6 +23,6 @@ def test_ints_strs():
 
 def test_bytes():
     assert b64(bytes([])) == ''
-    assert b64(bytes([1,])) == '+'
-    assert b64(bytes([1,2])) == '1/'
-    assert b64(bytes([1,2,3])) == 'D50'
+    assert b64(bytes([ 1 ])) == '+'
+    assert b64(bytes([ 1, 2 ])) == '1/'
+    assert b64(bytes([ 1, 2, 3 ])) == 'D50'

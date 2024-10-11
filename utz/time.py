@@ -61,6 +61,12 @@ class now:
     def s(self): return int(self)
 
     @property
+    def ds(self): return self.ms // 100
+
+    @property
+    def cs(self): return self.ms // 10
+
+    @property
     def ms(self): return int(float(self) * 1e3)
 
     @property

@@ -73,7 +73,7 @@ def test_encodings(debug, codec, cases, t2021):
     # - `len`: serialized string length
     # - `first_until`: time when the first char will change
     # - `len_until`: time when the length will change
-    last = codec.I2S[-1]
+    last = codec.i2s[-1]
     for case in cases:
         unit = case.unit
         t = now()
