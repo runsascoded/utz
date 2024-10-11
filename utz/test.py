@@ -1,18 +1,20 @@
+from __future__ import annotations
+
 import dataclasses
 from contextlib import contextmanager
 from dataclasses import replace
 from inspect import getfullargspec, getmembers, isfunction
-from typing import Any, Callable, Iterable, Optional, Type, TypeVar, Union, Dict, Tuple
+from typing import Any, Callable, Iterable, Type, TypeVar, Optional, Union
 
 # Dataclass type
 Case = TypeVar('Case')
 # Input field value, output string repr (for test-case "ID"s; ``None`` ⟹ omit)
 IdFmtField = Callable[[Any], Optional[str]]
 # Format function for each dataclass field.
-IdFmts = Dict[str, IdFmtField]
+IdFmts = dict[str, IdFmtField]
 # Unprocessed version of ``IdFmts``, supports key-tuple shorthand for assigning a format-fn value
 # to multiple keys.
-IdFmtsInput = Dict[Union[str, Tuple[str]], IdFmtField]
+IdFmtsInput = dict[Union[str, tuple[str]], IdFmtField]
 
 
 def default_field_fmt(val: Any) -> str:
@@ -29,9 +31,9 @@ def normalize(id_fmts: IdFmtsInput) -> IdFmts:
 
 
 def parametrize(
-    *cases: Union[Case, Iterable[Case]],
+    *cases: Case | Iterable[Case],
     delim: str = "-",
-    id_fmts: Optional[IdFmtsInput] = None,
+    id_fmts: dict[str | tuple[str], IdFmtField] | None = None,
     **sweeps,
 ):
     """"Parametrize" [sic] a test function with a list of test-"case"s (instances of a dataclass).
@@ -194,8 +196,8 @@ def parametrize(
 @contextmanager
 def raises(
     exc_type: Type[Exception],
-    match: Union[str, list[str], None] = None,
-    exact: Optional[bool] = None,
+    match: str | list[str] | None = None,
+    exact: bool | None = None,
     *args,
     **kwargs,
 ):

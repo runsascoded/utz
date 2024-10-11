@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import json
 from functools import partial
 from io import TextIOWrapper
 from os import environ as env, makedirs
 from os.path import exists, join, relpath
 from sys import stderr
-from typing import Union, Literal, Tuple, Callable, Optional, Dict, List
-
-from IPython.display import Image
+from typing import Union, Literal, Tuple, Callable
 
 import plotly.graph_objects as go
+from IPython.display import Image
 from plotly.graph_objs import Figure
 from plotly.validators.scatter.marker import SymbolValidator
 symbols = SymbolValidator().values[2::12]
@@ -38,10 +39,10 @@ class Unset:
 _Unset = type(Unset)
 
 
-Title = Union[str, List[str], None]
+Title = Union[str, list[str], None]
 
 
-def title(s: Title, subtitle_size: Title = None) -> Optional[str]:
+def title(s: Title, subtitle_size: Title = None) -> str | None:
     """Convert a list of strings into a `<br>`-joined plot title, with optional font-size styling.
 
     If `subtitle_size` is a `str`, all elements of `s` after the first (subtitles) will be given that size.
@@ -82,7 +83,7 @@ def save(
     title: Title = None,
     **kwargs
 ):
-    """Wrapper around ``plot``, enforces non-``None`` ``name`` and allows ``name`` then ``title`` as positional args."""
+    """Wrap `plot`, enforce non-``None`` ``name``, allow passing ``name`` then ``title`` as positional args."""
     if not name:
         raise ValueError("`name` must be nonempty")
     return plot(fig, name=name, title=title, **kwargs)
@@ -91,35 +92,35 @@ def save(
 def plot(
     fig: Figure,
     title: Title = None,
-    name: Optional[str] = None,
+    name: str | None = None,
     *,
-    bg: Union[str, None, _Unset] = Unset,
-    subtitle_size: Optional[str] = None,
+    bg: str | None | _Unset = Unset,
+    subtitle_size: str | None = None,
     hoverx: bool = False,
     hovertemplate: Title = None,
     png_title: bool = True,
-    yrange: Optional[str] = 'tozero',
-    legend: Union[bool, Dict, Literal['reversed'], None] = None,
+    yrange: str | None = 'tozero',
+    legend: bool | dict | Literal['reversed'] | None = None,
     bottom_legend: Union[bool, Literal['all']] = False,
     pretty: bool = False,
-    margin: Union[None, int, Dict, _Unset] = Unset,
-    dir: Optional[str] = None,
-    w: Optional[int] = None,
-    h: Optional[int] = None,
-    png: Union[Dict, int, Tuple[int], Tuple[int, int], None] = None,
+    margin: Union[None, int, dict, _Unset] = Unset,
+    dir: str | None = None,
+    w: int | None = None,
+    h: int | None = None,
+    png: dict | int | Tuple[int] | Tuple[int, int] | None = None,
     xtitle: Title = None,
     ytitle: Title = None,
     ltitle: Title = None,
-    grid: Union[str, None, _Unset] = Unset,
-    xgrid: Union[str, None, _Unset] = Unset,
-    ygrid: Union[str, None, _Unset] = Unset,
-    x: Union[Dict, str, None] = None,
-    y: Union[Dict, str, None] = None,
-    log: Union[TextIOWrapper, bool, None] = stderr,
-    show: Union[Literal['png', 'file', 'html'], bool, None] = None,
-    zerolines: Union[bool, Literal['x', 'y'], None] = True,
-    html: Union[Dict, bool, None, _Unset] = Unset,
-    title_suffix: Optional[str] = None,
+    grid: str | None | _Unset = Unset,
+    xgrid: str | None | _Unset = Unset,
+    ygrid: str | None | _Unset = Unset,
+    x: dict | str | None = None,
+    y: dict | str | None = None,
+    log: TextIOWrapper | bool | None = stderr,
+    show: Literal['png', 'file', 'html'] | bool | None = None,
+    zerolines: bool | Literal['x', 'y'] | None = True,
+    html: dict | bool | None | _Unset = Unset,
+    title_suffix: str | None = None,
     **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations.
@@ -209,11 +210,11 @@ def plot(
             grid = DEFAULT_GRID
 
     def update_axis(
-        xy: Union[str, Dict, None],
+        xy: str | dict | None,
         xy_name: str,
         update_axes: Callable,
         xy_title: Title,
-        xy_grid: Union[str, None, _Unset],
+        xy_grid: str | None | Unset,
     ):
         if isinstance(xy, str):
             update_axes(title_text=xy)

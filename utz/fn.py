@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from inspect import getfullargspec
-from typing import Callable, Sequence, Union
+from typing import Callable, Sequence
 
 Deco = Callable[[Callable], Callable]
 
 
-def decos(*args: Union[Deco, Sequence[Deco]]):
+def decos(*args: Deco | Sequence[Deco]):
     """Compose decorators."""
     decos = [ deco for decos in args for deco in decos ]
 
