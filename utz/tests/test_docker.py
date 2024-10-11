@@ -65,7 +65,7 @@ def test_docker_file_contents():
 
 def test_docker_demo():
     def build_python_git_image(python_version, tag):
-        '''Build a Docker image with a specified Python version, and `git` installed'''
+        """Build a Docker image with a specified Python version, and `git` installed"""
         with docker.File(tag=tag):
             FROM(f'python:{python_version}-slim')
             RUN(

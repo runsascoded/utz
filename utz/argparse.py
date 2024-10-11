@@ -1,11 +1,11 @@
 
 def parse_dict(args, attr, default_ok=True):
-    '''Parse an "nargs='*'" field from an ArgumentParser's parsed arguments
+    """Parse an "nargs='*'" field from an ArgumentParser's parsed arguments
 
     Each argument value should be of the form <k>=<v>, and a dict() of those mappings will be returned
 
     At most one argument value can simply be of the form <v>, in which case it will be assigned to the None value in the returned dict
-    '''
+    """
     arg = getattr(args, attr)
     ret = {}
     if isinstance(arg, list):

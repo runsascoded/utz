@@ -4,7 +4,7 @@ Utilities and a DSL for programmatically constructing Dockerfiles (and building 
 from utz import *  # or: `from utz.docker.dsl import *`
 
 def build_python_git_image(python_version, tag):
-    '''Build a Docker image with a specified Python version, and `git` installed'''
+    """Build a Docker image with a specified Python version, and `git` installed."""
     with docker.File(tag=tag):
         FROM(f'python:{python_version}-slim')
         RUN(

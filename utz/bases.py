@@ -41,7 +41,7 @@ def b2s(b, chars):
 
 
 class Converter:
-    '''Base-class for converters between non-negative integers and strings comprised of a given alphabet
+    """Base-class for converters between non-negative integers and strings comprised of a given alphabet
 
     See "base" 62, 64, and 90 versions below, but note that they work differently than e.g. standard base64; these
     encodings are isomorphisms between all natural numbers and all strings:
@@ -50,11 +50,11 @@ class Converter:
     - [N, N²+N) ⟺ <2-char strings>
     - [N²+N, N³+N²+N) ⟺ <3-char strings>
     - etc.
-    '''
+    """
     I2S = None
 
     def __init__(self):
-        self.S2I = {ch:i for i, ch in enumerate(self.I2S)}
+        self.S2I = { ch: i for i, ch in enumerate(self.I2S) }
 
     def __call__(self, v):
         if isinstance(v, str):

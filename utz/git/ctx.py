@@ -5,13 +5,14 @@ from utz.git.repo import git_repo
 from utz.o import o
 from utz.process import line, run
 
+
 @contextmanager
 def txn(start=None, msg=None, add=None,):
-    '''Contextmanager that creates a synthetic merge with __enter__- and __exit__-time HEADs as parents, and tree (and
+    """Contextmanager that creates a synthetic merge with __enter__- and __exit__-time HEADs as parents, and tree (and
     message, by default) of the latter.
 
     The yielded value is an o() dict-wrapper whose `msg` and `add` attrs will be used to configure a final commit
-    '''
+    """
     start = start or sha()
     ctx = o()
     if add:

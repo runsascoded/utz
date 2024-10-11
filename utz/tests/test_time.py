@@ -86,6 +86,7 @@ def test_encodings(debug, codec, cases, t2021):
 
         if debug:
             unit_str = '% 4s' % f"'{unit}'"
+
             def fmt(d):
                 if unit == 's':
                     return str(now(d=d))
