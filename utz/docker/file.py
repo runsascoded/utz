@@ -1,4 +1,4 @@
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, nullcontext
 import json
 from os.path import exists, join
 from os import getcwd, remove
@@ -7,7 +7,6 @@ from tempfile import NamedTemporaryFile
 from types import TracebackType
 from typing import Optional, Type
 
-from ..context import nullcontext
 from ..process import sh
 
 from .image import Image

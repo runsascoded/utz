@@ -2,8 +2,9 @@ import re
 from dataclasses import dataclass
 from datetime import datetime as dt, date, timedelta
 from functools import wraps
-from typing import Union, Generator
-from utz.imports import _try
+from typing import Union
+
+from utz import Yield
 
 
 # Types that can be passed to the Month constructor
@@ -125,7 +126,7 @@ class YMD:
             raise ValueError('%s: can only add an integer to a Month, not %s: %s' % (str(self), str(type(n)), str(n)))
         return YMD(self.date - timedelta(days=n))
 
-    def until(self, end: 'YMD' = None, step: int = 1) -> Generator['YMD', None, None]:
+    def until(self, end: 'YMD' = None, step: int = 1) -> Yield['YMD']:
         cur: YMD = YMD(self)
         while end is None \
                 or (step > 0 and cur < end) \
@@ -139,6 +140,7 @@ def dates(*flags, default_start=None, default_end=None, help=None):
         flags = ('-d', '--dates')
 
     from click import option
+
     def _dates(fn):
         @option(*flags, help=help)
         @wraps(fn)

@@ -1,7 +1,12 @@
 # # Context Manager utilities
 
-from contextlib import AbstractContextManager, contextmanager, nullcontext, suppress
-from typing import ContextManager, Sequence, Union
+from contextlib import AbstractContextManager, contextmanager
+from typing import ContextManager, Generator, Sequence, TypeVar
+
+T = TypeVar("T")
+
+# Shorthand for common return type of ``@contextmanager``-decorated functions
+Yield = Generator[T, None, None]
 
 
 def contexts(*ctxs: Union[ContextManager, Sequence[ContextManager]]) -> ContextManager:

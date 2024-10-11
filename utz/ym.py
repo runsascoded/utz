@@ -4,8 +4,9 @@ from datetime import datetime as dt, date
 from functools import wraps
 import re
 from math import ceil
-from typing import Tuple, Union, Generator
+from typing import Tuple, Union
 
+from utz import Yield
 
 # Types that can be passed to the Month constructor
 Monthy = Union['YM', str, int, None]
@@ -130,7 +131,7 @@ class YM:
         m += 1
         return YM(y, m)
 
-    def until(self, end: 'YM' = None, step: int = 1) -> Generator['YM', None, None]:
+    def until(self, end: 'YM' = None, step: int = 1) -> Yield['YM']:
         cur: YM = YM(self)
         while end is None \
                 or (step > 0 and cur < end) \

@@ -38,19 +38,19 @@ from .cd import cd
 from . import docker
 from .docker.dsl import *
 
+# `utz.Yield` is used by some modules below, e.g. `utz.ym`
+from .context import *
+
 from .o import o
 from .use import use
-with _try:
-    from .ym import YM
-    from .ymd import YMD
+from .ym import YM
+from .ymd import YMD
 
 with _try:
     from git import Git, Repo
     from .git import make_repo
 
 from .git import github
-
-from .context import *
 
 with _try:
     from .collections import coerce, singleton, only, is_subsequence
