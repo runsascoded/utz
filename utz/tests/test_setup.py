@@ -45,4 +45,4 @@ def test_parse_version():
 
 
 def test_pkg_version():
-    assert pkg_version('python-dateutil') == '2.8.2'
+    assert pkg_version('python-dateutil') == '2.9.0'

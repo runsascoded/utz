@@ -3,7 +3,7 @@ from utz.setup import setup
 extras_require = {
     'dt': [
         'click',
-        'python-dateutil==2.8.2',
+        'python-dateutil',
         'pytz',
     ],
     'git': [
@@ -30,6 +30,7 @@ extras_require = {
     'test': [
         'pytest',
         'pytest-mock',
+        'python-dateutil==2.9.0'  # Verified (as an example) in `test_setup.py`
     ],
 }
 extras_require['all'] = sum(extras_require.values(), [ 'pyyaml', ])
