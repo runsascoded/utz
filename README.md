@@ -27,7 +27,8 @@
 ```bash
 pip install utz
 ```
-The base package has one dependency, [`stdlb`], but "extras" are [available][extras].
+- `utz` has one dependency, [`stdlb`] (wild-card standard library imports).
+- ["Extras"][extras] provide optional deps (e.g. [Pandas], [Plotly], …).
 
 ## Use <a id="use"></a>
 
@@ -36,9 +37,9 @@ I usually do this at the top of Jupyter notebooks:
 from utz import *
 ```
 
-This imports most standard library modules/functions (via [`stdlb`]), as well as the `utz.*` members below. 
+This imports most standard library modules/functions (via [`stdlb`]), as well as the `utz` members below.
 
-Some specific modules, in rough order of how often I use them:
+Below are a few modules, in rough order of how often I use them:
 
 ### [`utz.process`]: [`subprocess`] wrappers; shell out to commands, parse output <a id="utz.process"></a>
 
@@ -83,16 +84,6 @@ from utz import cd
 with cd('..'):  # change to parent dir
     ...
 ```
-
-### [`utz.ctxs`]: compose `contextmanager`s <a id="utz.ctxs"></a>
-```python
-from utz import *
-with ctxs(NamedTemporaryFile(), NamedTemporaryFile()) as (f1, f2):
-    ...
-```
-
-See also: [`test_context.py`].
-
 
 ### [`utz.fn`]: decorator/function utilities <a id="utz.fn"></a>
 
@@ -189,7 +180,7 @@ setup(
 The `setup` helper can be installed via a pip "extra":
 ```bash
 pip install utz[setup]
-``` 
+```
 
 ### [`utz.test`]: `dataclass` test cases, `raises` helper <a id="utz.test"></a>
 
@@ -310,13 +301,14 @@ hash_file("path/to/file", 'md5')
 Misc other modules:
 - [o](utz/o.py): `dict` wrapper exposing keys as attrs (e.g.: `o({'a':1}).a == 1`)
 - [docker](utz/docker/): DSL for programmatically creating Dockerfiles (and building images from them)
-- [ssh](utz/ssh.py): SSH tunnel wrapped in a context manager
 - [bases][`utz.bases`]: encode/decode in various bases (62, 64, 90, …)
 - [tmpdir](utz/tmpdir.py): make temporary directories with a specific basename
-- [escape](utz/escape.py): escaping split/join helpers
+- [escape](utz/escape.py): split/join on an arbitrary delimiter, with backslash-escaping
+- [ssh](utz/ssh.py): SSH tunnel wrapped in a context manager
 - [backoff](utz/backoff.py): exponential-backoff utility
 - [git](utz/git): Git helpers, wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)
 - [pnds](utz/pnds.py): [pandas](https://pandas.pydata.org/) imports and helpers
+- [ctxs][`utz.ctxs`]: compose `contextmanager`s
 
 
 [utz]: https://pypi.org/project/utz/
@@ -346,3 +338,6 @@ Misc other modules:
 [`test_parametrize.py`]: utz/tests/test_parametrize.py
 [`pytest.mark.parametrize`]: https://docs.pytest.org/en/stable/how-to/parametrize.html
 [`dataclass`]: https://docs.python.org/3/library/dataclasses.html
+
+[Pandas]: https://pandas.pydata.org/
+[Plotly]: https://plotly.com/python/
