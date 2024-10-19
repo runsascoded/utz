@@ -232,11 +232,13 @@ def plot(
             update_axes(gridcolor=grid)
 
         if zerolines == xy_name or zerolines is True:
-            update_axes(
-                zeroline=True,
-                zerolinecolor=xy_grid or grid,
-                zerolinewidth=1,
-            )
+            zerolinecolor = xy_grid or grid
+            if zerolinecolor is not Unset:
+                update_axes(
+                    zeroline=True,
+                    zerolinecolor=zerolinecolor,
+                    zerolinewidth=1,
+                )
 
         xy_title = mk_title(xy_title)
         if xy_title:

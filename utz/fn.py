@@ -8,7 +8,11 @@ Deco = Callable[[Callable], Callable]
 
 def decos(*args: Deco | Sequence[Deco]):
     """Compose decorators."""
-    decos = [ deco for decos in args for deco in decos ]
+    decos = [
+        deco
+        for decos in args
+        for deco in (decos if isinstance(decos, Sequence) else [decos])
+    ]
 
     def _fn(fn):
         for deco in reversed(decos):
