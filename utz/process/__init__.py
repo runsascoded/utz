@@ -131,7 +131,6 @@ def interleaved_output(cmd: List[str], err_ok: bool = False) -> bytes:
         if err_ok:
             return e.output
         else:
-            err(e.output.decode())
             raise e
 
 
