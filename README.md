@@ -9,7 +9,6 @@
     - [`utz.process`: `subprocess` wrappers; shell out to commands, parse output](#utz.process)
     - [`utz.collections`: Collection/list helpers](#utz.collections)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
-    - [`utz.ctxs`: compose `contextmanager`s](#utz.ctxs)
     - [`utz.fn`: decorator/function utilities](#utz.fn)
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
