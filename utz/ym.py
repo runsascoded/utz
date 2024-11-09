@@ -1,7 +1,6 @@
 import datetime
 from dataclasses import dataclass
 from datetime import datetime as dt, date
-from functools import wraps
 import re
 from math import ceil
 from typing import Tuple, Union
@@ -138,34 +137,3 @@ class YM:
                 or (step < 0 and cur > end):
             yield cur
             cur = cur + step
-
-
-def dates(*flags, default_start=None, default_end=None, help=None):
-    if not flags:
-        flags = ('-d', '--dates')
-
-    def _dates(fn):
-        from click import option
-        @option('-d', '--dates', help=help)
-        @wraps(fn)
-        def _fn(*args, dates=None, **kwargs):
-            if dates:
-                pcs = dates.split('-')
-                if len(pcs) == 2:
-                    [ start, end ] = pcs
-                    start = YM(start) if start else default_start
-                    end = YM(end) if end else default_end
-                elif len(pcs) == 1:
-                    [ym] = pcs
-                    ym = YM(ym)
-                    start = ym
-                    end = ym + 1
-                else:
-                    raise ValueError(f"Unrecognized {'/'.join(flags)}: {dates}")
-            else:
-                start, end = default_start, default_end
-            fn(*args, start=start, end=end, **kwargs)
-
-        return _fn
-
-    return _dates
