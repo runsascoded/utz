@@ -37,7 +37,7 @@ extras_require['all'] = sum(extras_require.values(), [ 'pyyaml', ])
 
 setup(
     name="utz",
-    version="0.11.0",
+    version="0.11.1",
     install_requires=["stdlb"],
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
