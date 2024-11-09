@@ -1,7 +1,11 @@
+from os.path import join
+
+from io import StringIO
+
 import json
 import pytest
 from subprocess import CalledProcessError
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 from utz import process
 from utz.process import *
@@ -63,3 +67,13 @@ def test_check():
 def test_cmd_arg_flattening():
     assert output('echo', '-n', None, strs, ['aaa', [None, 'bbb', 'ccc']]).decode() == ' '.join(
         strs + ['aaa', 'bbb', 'ccc', ])
+
+
+def test_pipeline():
+    assert pipeline(['seq 10', 'head -n5']) == '1\n2\n3\n4\n5\n'
+
+    with TemporaryDirectory() as tmpdir:
+        tmp_path = join(tmpdir, 'tmp.txt')
+        pipeline(['seq 10', 'head -n5'], tmp_path)
+        with open(tmp_path) as f:
+            assert f.read() == '1\n2\n3\n4\n5\n'

@@ -61,6 +61,17 @@ output('git', 'log', '-1', '--format=%B')  # Current HEAD commit message
 check('git', 'diff', '--exit-code', '--quiet')  # `True` iff there are no uncommitted changes
 
 err("This will be output to stderr")
+
+# Execute a "pipeline" of commands
+pipeline(['seq 10', 'head -n5'])  # '1\n2\n3\n4\n5\n'
+
+# Diff two command pipelines, e.g. compare lines/words/chars in a gzipped CSV, at Git HEAD vs. worktree:
+cmds = ['gunzip -c', 'wc']
+file = 'foo.csv.gz'
+diff_cmds(
+    [f'git show HEAD:{file}', *cmds],
+    [f'cat {file}', *cmds]
+)
 ```
 
 See also: [`test_process.py`].

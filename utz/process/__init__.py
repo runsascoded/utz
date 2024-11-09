@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+from json import loads
+from sys import stderr
+
 import shlex
 from functools import partial
-from json import loads
 from subprocess import check_call, check_output, CalledProcessError, DEVNULL, Popen, PIPE, STDOUT
-from sys import stderr
-from typing import Optional, List, Tuple, Callable, Union, Dict
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 err = partial(print, file=stderr)
 Log = Optional[Callable[..., None]]
@@ -198,6 +199,23 @@ def check(
     except CalledProcessError:
         return False
 
+from .pipeline import pipeline
+from .named_pipes import named_pipes
+from .diff_cmds import diff_cmds
 
 # Omit "json", to avoid colliding with stdlib
-__all__ = [ 'check', 'err', 'flatten', 'interleaved_output', 'line', 'lines', 'output', 'run', 'sh', 'silent', ]
+__all__ = [
+    'check',
+    'diff_cmds',
+    'err',
+    'flatten',
+    'interleaved_output',
+    'line',
+    'lines',
+    'named_pipes',
+    'output',
+    'pipeline',
+    'run',
+    'sh',
+    'silent',
+]
