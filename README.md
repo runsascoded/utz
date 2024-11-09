@@ -74,6 +74,26 @@ diff_cmds(
 )
 ```
 
+`diff_cmds` is also exposed as a CLI, `diff-x`:
+```bash
+# Diff the contents of two `.gz`` files
+seq 10 | gzip -c > a.gz
+seq 2 12 | gzip -c > b.gz
+diff-x 'gunzip -c' {a,b}.gz
+# 1d0
+# < 1
+# 10a10,11
+# > 11
+# > 12
+
+# Pass multiple commands to create a pipeline:
+diff-x 'gunzip -c' 'head -n5' {a,b}.gz
+# 1d0
+# < 1
+# 5a5
+# > 6
+```
+
 See also: [`test_process.py`].
 
 ### [`utz.collections`]: Collection/list helpers <a id="utz.collections"></a>
