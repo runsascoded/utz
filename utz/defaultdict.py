@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from typing import Optional, Callable, TypeVar
+from typing import Optional, Callable, TypeVar, Sequence
 
 T = TypeVar("T")
 
@@ -22,7 +22,7 @@ class DefaultDict(dict[str, T]):
 
     @staticmethod
     def parse_configs(
-        configs: list[str],
+        configs: Sequence[str],
         name2value: Optional[Callable[[str], T]] = None,
         fallback: Optional[T] = Unset,
     ) -> (T, dict[str, T]):
