@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from os import environ as env
 from typing import Tuple
 
 from subprocess import Popen
@@ -17,6 +18,7 @@ def diff_cmds(
     color: bool = False,
     unified: int | None = None,
     ignore_whitespace: bool = False,
+    shell_executable: str | None = None,
     **kwargs,
 ):
     """Run two sequences of piped commands and diff their output.
@@ -28,6 +30,7 @@ def diff_cmds(
         color: Whether to show colored diff output
         unified: Number of unified context lines, or None
         ignore_whitespace: Whether to ignore whitespace changes
+        shell_executable: Shell to use for executing commands; defaults to $SHELL
         **kwargs: Additional arguments passed to subprocess.Popen
 
     Each command sequence will be piped together before being compared.
@@ -35,6 +38,9 @@ def diff_cmds(
     execute 'cat foo.txt | sort' before comparing with cmds2's output.
 
     Adapted from https://stackoverflow.com/a/28840955"""
+    if shell_executable is None:
+        shell_executable = env.get('SHELL')
+
     with named_pipes(n=2) as pipes:
         (pipe1, pipe2) = pipes
         diff_cmd = [
@@ -52,7 +58,13 @@ def diff_cmds(
             if verbose:
                 err(f"Running pipeline: {' | '.join(cmds)}")
 
-            processes += pipeline(cmds, pipe, wait=False, **kwargs)
+            processes += pipeline(
+                cmds,
+                pipe,
+                wait=False,
+                shell_executable=shell_executable,
+                **kwargs,
+            )
 
         for p in processes:
             p.wait()
@@ -63,6 +75,7 @@ def main():
 
     @command('diff-x', short_help='Diff two files after running them through a pipeline of other commands', no_args_is_help=True)
     @option('-c', '--color', is_flag=True, help='Colorize the output')
+    @option('-s', '--shell-executable', help=f'Shell to use for executing commands; defaults to $SHELL ({env.get("SHELL")})')
     @option('-S', '--no-shell', is_flag=True, help="Don't pass `shell=True` to Python `subprocess`es")
     @option('-U', '--unified', type=int, help='Number of lines of context to show (passes through to `diff`)')
     @option('-v', '--verbose', is_flag=True, help="Log intermediate commands to stderr")
@@ -71,6 +84,7 @@ def main():
     @argument('args', metavar='[exec_cmd...] <path>', nargs=-1)
     def cli(
         color: bool,
+        shell_executable: str | None,
         no_shell: bool,
         unified: int | None,
         verbose: bool,
@@ -90,6 +104,7 @@ def main():
                 cmds1,
                 cmds2,
                 shell=not no_shell,
+                shell_executable=shell_executable,
                 verbose=verbose,
                 color=color,
                 unified=unified,

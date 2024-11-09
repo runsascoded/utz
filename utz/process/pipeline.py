@@ -10,6 +10,7 @@ def pipeline(
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
     shell: bool = True,
+    shell_executable: str | None = None,
     wait: bool = True,
     **kwargs,
 ) -> str | list[Popen] | None:
@@ -47,6 +48,7 @@ def pipeline(
                 stdin=stdin,
                 stdout=stdout,
                 shell=shell,
+                executable=shell_executable,
                 **kwargs
             )
 
