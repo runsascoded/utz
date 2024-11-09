@@ -76,7 +76,7 @@ diff_cmds(
 
 `diff_cmds` is also exposed as a CLI, `diff-x`:
 ```bash
-# Diff the contents of two `.gz`` files
+# Diff the contents of two `.gz` files
 seq 10 | gzip -c > a.gz
 seq 2 12 | gzip -c > b.gz
 diff-x 'gunzip -c' {a,b}.gz
