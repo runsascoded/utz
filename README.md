@@ -12,6 +12,7 @@
     - [`utz.fn`: decorator/function utilities](#utz.fn)
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
+    - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
@@ -147,6 +148,16 @@ kwargs = dict(a=11, b='22', c=33)
 call(fn1, kwargs)  # only pass {a, b}
 call(fn2, kwargs)  # only pass {a, c}
 ```
+
+### [`utz.gzip`]: deterministic GZip helpers <a id="utz.gzip"></a>
+```python
+from utz import deterministic_gzip_open, hash_file
+with deterministic_gzip_open('a.gz', 'w') as f:
+    f.write('\n'.join(map(str, range(10))))
+hash_file('a.gz')  # dfbe03625c539cbc2a2331d806cc48652dd3e1f52fe187ac2f3420dbfb320504
+```
+
+See also: [`test_gzip.py`].
 
 ### [`utz.plot`]: [Plotly] helpers <a id="utz.plots"></a>
 Helpers for Plotly transformations I make frequently, e.g.:
@@ -357,6 +368,8 @@ Misc other modules:
 [`utz.cd`]: utz/cd.py
 [`utz.fn`]: utz/fn.py
 [`utz.ctxs`]: utz/context.py
+[`utz.gzip`]: utz/gzip.py
+[`test_gzip.py`]: utz/tests/test_gzip.py
 [`utz.plot`]: utz/plots.py
 [Plotly]: https://plotly.com/python/
 [hudcostreets/nj-crashes utz.plots]: https://github.com/search?q=repo%3Ahudcostreets%2Fnj-crashes%20utz.plot&type=code

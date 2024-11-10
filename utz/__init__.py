@@ -30,6 +30,8 @@ from .process import *
 from . import fn
 from .fn import decos, args
 
+from .gzip import deterministic_gzip_open, DeterministicGzipFile
+
 with _try:
     from . import pnds
     from .pnds import *
