@@ -139,14 +139,16 @@ def subcmd2(n: int, v: bool):
 
 #### `utz.call`: only pass expected `kwargs` to functions <a id="utz.call"></a>
 ```python
-from utz.fn import call
+from utz import call, wraps
 def fn1(a, b):
     ...
-def fn2(a, c):
+
+@wraps(fn1)
+def fn2(a, c, **kwargs):
     ...
-kwargs = dict(a=11, b='22', c=33)
-call(fn1, kwargs)  # only pass {a, b}
-call(fn2, kwargs)  # only pass {a, c}
+kwargs = dict(a=11, b='22', c=33, d=44)
+call(fn1, **kwargs)  # passes {a, b}, not {c, d}
+call(fn2, **kwargs)  # passes {a, b, c}, not {d}
 ```
 
 ### [`utz.gzip`]: deterministic GZip helpers <a id="utz.gzip"></a>

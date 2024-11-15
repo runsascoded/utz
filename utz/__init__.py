@@ -28,7 +28,7 @@ from . import process
 from .process import *
 
 from . import fn
-from .fn import decos, args
+from .fn import args, call, decos, recvs
 
 from .gzip import deterministic_gzip_open, DeterministicGzipFile
 
