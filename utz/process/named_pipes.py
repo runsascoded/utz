@@ -5,7 +5,7 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def named_pipes(n: int = 1):
+def named_pipes(n: int = 1) -> list[str]:
     """Yield a list of paths to named pipes that are created and destroyed
 
     From https://stackoverflow.com/a/28840955"""

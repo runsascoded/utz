@@ -199,14 +199,13 @@ def check(
     except CalledProcessError:
         return False
 
+
 from .pipeline import pipeline
 from .named_pipes import named_pipes
-from .diff_cmds import diff_cmds
 
 # Omit "json", to avoid colliding with stdlib
 __all__ = [
     'check',
-    'diff_cmds',
     'err',
     'flatten',
     'interleaved_output',

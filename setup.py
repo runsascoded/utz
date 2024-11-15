@@ -42,9 +42,4 @@ setup(
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
     python_requires=">=3.9",
-    entry_points={
-        'console_scripts': [
-            'diff-x = utz.process.diff_cmds:main',
-        ],
-    },
 )
