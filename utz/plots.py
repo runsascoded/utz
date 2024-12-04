@@ -123,6 +123,7 @@ def plot(
     zerolines: bool | Literal['x', 'y'] | None = True,
     html: dict | bool | None | _Unset = Unset,
     title_suffix: str | None = None,
+    png_name: str | None = None,
     **layout,
 ):
     """Plotly wrapper with convenience kwargs for common configurations.
@@ -157,6 +158,7 @@ def plot(
         show: Format to return the Figure in: 'png' ⇒ return PNG `Image`, 'file' ⇒ return `Image(filename=…)` pointing to output `.png`, 'html' ⇒ return default Plotly Figure HTML, False ⇒ None (don't show figure, if `plot(…)` call is last expression in a notebook cell). Falls back to $UTZ_PLOT_SHOW, defaults to 'html'.
         zerolines: Whether to show zero lines; 'x' ⇒ only on x-axis, 'y' ⇒ only on y-axis, True (default) ⇒ on both axes
         title_suffix: When saving static plots (e.g. PNG), and this is set, two versions will be saved: one including the title, and one not. This string will be appended to the filename stem of the former. Assumes the default is the "untitled" version. Useful when embedding in contexts where it looks nicer to render the title in surrounding Markdown/HTML.
+        png_name: Customize PNG save-path stem name
         html: When truthy, save plot as HTML. Value is interpreted as kwargs for Figure.to_html; falls back to json.loads($UTZ_PLOT_HTML).
     """
     mk_title = partial(make_title, subtitle_size=subtitle_size)
@@ -282,7 +284,7 @@ def plot(
         log = lambda _: ()
 
     png_path = None
-    if name:
+    if name or png_name:
         if dir is None:
             dir = env.get(PLOT_DIR_VAR)
         if dir:
@@ -290,11 +292,11 @@ def plot(
                 makedirs(dir, exist_ok=True)
         else:
             dir = '.'
-        if save_json:
+        if name and save_json:
             json_path = join(dir, f'{name}.json')
             saved.write_json(json_path, pretty=pretty)
             log(f"Wrote plot JSON to {relpath(json_path)}")
-        png_path = join(dir, f'{name}.png')
+        png_path = join(dir, f'{png_name or name}.png')
         if png:
             # Convert `int | Tuple[int] | Tuple[int, int]` to `dict`
             if isinstance(png, tuple):
