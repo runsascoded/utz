@@ -253,13 +253,8 @@ def plot(
         layout.update(title_layout)
     fig.update_layout(**layout)
 
-    saved = go.Figure(fig)
-    if not png_title:
-        # only need to do this if it wasn't already done above
-        fig.update_layout(**title_layout)
-
     if bottom_legend is True:
-        saved.update_layout(
+        fig.update_layout(
             legend=bottom_legend_kwargs,
         )
 
@@ -270,7 +265,12 @@ def plot(
     if isinstance(margin, int):
         margin = { k: margin for k in 'trbl' }
     if margin:
-        saved.update_layout(margin=margin)
+        fig.update_layout(margin=margin)
+
+    saved = go.Figure(fig)
+    if not png_title:
+        # Only need to do this if it wasn't already done above
+        fig.update_layout(**title_layout)
 
     if log is True:
         log = err
