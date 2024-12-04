@@ -163,6 +163,8 @@ def plot(
     ltitle = mk_title(ltitle)
     layout['legend_title'] = layout.get('legend_title', ltitle or '')
 
+    save_json = layout.pop('json') if 'json' in layout else True
+
     if w is not None:
         layout['width'] = w
     if h is not None:
@@ -288,10 +290,11 @@ def plot(
                 makedirs(dir, exist_ok=True)
         else:
             dir = '.'
-        json_path = join(dir, f'{name}.json')
-        saved.write_json(json_path, pretty=pretty)
+        if save_json:
+            json_path = join(dir, f'{name}.json')
+            saved.write_json(json_path, pretty=pretty)
+            log(f"Wrote plot JSON to {relpath(json_path)}")
         png_path = join(dir, f'{name}.png')
-        log(f"Wrote plot JSON to {relpath(json_path)}")
         if png:
             # Convert `int | Tuple[int] | Tuple[int, int]` to `dict`
             if isinstance(png, tuple):
