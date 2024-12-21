@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
+import subprocess
 from json import loads
 from sys import stderr
 
 import shlex
 from functools import partial
-from subprocess import check_call, check_output, CalledProcessError, DEVNULL, Popen, PIPE, STDOUT
+from subprocess import check_call, check_output, CalledProcessError, CompletedProcess, DEVNULL, Popen, PIPE, STDOUT
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 err = partial(print, file=stderr)
@@ -97,8 +100,9 @@ def run(
     dry_run: bool = False,
     elide: Elides = None,
     log: Log = err,
+    check: bool = True,
     **kwargs,
-) -> None:
+) -> CompletedProcess | None:
     """Convenience wrapper for ``subprocess.check_call``."""
     cmd = parse_cmd(cmd)
     cmd_str = mk_cmd_str(cmd, elide)
@@ -108,7 +112,11 @@ def run(
     else:
         if log:
             log(f'Running: {cmd_str}')
-        check_call(cmd, **kwargs)
+        if check:
+            check_call(cmd, **kwargs)
+            return None
+        else:
+            return subprocess.run(cmd, **kwargs)
 
 
 sh = run
@@ -202,6 +210,7 @@ def check(
 
 from .pipeline import pipeline
 from .named_pipes import named_pipes
+
 
 # Omit "json", to avoid colliding with stdlib
 __all__ = [
