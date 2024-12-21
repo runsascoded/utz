@@ -47,7 +47,7 @@ class DefaultDict(dict[str, T]):
 
     @staticmethod
     def load(
-        args: list[str],
+        args: Sequence[str],
         name2value: Optional[Callable] = None,
         fallback: Optional[T] = None,
     ) -> "DefaultDict":
