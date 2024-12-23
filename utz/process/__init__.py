@@ -122,9 +122,9 @@ def run(
 sh = run
 
 
-def interleaved_output(cmd: List[str], err_ok: bool = False) -> bytes:
+def interleaved_output(cmd: List[str], err_ok: bool = False, **kwargs) -> bytes:
     try:
-        proc = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        proc = Popen(cmd, stdout=PIPE, stderr=STDOUT, **kwargs)
 
         # Stream and capture the output in real-time
         output = b''
@@ -171,7 +171,7 @@ def output(
         if log:
             log(f'Running: {cmd_str}')
         if both:
-            return interleaved_output(cmd, err_ok=err_ok)
+            return interleaved_output(cmd, err_ok=err_ok, **kwargs)
         else:
             try:
                 return check_output(cmd, **kwargs)
