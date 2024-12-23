@@ -6,7 +6,7 @@
 <!-- toc -->
 - [Install](#install)
 - [Use](#use)
-    - [`utz.proc`: `subprocess` wrappers; shell out to commands, parse output](#utz.process)
+    - [`utz.proc`: `subprocess` wrappers; shell out to commands, parse output](#utz.proc)
     - [`utz.collections`: Collection/list helpers](#utz.collections)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.fn`: decorator/function utilities](#utz.fn)
