@@ -1,4 +1,4 @@
-from utz import process
+from utz.proc import run
 
 try:
     from git import Repo, Git, InvalidGitRepositoryError
@@ -55,7 +55,7 @@ def merge(ref, msg=None, ff=None):
 
     cmd += [ref]
 
-    process.run(cmd)
+    run(cmd)
 
 
 def commit(msg=None, all=False, amend=False):
@@ -63,4 +63,4 @@ def commit(msg=None, all=False, amend=False):
     if amend: cmd += ['--amend']
     if all: cmd += ['-a']
     if msg: cmd += ['-m', msg]
-    process.run(cmd)
+    run(cmd)

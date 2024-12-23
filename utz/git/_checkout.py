@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from ..process import run
+from ..proc import run
 from . import branch as _branch
 
 class Checkout:

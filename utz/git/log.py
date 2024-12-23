@@ -1,6 +1,5 @@
 
-from .. import process
-from ..process import output
+from ..proc import line, output
 
 
 def msg(ref=None):
@@ -8,7 +7,7 @@ def msg(ref=None):
 
 
 def fmt(*refs: str, fmt: str = '%h', **kwargs) -> str:
-    return process.line('git', 'log', '-1', f'--format={fmt}', *refs, **kwargs)
+    return line('git', 'log', '-1', f'--format={fmt}', *refs, **kwargs)
 
 
 def sha(ref: str, **kwargs) -> str:

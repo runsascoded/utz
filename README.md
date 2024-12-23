@@ -6,7 +6,7 @@
 <!-- toc -->
 - [Install](#install)
 - [Use](#use)
-    - [`utz.process`: `subprocess` wrappers; shell out to commands, parse output](#utz.process)
+    - [`utz.proc`: `subprocess` wrappers; shell out to commands, parse output](#utz.process)
     - [`utz.collections`: Collection/list helpers](#utz.collections)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.fn`: decorator/function utilities](#utz.fn)
@@ -41,10 +41,10 @@ This imports most standard library modules/functions (via [`stdlb`]), as well as
 
 Below are a few modules, in rough order of how often I use them:
 
-### [`utz.process`]: [`subprocess`] wrappers; shell out to commands, parse output <a id="utz.process"></a>
+### [`utz.proc`]: [`subprocess`] wrappers; shell out to commands, parse output <a id="utz.proc"></a>
 
 ```python
-from utz.process import *
+from utz.proc import *
 
 # Run a command
 run('git', 'commit', '-m', 'message')  # Commit staged changes
@@ -357,6 +357,7 @@ Misc other modules:
 [utz]: https://pypi.org/project/utz/
 [extras]: https://github.com/runsascoded/utz/blob/main/setup.py#L3-L34
 [`stdlb`]: https://pypi.org/project/stdlb/
+[`utz.proc`]: utz/proc/__init__.py
 [`utz.process`]: utz/process/__init__.py
 [`subprocess`]: https://docs.python.org/3/library/subprocess.html
 [`test_process.py`]: utz/tests/test_process.py

@@ -1,4 +1,4 @@
-from utz.process import sh
+from utz.proc import sh
 
 
 class Image:

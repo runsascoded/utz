@@ -24,7 +24,7 @@ from .path import mkdir, mkpar
 from os import path
 from .tmpdir import tmpdir
 
-from . import process
+from . import proc, process
 from .process import *
 
 from . import fn

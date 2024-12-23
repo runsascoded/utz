@@ -6,7 +6,7 @@ from traceback import print_exc
 from typing import Iterable
 
 from utz import now, tmpdir
-from utz.process import check, line, run
+from utz.proc import check, line, run
 
 
 @contextmanager

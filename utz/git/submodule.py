@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from utz import process
 from utz.git.repo import git_repo
+from utz.proc import lines, run
 
 
 def ls():
-    return process.lines('git', 'submodule', 'foreach', '--quiet', 'echo $name')
+    return lines('git', 'submodule', 'foreach', '--quiet', 'echo $name')
 
 
 def exists(name):
@@ -17,7 +17,7 @@ def add(url, path=None):
     cmd = ['git', 'submodule', 'add', 'url']
     if path:
         cmd.append(path)
-    process.run(cmd)
+    run(cmd)
 
 
 _submodule_map = None

@@ -2,7 +2,7 @@ from importlib.metadata import version, PackageNotFoundError
 from re import fullmatch
 from subprocess import CalledProcessError
 
-from .process import line
+from .proc import line
 
 
 VERSION_TAG_REGEX = r"v?(?P<version>(?P<base>\d+\.\d+\.\d+)(?P<rc>(?:r|c|rc|a|b)\d+)?(?:-(?P<commits_ahead>\d+)-g(?P<sha>[0-9a-f]{6,}))?)"

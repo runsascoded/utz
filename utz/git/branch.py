@@ -1,6 +1,6 @@
 from subprocess import CalledProcessError
 
-from ..process import *
+from ..proc import *
 from . import diff
 
 

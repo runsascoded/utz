@@ -1,14 +1,12 @@
 from os.path import join
 
-from io import StringIO
-
 import json
 import pytest
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
-from utz import process
-from utz.process import *
+from utz import proc
+from utz.proc import *
 
 strs = ['one', 'two', 'three']
 
@@ -40,10 +38,10 @@ def test_json():
         with open(path, 'w') as fd:
             json.dump(obj, fd)
 
-        assert process.json('cat', path) == obj
-        assert process.json('cat', 'nonexistent-file', err_ok=True) is None
+        assert proc.json('cat', path) == obj
+        assert proc.json('cat', 'nonexistent-file', err_ok=True) is None
         with pytest.raises(CalledProcessError):
-            process.json('cat', 'nonexistent-file')
+            proc.json('cat', 'nonexistent-file')
 
 
 def test_line():

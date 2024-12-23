@@ -1,4 +1,4 @@
-from ..process import line
+from ..proc import line
 
 
 def sha(*args,**kwargs):

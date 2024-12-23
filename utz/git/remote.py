@@ -2,9 +2,9 @@ import re
 from re import match
 from subprocess import CalledProcessError
 
-from utz import process
+from utz import proc
 
-from ..process import *
+from ..proc import *
 
 
 def ls(): return lines('git', 'remote')
@@ -120,6 +120,6 @@ def push(name=None, local=None, remote=None):
 
 
 def git_remote_sha(url: str, ref: str, **kwargs):
-    line = process.line('git', 'ls-remote', url, ref, **kwargs)
+    line = proc.line('git', 'ls-remote', url, ref, **kwargs)
     new_sha, _ = re.split(r'\s+', line, 1)
     return new_sha

@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 from types import TracebackType
 from typing import Optional, Type
 
-from ..process import sh
+from ..proc import sh
 
 from .image import Image
 from .util import escape

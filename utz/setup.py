@@ -4,7 +4,7 @@ import re
 import setuptools
 from setuptools import find_packages
 
-from utz.process import line
+from utz.proc import line
 from utz.version import git_version
 
 

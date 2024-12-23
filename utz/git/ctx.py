@@ -3,7 +3,7 @@ import utz.git.diff as diff
 from utz.git.head import sha
 from utz.git.repo import git_repo
 from utz.o import o
-from utz.process import line, run
+from utz.proc import line, run
 
 
 @contextmanager

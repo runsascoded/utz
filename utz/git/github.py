@@ -3,7 +3,7 @@ from os import environ
 import re
 from sys import stderr
 from typing import Optional, Literal
-from utz import process
+from utz import proc
 
 GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
 GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
@@ -43,7 +43,7 @@ def repository_option(
                 repository = environ.get(env)
                 if not repository:
                     verbose = kwargs.get('verbose', 0)
-                    repository = process.json('gh', 'repo', 'view', '--json', 'nameWithOwner', log=None if verbose else False)['nameWithOwner']
+                    repository = proc.json('gh', 'repo', 'view', '--json', 'nameWithOwner', log=None if verbose else False)['nameWithOwner']
             return fn(*args, repository=repository, **kwargs)
 
         return _fn
