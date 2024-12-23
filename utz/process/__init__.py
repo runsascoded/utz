@@ -182,6 +182,10 @@ def output(
                     raise e
 
 
+def text(*args, **kwargs):
+    return output(*args, **kwargs).decode()
+
+
 def json(
     *cmd: Arg,
     dry_run: bool = False,
@@ -226,4 +230,5 @@ __all__ = [
     'run',
     'sh',
     'silent',
+    'text',
 ]
