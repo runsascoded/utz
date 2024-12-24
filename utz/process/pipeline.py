@@ -1,8 +1,15 @@
 from __future__ import annotations
 
 from io import UnsupportedOperation, StringIO
+from os import environ as env
 from subprocess import Popen, PIPE
 from typing import Literal, AnyStr, IO
+
+
+class Unset:
+    pass
+
+_Unset = Unset()
 
 
 def pipeline(
@@ -10,13 +17,15 @@ def pipeline(
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
     shell: bool = True,
-    shell_executable: str | None = None,
+    shell_executable: str | None = _Unset,
     wait: bool = True,
     **kwargs,
 ) -> str | list[Popen] | None:
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
     processes = []
     prev_process: Popen | None = None
+    if shell_executable is _Unset:
+        shell_executable = env.get('SHELL')
 
     return_output = False
     if out is None:
