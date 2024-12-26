@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from warnings import warn
+
 from io import UnsupportedOperation, StringIO
 from os import environ as env
 from subprocess import Popen, PIPE
@@ -17,6 +19,7 @@ def pipeline(
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
     shell: bool = True,
+    executable: str | None = _Unset,
     shell_executable: str | None = _Unset,
     wait: bool = True,
     **kwargs,
@@ -24,8 +27,17 @@ def pipeline(
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
     processes = []
     prev_process: Popen | None = None
-    if shell_executable is _Unset:
-        shell_executable = env.get('SHELL')
+    if executable is _Unset:
+        executable = env.get('SHELL')
+
+    if shell_executable is not _Unset:
+        warn(
+            "`shell_executable` kwarg is deprecated, use `executable` instead",
+            FutureWarning,
+            stacklevel=2
+        )
+        if executable is _Unset:
+            executable = shell_executable
 
     return_output = False
     if out is None:
@@ -57,7 +69,7 @@ def pipeline(
                 stdin=stdin,
                 stdout=stdout,
                 shell=shell,
-                executable=shell_executable,
+                executable=executable,
                 **kwargs
             )
 

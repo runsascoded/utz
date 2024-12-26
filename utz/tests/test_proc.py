@@ -1,6 +1,7 @@
 from os.path import join
 
 import json
+from os import environ as env
 import pytest
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -75,3 +76,8 @@ def test_pipeline():
         pipeline(['seq 10', 'head -n5'], tmp_path)
         with open(tmp_path) as f:
             assert f.read() == '1\n2\n3\n4\n5\n'
+
+
+def test_pipeline_shell_executable_warning():
+    with pytest.warns(FutureWarning, match="`shell_executable` kwarg is deprecated"):
+        pipeline(['seq 10', 'head -n5'], shell_executable=env['SHELL'])

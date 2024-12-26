@@ -27,6 +27,8 @@ jobs:
           pip install -e .[all]
           python -c 'import utz; print("utz version: %s, file: %s" % (utz.__version__, utz.__file__))'
       - name: Test
+        env:
+          SHELL: /bin/bash  # Required by test_proc.py::test_pipeline_shell_executable_warning
         run: |
           git config --global user.name ci
           git config --global user.email ci
