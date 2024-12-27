@@ -1,8 +1,10 @@
 from os.path import join
 
 import json
-from os import environ as env
+from utz import env
 import pytest
+from pytest import fixture, raises, warns
+parametrize = pytest.mark.parametrize
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
@@ -41,7 +43,7 @@ def test_json():
 
         assert proc.json('cat', path) == obj
         assert proc.json('cat', 'nonexistent-file', err_ok=True) is None
-        with pytest.raises(CalledProcessError):
+        with raises(CalledProcessError):
             proc.json('cat', 'nonexistent-file')
 
 
@@ -51,10 +53,10 @@ def test_line():
 
     assert line('echo', '') == ''
     assert line('echo', '-n', '', empty_ok=True) is None
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         line('echo', '-n', '')
     assert line('[', '1', '==', '2', ']', err_ok=True) is None
-    with pytest.raises(CalledProcessError):
+    with raises(CalledProcessError):
         line('[', '1', '==', '2', ']')
 
 
@@ -68,16 +70,22 @@ def test_cmd_arg_flattening():
         strs + ['aaa', 'bbb', 'ccc', ])
 
 
-def test_pipeline():
-    assert pipeline(['seq 10', 'head -n5']) == '1\n2\n3\n4\n5\n'
+@parametrize(
+    'cmds,shell,output', [
+        (['seq 10', 'head -n5'], True, '1\n2\n3\n4\n5\n'),
+        ([['seq', '10'], ['head', '-n5']], False, '1\n2\n3\n4\n5\n'),
+    ]
+)
+def test_pipeline(cmds, shell, output):
+    assert pipeline(cmds, shell=shell) == output
 
     with TemporaryDirectory() as tmpdir:
         tmp_path = join(tmpdir, 'tmp.txt')
-        pipeline(['seq 10', 'head -n5'], tmp_path)
+        pipeline(cmds, shell=shell, out=tmp_path)
         with open(tmp_path) as f:
-            assert f.read() == '1\n2\n3\n4\n5\n'
+            assert f.read() == output
 
 
 def test_pipeline_shell_executable_warning():
-    with pytest.warns(FutureWarning, match="`shell_executable` kwarg is deprecated"):
+    with warns(FutureWarning, match="`shell_executable` kwarg is deprecated"):
         pipeline(['seq 10', 'head -n5'], shell_executable=env['SHELL'])

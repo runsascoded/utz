@@ -9,35 +9,54 @@ from typing import Literal, AnyStr, IO
 
 
 class Unset:
-    pass
+    def __bool__(self):
+        return False
+
 
 _Unset = Unset()
 
 
 def pipeline(
-    cmds: list[str],
+    cmds: list[str] | list[list[str]],
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
-    shell: bool = True,
+    shell: bool | str | None = _Unset,
     executable: str | None = _Unset,
-    shell_executable: str | None = _Unset,
     wait: bool = True,
     **kwargs,
 ) -> str | list[Popen] | None:
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
     processes = []
     prev_process: Popen | None = None
-    if executable is _Unset:
+
+    if 'shell_executable' in kwargs:
+        msg = "`shell_executable` kwarg is deprecated, use `executable` instead"
+        if executable is _Unset:
+            executable = kwargs.pop('shell_executable')
+            warn(msg, FutureWarning, stacklevel=2)
+        else:
+            raise ValueError(msg)
+
+    if executable:
+        if shell is _Unset:
+            shell = True
+
+    if isinstance(shell, str):
+        if executable is _Unset:
+            executable = shell
+            shell = True
+        else:
+            if shell != executable:
+                raise ValueError(f"Pass `shell` xor `executable` (or make sure they match): {shell} != {executable}")
+
+    if shell and executable is _Unset:
         executable = env.get('SHELL')
 
-    if shell_executable is not _Unset:
-        warn(
-            "`shell_executable` kwarg is deprecated, use `executable` instead",
-            FutureWarning,
-            stacklevel=2
-        )
-        if executable is _Unset:
-            executable = shell_executable
+    if shell is not _Unset:
+        kwargs['shell'] = shell
+
+    if executable is not _Unset:
+        kwargs['executable'] = executable
 
     return_output = False
     if out is None:
@@ -68,8 +87,6 @@ def pipeline(
                 cmd,
                 stdin=stdin,
                 stdout=stdout,
-                shell=shell,
-                executable=executable,
                 **kwargs
             )
 
