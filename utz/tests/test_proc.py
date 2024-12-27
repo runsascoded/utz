@@ -86,6 +86,34 @@ def test_pipeline(cmds, shell, output):
             assert f.read() == output
 
 
+@fixture
+def tmp_text_file():
+    with NamedTemporaryFile(mode='w') as f:
+        f.write('\n'.join([ f'{n}' for n in range(1, 11) ]))
+        f.flush()
+        yield f.name
+
+
+def test_pipeline_vars_no_shell(tmp_text_file):
+    with env(FILE=tmp_text_file):
+        output = pipeline(
+            [['cat', '$FILE'], ['head', '-n5']],
+            shell=False,
+            expandvars=True,
+            env={ **env, 'FILE': tmp_text_file },
+        )
+    assert output == '1\n2\n3\n4\n5\n'
+
+
+def test_pipeline_vars_shell(tmp_text_file):
+    output = pipeline(
+        ['cat $FILE', 'head -n5'],
+        shell=True,
+        env={ **env, 'FILE': tmp_text_file },
+    )
+    assert output == '1\n2\n3\n4\n5\n'
+
+
 def test_pipeline_shell_executable_warning():
     with warns(FutureWarning, match="`shell_executable` kwarg is deprecated"):
         pipeline(['seq 10', 'head -n5'], shell_executable=env['SHELL'])

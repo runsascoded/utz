@@ -3,7 +3,7 @@ from __future__ import annotations
 from warnings import warn
 
 from io import UnsupportedOperation, StringIO
-from os import environ as env
+from os import environ as env, path
 from subprocess import Popen, PIPE
 from typing import Literal, AnyStr, IO
 
@@ -23,6 +23,8 @@ def pipeline(
     shell: bool | str | None = _Unset,
     executable: str | None = _Unset,
     wait: bool = True,
+    expanduser: bool | None = None,
+    expandvars: bool | None = None,
     **kwargs,
 ) -> str | list[Popen] | None:
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
@@ -67,6 +69,25 @@ def pipeline(
 
     if mode is None:
         mode = 't' if isinstance(out, StringIO) else 'b'
+
+    if shell:
+        # `expand{user,vars}` are implicitly True in "shell" mode
+        if expanduser is False:
+            raise ValueError("`expanduser` is implicitly True when `shell=True`, `expanduser=False` not allowed")
+        if expandvars is False:
+            raise ValueError("`expandvars` is implicitly True when `shell=True`, `expandvars=False` not allowed")
+    else:
+        # `expand{user,vars}` default to False in non-shell mode
+        if expanduser:
+            cmds = [
+                [ path.expanduser(arg) for arg in cmd ]
+                for cmd in cmds
+            ]
+        if expandvars:
+            cmds = [
+                [ path.expandvars(arg) for arg in cmd ]
+                for cmd in cmds
+            ]
 
     # If out is StringIO/BytesIO, use PIPE instead
     use_pipe = False
