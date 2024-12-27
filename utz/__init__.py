@@ -1,7 +1,8 @@
 # Optional-import helper
 from .imports import _try
 
-from os import environ as env
+from os import environ
+from .environ import env
 
 # Import most of the Python standard library
 # `_try` wrap helps ensure `utz[setup]` can install properly

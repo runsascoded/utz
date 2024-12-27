@@ -12,6 +12,7 @@
     - [`utz.fn`: decorator/function utilities](#utz.fn)
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
+    - [`utz.env`: `os.environ` wrapper + `contextmanager`](#utz.env)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
@@ -150,6 +151,21 @@ kwargs = dict(a=11, b='22', c=33, d=44)
 call(fn1, **kwargs)  # passes {a, b}, not {c, d}
 call(fn2, **kwargs)  # passes {a, b, c}, not {d}
 ```
+
+### [`utz.env`]: `os.environ` wrapper + `contextmanager` <a id="utz.env"></a>
+```python
+from utz import env, os
+
+# Temporarily set env vars
+with env(FOO='bar'):
+    assert os.environ['FOO'] == 'bar'
+
+assert 'FOO' not in os.environ
+```
+
+The `env()` contextmanager also supports configurable [`on_conflict`] and [`on_exit`] kwargs, for handling env vars that were patched, then changed while the context was active.
+
+See also [`test_env.py`].
 
 ### [`utz.gzip`]: deterministic GZip helpers <a id="utz.gzip"></a>
 ```python
@@ -373,6 +389,10 @@ Misc other modules:
 [`utz.ctxs`]: utz/context.py
 [`utz.gzip`]: utz/gzip.py
 [`test_gzip.py`]: utz/tests/test_gzip.py
+[`utz.env`]: utz/environ.py
+[`on_conflict`]: utz/environ.py#L9-13
+[`on_exit`]: utz/environ.py#L16-19
+[`test_env.py`]: utz/tests/test_env.py
 [`utz.plot`]: utz/plots.py
 [Plotly]: https://plotly.com/python/
 [hudcostreets/nj-crashes utz.plots]: https://github.com/search?q=repo%3Ahudcostreets%2Fnj-crashes%20utz.plot&type=code
