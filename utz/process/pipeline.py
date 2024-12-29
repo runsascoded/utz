@@ -1,27 +1,18 @@
 from __future__ import annotations
 
-from warnings import warn
-
 from io import UnsupportedOperation, StringIO
-from os import environ as env, path
 from subprocess import Popen, PIPE
 from typing import Literal, AnyStr, IO
 
-
-class Unset:
-    def __bool__(self):
-        return False
-
-
-_Unset = Unset()
+from utz.process import Cmd
 
 
 def pipeline(
-    cmds: list[str] | list[list[str]],
+    cmds: list[str] | list[list[str]] | list[Cmd],
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
-    shell: bool | str | None = _Unset,
-    executable: str | None = _Unset,
+    shell: bool | str | None = None,
+    executable: str | None = None,
     wait: bool = True,
     expanduser: bool | None = None,
     expandvars: bool | None = None,
@@ -31,34 +22,18 @@ def pipeline(
     processes = []
     prev_process: Popen | None = None
 
-    if 'shell_executable' in kwargs:
-        msg = "`shell_executable` kwarg is deprecated, use `executable` instead"
-        if executable is _Unset:
-            executable = kwargs.pop('shell_executable')
-            warn(msg, FutureWarning, stacklevel=2)
-        else:
-            raise ValueError(msg)
-
-    if executable:
-        if shell is _Unset:
-            shell = True
-
-    if isinstance(shell, str):
-        if executable is _Unset:
-            executable = shell
-            shell = True
-        else:
-            if shell != executable:
-                raise ValueError(f"Pass `shell` xor `executable` (or make sure they match): {shell} != {executable}")
-
-    if shell and executable is _Unset:
-        executable = env.get('SHELL')
-
-    if shell is not _Unset:
-        kwargs['shell'] = shell
-
-    if executable is not _Unset:
-        kwargs['executable'] = executable
+    cmds = [
+        cmd if isinstance(cmd, Cmd) else
+        Cmd.mk(
+            cmd,
+            shell=shell,
+            executable=executable,
+            expanduser=expanduser,
+            expandvars=expandvars,
+            **kwargs,
+        )
+        for cmd in cmds
+    ]
 
     return_output = False
     if out is None:
@@ -69,25 +44,6 @@ def pipeline(
 
     if mode is None:
         mode = 't' if isinstance(out, StringIO) else 'b'
-
-    if shell:
-        # `expand{user,vars}` are implicitly True in "shell" mode
-        if expanduser is False:
-            raise ValueError("`expanduser` is implicitly True when `shell=True`, `expanduser=False` not allowed")
-        if expandvars is False:
-            raise ValueError("`expandvars` is implicitly True when `shell=True`, `expandvars=False` not allowed")
-    else:
-        # `expand{user,vars}` default to False in non-shell mode
-        if expanduser:
-            cmds = [
-                [ path.expanduser(arg) for arg in cmd ]
-                for cmd in cmds
-            ]
-        if expandvars:
-            cmds = [
-                [ path.expandvars(arg) for arg in cmd ]
-                for cmd in cmds
-            ]
 
     # If out is StringIO/BytesIO, use PIPE instead
     use_pipe = False
@@ -104,8 +60,9 @@ def pipeline(
         stdin = None if prev_process is None else prev_process.stdout
 
         def mkproc(stdout=PIPE):
+            args, kwargs = cmd.compile()
             return Popen(
-                cmd,
+                args,
                 stdin=stdin,
                 stdout=stdout,
                 **kwargs
@@ -123,6 +80,7 @@ def pipeline(
             else:
                 with (open(out, f'w{mode}') if isinstance(out, str) else out) as pipe_fd:
                     proc = mkproc(pipe_fd)
+
         # For intermediate processes, output to a pipe
         else:
             proc = mkproc()

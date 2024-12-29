@@ -1,0 +1,116 @@
+from abc import ABC
+
+import shlex
+from os.path import expandvars, expanduser
+
+from dataclasses import dataclass
+from typing import Sequence, Tuple, Any
+
+from utz.process.util import _Unset, Unset, Elides, flatten, Arg, ELIDED
+
+Args = str | list[str]
+Kwargs = dict[str, Any]
+Compiled = Tuple[Args, Kwargs]
+
+
+class Cmd(ABC):
+    def compile(self) -> Compiled:
+        raise NotImplementedError
+
+    @staticmethod
+    def elide_cmd(cmd: str, elide: Elides) -> str:
+        if elide:
+            if isinstance(elide, str):
+                elide = [elide]
+            for s in elide:
+                cmd = cmd.replace(s, ELIDED)
+        return cmd
+
+    def mk(
+        *args: Tuple[Arg, ...],
+        shell: bool | str | None = None,
+        executable: str | None = None,
+        expanduser: bool | None = None,
+        expandvars: bool | None = None,
+        elide: Elides = None,
+        **kwargs,
+    ):
+        if isinstance(shell, str):
+            if executable and executable != shell:
+                raise ValueError(f"{shell=} != {executable=}")
+            executable = shell
+            shell = True
+
+        if len(args) == 1 and isinstance(args[0], str):
+            if shell is True or shell is _Unset:
+                if expanduser or expandvars:
+                    raise ValueError("Can't `expand{user,vars}` in shell mode")
+                return ShellCmd(
+                    args[0],
+                    executable=executable,
+                    elide=elide,
+                    kwargs=kwargs,
+                )
+            else:
+                raise ValueError("Expected `list[str]` command in non-shell mode")
+        else:
+            if shell is False or shell is None:
+                return ArrayCmd(
+                    args,
+                    expanduser=expanduser,
+                    expandvars=expandvars,
+                    elide=elide,
+                    kwargs=kwargs,
+                )
+            else:
+                raise ValueError("Expected `str` command in shell mode")
+
+
+@dataclass
+class ShellCmd(Cmd):
+    cmd: str
+    executable: str | None | Unset = _Unset
+    elide: Elides = None
+    kwargs: dict[str, Any] = None
+
+    def __str__(self) -> str:
+        return self.elide_cmd(self.cmd, self.elide)
+
+    def compile(self) -> Tuple[str, Kwargs]:
+        cmd = self.cmd
+        if self.elide:
+            if isinstance(self.elide, str):
+                self.elide = [self.elide]
+            for s in self.elide:
+                cmd = cmd.replace(s, '****')
+
+        return cmd, { **(self.kwargs or {}), 'shell': True, 'executable': self.executable, }
+
+
+@dataclass
+class ArrayCmd(Cmd):
+    args: Sequence[Arg]
+    expanduser: bool = False
+    expandvars: bool = False
+    elide: Elides = None
+    kwargs: dict[str, Any] = None
+
+    @property
+    def cmd(self) -> list[str]:
+        return [
+            str(arg)
+            for arg in flatten(self.args)
+            if arg is not None
+        ]
+
+    def __str__(self) -> str:
+        return self.elide_cmd(shlex.join(self.cmd), self.elide)
+
+    def compile(self) -> Tuple[list[str], Kwargs]:
+        cmd = self.cmd
+        if self.expanduser:
+            cmd = [ expanduser(arg) for arg in cmd ]
+        if self.expandvars:
+            cmd = [ expandvars(arg) for arg in cmd ]
+
+        return cmd, { **(self.kwargs or {}), 'shell': False, }

@@ -1,43 +1,23 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
-import subprocess
 from json import loads
 from sys import stderr
 
-import shlex
+import subprocess
 from functools import partial
 from subprocess import check_call, check_output, CalledProcessError, CompletedProcess, DEVNULL, Popen, PIPE, STDOUT
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Union
+
+from .cmd import Cmd
+from .util import Arg, Elides, parse_cmd
 
 err = partial(print, file=stderr)
 Log = Optional[Callable[..., None]]
-Arg = Union[None, str, int, List['Arg'], Tuple['Arg']]
 
 
 def silent(*args) -> None:
     pass
-
-
-def flatten(args: Union[List[Arg], Tuple[Arg, ...]]) -> Tuple:
-    """Recursively flatten a nested list of arguments."""
-    if isinstance(args, list) or isinstance(args, tuple):
-        return tuple(
-            a
-            for arg in args
-            for a in flatten(arg)
-        )
-    else:
-        return (args,)
-
-
-def parse_cmd(cmd: Tuple[Arg, ...]) -> List[str]:
-    """Flatten and stringify a command."""
-    return [
-        str(arg)
-        for arg in flatten(cmd)
-        if arg is not None
-    ]
 
 
 def lines(
@@ -80,49 +60,48 @@ def line(
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
 
-ELIDED = '****'
-Elides = Union[None, str, List[str]]
-
-
-def mk_cmd_str(cmd: List[str], elide: Elides = None) -> str:
-    """Convert a command to a string, optionally eliding known sensitive values."""
-    cmd_str = shlex.join(cmd)
-    if elide:
-        if isinstance(elide, str):
-            elide = [elide]
-        for s in elide:
-            cmd_str = cmd_str.replace(s, ELIDED)
-    return cmd_str
-
-
 def run(
-    *cmd: Arg,
+    *args: Arg,
     dry_run: bool = False,
     elide: Elides = None,
     log: Log = err,
     check: bool = True,
+    shell: bool | None = None,
+    expanduser: bool | None = None,
+    expandvars: bool | None = None,
     **kwargs,
 ) -> CompletedProcess | None:
     """Convenience wrapper for ``subprocess.check_call``."""
-    cmd = parse_cmd(cmd)
-    cmd_str = mk_cmd_str(cmd, elide)
+    cmd = Cmd.mk(
+        *args,
+        shell=shell,
+        expanduser=expanduser,
+        expandvars=expandvars,
+        elide=elide,
+        **kwargs,
+    )
     if dry_run:
         if log:
-            log(f'Would run: {cmd_str}')
+            log(f'Would run: {cmd}')
     else:
         if log:
-            log(f'Running: {cmd_str}')
+            log(f'Running: {cmd}')
+        args, kwargs = cmd.compile()
         if check:
-            check_call(cmd, **kwargs)
+            check_call(args, **kwargs)
             return None
         else:
-            return subprocess.run(cmd, **kwargs)
+            return subprocess.run(args, **kwargs)
 
 
 sh = run
 
 
-def interleaved_output(cmd: List[str], err_ok: bool = False, **kwargs) -> bytes:
+def interleaved_output(
+    cmd: List[str] | str,
+    err_ok: bool = False,
+    **kwargs,
+) -> bytes:
     try:
         proc = Popen(cmd, stdout=PIPE, stderr=STDOUT, **kwargs)
 
@@ -144,12 +123,15 @@ def interleaved_output(cmd: List[str], err_ok: bool = False, **kwargs) -> bytes:
 
 
 def output(
-    *cmd: Arg,
+    *args: Arg,
     dry_run: bool = False,
     both: bool = False,
     err_ok: bool = False,
     elide: Elides = None,
     log: Log = err,
+    shell: bool | None = None,
+    expanduser: bool | None = None,
+    expandvars: bool | None = None,
     **kwargs,
 ) -> Optional[bytes]:
     """Convenience wrapper for ``subprocess.check_output``.
@@ -160,21 +142,28 @@ def output(
 
     If `both=True`, stdout and stderr will both be captured (interleaved), and returned.
     """
-
-    cmd = parse_cmd(cmd)
-    cmd_str = mk_cmd_str(cmd, elide)
+    cmd = Cmd.mk(
+        *args,
+        shell=shell,
+        expanduser=expanduser,
+        expandvars=expandvars,
+        elide=elide,
+        **kwargs,
+    )
     if dry_run:
         if log:
-            log(f'Would run: {cmd_str}')
+            log(f'Would run: {cmd}')
         return None
     else:
         if log:
-            log(f'Running: {cmd_str}')
+            log(f'Running: {cmd}')
         if both:
-            return interleaved_output(cmd, err_ok=err_ok, **kwargs)
+            args, kwargs = cmd.compile()
+            return interleaved_output(args, err_ok=err_ok, **kwargs)
         else:
             try:
-                return check_output(cmd, **kwargs)
+                args, kwargs = cmd.compile()
+                return check_output(args, **kwargs)
             except CalledProcessError as e:
                 if err_ok:
                     return None
@@ -220,7 +209,6 @@ from .named_pipes import named_pipes
 __all__ = [
     'check',
     'err',
-    'flatten',
     'interleaved_output',
     'line',
     'lines',

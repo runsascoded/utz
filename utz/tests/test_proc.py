@@ -1,9 +1,11 @@
 from os.path import join
 
 import json
-from utz import env
 import pytest
-from pytest import fixture, raises, warns
+from pytest import fixture, raises
+
+from utz import env
+
 parametrize = pytest.mark.parametrize
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -30,12 +32,17 @@ def test_output():
         output('[', '1', '==', '2', ']')
 
 
+def test_expandvars():
+    interpolated = f'{env["USER"]} {env["HOME"]}'
+    assert line('echo $USER $HOME', shell=True) == interpolated
+    with raises(ValueError, match="Can't `expand{user,vars}` in shell mode"):
+        assert line('echo $USER $HOME', shell=True, expandvars=True)
+    assert line('echo', '$USER $HOME') == '$USER $HOME'
+    assert line('echo', '$USER $HOME', expandvars=True) == interpolated
+
+
 def test_json():
-    obj = [{
-        'a': {
-            'b': 123
-        }
-    }]
+    obj = [{ 'a': { 'b': 123 } }]
     with NamedTemporaryFile() as f:
         path = f.name
         with open(path, 'w') as fd:
@@ -74,6 +81,8 @@ def test_cmd_arg_flattening():
     'cmds,shell,output', [
         (['seq 10', 'head -n5'], True, '1\n2\n3\n4\n5\n'),
         ([['seq', '10'], ['head', '-n5']], False, '1\n2\n3\n4\n5\n'),
+        (['seq 5'], True, '1\n2\n3\n4\n5\n'),
+        ([['seq', '5']], False, '1\n2\n3\n4\n5\n'),
     ]
 )
 def test_pipeline(cmds, shell, output):
@@ -100,7 +109,6 @@ def test_pipeline_vars_no_shell(tmp_text_file):
             [['cat', '$FILE'], ['head', '-n5']],
             shell=False,
             expandvars=True,
-            env={ **env, 'FILE': tmp_text_file },
         )
     assert output == '1\n2\n3\n4\n5\n'
 
@@ -112,8 +120,3 @@ def test_pipeline_vars_shell(tmp_text_file):
         env={ **env, 'FILE': tmp_text_file },
     )
     assert output == '1\n2\n3\n4\n5\n'
-
-
-def test_pipeline_shell_executable_warning():
-    with warns(FutureWarning, match="`shell_executable` kwarg is deprecated"):
-        pipeline(['seq 10', 'head -n5'], shell_executable=env['SHELL'])
