@@ -28,6 +28,8 @@ from .tmpdir import tmpdir
 from . import proc, process
 from .process import *
 
+from .escape import esc
+
 from . import fn
 from .fn import args, call, decos, recvs
 

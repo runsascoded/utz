@@ -362,7 +362,7 @@ Misc other modules:
 - [docker](utz/docker/): DSL for programmatically creating Dockerfiles (and building images from them)
 - [bases][`utz.bases`]: encode/decode in various bases (62, 64, 90, …)
 - [tmpdir](utz/tmpdir.py): make temporary directories with a specific basename
-- [escape](utz/escape.py): split/join on an arbitrary delimiter, with backslash-escaping
+- [escape](utz/escape.py): split/join on an arbitrary delimiter, with backslash-escaping; `utz.esc` escapes a specific character in a string.
 - [ssh](utz/ssh.py): SSH tunnel wrapped in a context manager
 - [backoff](utz/backoff.py): exponential-backoff utility
 - [git](utz/git): Git helpers, wrappers around [GitPython](https://gitpython.readthedocs.io/en/stable/)

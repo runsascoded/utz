@@ -68,3 +68,8 @@ def join(strs: Sequence[str], ch: str, max: int = 0):
         return ch.join(esc(s) for s in strs[:max]) + ch + strs[max]
     else:
         return ch.join(esc(s) for s in strs)
+
+
+def esc(s: str, ch: str):
+    """Escape instances of character ``ch`` in string ``s`` by preceding them with a backslash."""
+    return join([s], ch)

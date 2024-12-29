@@ -1,6 +1,6 @@
 from functools import partial
 
-from utz.escape import split, join
+from utz.escape import split, join, esc
 
 
 def test_split_join():
@@ -60,3 +60,7 @@ def test_split_join():
     check('', [''], '|')
     check('\\' * 10, ['\\' * 5], ':')
     check('\\' * 10, ['\\' * 5], '|')
+
+
+def test_escape():
+    assert esc('"s"', '"') == r'\"s\"'
