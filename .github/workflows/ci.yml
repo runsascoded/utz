@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Fetch submodule tags
-        working-directory: utz/tests/data/gsmo
+        working-directory: test/data/gsmo
         run: git fetch --tags origin
       - name: Install test dependencies
         run: |

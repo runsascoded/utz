@@ -1,3 +1,5 @@
+from setuptools import find_packages
+
 from utz.setup import setup
 
 extras_require = {
@@ -38,6 +40,8 @@ extras_require['all'] = sum(extras_require.values(), [ 'pyyaml', ])
 setup(
     name="utz",
     version="0.12.2",
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     install_requires=["stdlb"],
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",

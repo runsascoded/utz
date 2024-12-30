@@ -3,16 +3,15 @@ from os.path import dirname, join
 
 from utz import hash_file, HashName, parametrize
 
-TESTS_DIR = dirname(__file__)
-SRC_DIR = dirname(TESTS_DIR)
-ROOT_DIR = dirname(SRC_DIR)
+TEST_DIR = dirname(__file__)
+ROOT_DIR = dirname(TEST_DIR)
 
 
 @dataclass
 class case:
     hash_name: HashName
     expected_hash: str
-    file: str = 'utz/hash.py'
+    file: str = 'src/utz/hash.py'
 
     @property
     def id(self):

@@ -1,15 +1,14 @@
 import pytest
 
-import utz
-from utz import basename, CalledProcessError, cd, dirname, env, exists, getcwd, git, join, lines, realpath, run, line, \
+from paths import GSMO, HAILSTONE
+from utz import basename, CalledProcessError, cd, env, exists, getcwd, git, lines, realpath, run, line, \
     now, b62
 
 
 def test_current_branch():
-    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
     branch = 'tmp'
     sha = 'e0add3d'
-    with git.clone.tmp(base_repo, branch=branch, ref=sha):
+    with git.clone.tmp(HAILSTONE, branch=branch, ref=sha):
         assert git.branch.current() == branch
         assert git.sha() == sha
         run('git', 'checkout', sha)  # detach HEAD
@@ -102,7 +101,6 @@ def test_tmp_clone_remote_push_changes():
 def test_tmp_clone_local_pull_changes():
     branch = 'tmp'
     tag = 'v0.1.1rc2'
-    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo')
     sha0 = 'de6da9d'
 
     # bind some `check` params
@@ -115,7 +113,7 @@ def test_tmp_clone_local_pull_changes():
             shas={sha: (None, branch)},
         )
 
-    with git.clone.tmp(base_repo, branch=branch, ref=tag) as origin:
+    with git.clone.tmp(GSMO, branch=branch, ref=tag) as origin:
         verify(origin, sha0)
 
         # simulate an additional clone + pulling changes back in
@@ -192,10 +190,9 @@ def test_tmp_clone_local_pull_changes():
 
 
 def test_bare_tmp_clone():
-    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
     branch = 'tmp'
     sha0 = 'e0add3d'
-    with git.clone.tmp(base_repo, bare=True, branch=branch, ref=sha0) as origin:
+    with git.clone.tmp(HAILSTONE, bare=True, branch=branch, ref=sha0) as origin:
         check(cwd=origin, status=False, branch=branch, shas={sha0: (None, branch)})
         with git.clone.tmp(origin, branch=branch) as wd:
             check(cwd=wd, name='hailstone', shas={sha0: (None, branch)})
@@ -271,10 +268,9 @@ def test_ls_remote_lines():
 
 
 def test_atom():
-    base_repo = join(dirname(utz.__file__), 'tests/data/gsmo/example/hailstone')
     branch = 'tmp'
     sha0 = 'e0add3d'
-    with git.clone.tmp(base_repo, branch=branch, ref=sha0):
+    with git.clone.tmp(HAILSTONE, branch=branch, ref=sha0):
         with git.txn():
             pass
         check(shas={
