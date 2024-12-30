@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from os import path
 
 import shlex
@@ -6,14 +8,6 @@ from typing import List, Tuple, Union, Sequence
 Arg = Union[None, str, int, List['Arg'], Tuple['Arg']]
 ELIDED = '****'
 Elides = Union[None, str, List[str]]
-
-
-class Unset:
-    def __bool__(self):
-        return False
-
-
-_Unset = Unset()
 
 
 def flatten(args: Sequence[Arg]) -> Tuple:

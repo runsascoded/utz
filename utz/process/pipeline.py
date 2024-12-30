@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from io import UnsupportedOperation, StringIO
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 from typing import Literal, AnyStr, IO
 
 from utz.process import Cmd
@@ -14,6 +14,7 @@ def pipeline(
     shell: bool | str | None = None,
     executable: str | None = None,
     wait: bool = True,
+    both: bool = False,
     expanduser: bool | None = None,
     expandvars: bool | None = None,
     **kwargs,
@@ -61,6 +62,8 @@ def pipeline(
 
         def mkproc(stdout=PIPE):
             args, kwargs = cmd.compile()
+            if both:
+                kwargs['stderr'] = STDOUT
             return Popen(
                 args,
                 stdin=stdin,

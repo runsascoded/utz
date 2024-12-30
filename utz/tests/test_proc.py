@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import join, dirname
 
 import json
 import pytest
@@ -13,20 +13,22 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from utz import proc
 from utz.proc import *
 
-strs = ['one', 'two', 'three']
+TESTS = dirname(__file__)
+SCRIPT = join(TESTS, 'streams-test.sh')
+STRS = ['one', 'two', 'three']
 
 
 def test_lines():
-    assert lines('echo', '\n'.join(strs)) == strs
-    assert lines('echo', '-n', '\n'.join(strs)) == strs
+    assert lines('echo', '\n'.join(STRS)) == STRS
+    assert lines('echo', '-n', '\n'.join(STRS)) == STRS
     assert lines('[', '1', '==', '2', ']', err_ok=True) is None
     with pytest.raises(CalledProcessError):
         lines('[', '1', '==', '2', ']')
 
 
 def test_output():
-    assert output('echo', '\n'.join(strs)).decode() == '\n'.join(strs + [''])
-    assert output('echo', '-n', '\n'.join(strs)).decode() == '\n'.join(strs)
+    assert output('echo', '\n'.join(STRS)).decode() == '\n'.join(STRS + [''])
+    assert output('echo', '-n', '\n'.join(STRS)).decode() == '\n'.join(STRS)
     assert output('[', '1', '==', '2', ']', err_ok=True) is None
     with pytest.raises(CalledProcessError):
         output('[', '1', '==', '2', ']')
@@ -73,8 +75,8 @@ def test_check():
 
 
 def test_cmd_arg_flattening():
-    assert output('echo', '-n', None, strs, ['aaa', [None, 'bbb', 'ccc']]).decode() == ' '.join(
-        strs + ['aaa', 'bbb', 'ccc', ])
+    assert output('echo', '-n', None, STRS, ['aaa', [None, 'bbb', 'ccc']]).decode() == ' '.join(
+        STRS + ['aaa', 'bbb', 'ccc', ])
 
 
 @parametrize(
@@ -120,3 +122,17 @@ def test_pipeline_vars_shell(tmp_text_file):
         env={ **env, 'FILE': tmp_text_file },
     )
     assert output == '1\n2\n3\n4\n5\n'
+
+
+def test_interleaved_stdout_stderr():
+    assert proc.lines(SCRIPT) == ['stdout 1', 'stdout 2']
+    assert proc.lines([SCRIPT], shell=False) == ['stdout 1', 'stdout 2']
+    assert proc.lines(SCRIPT, both=True) == ['stdout 1', 'stderr 1', 'stdout 2', 'stderr 2']
+    assert proc.lines([SCRIPT], shell=False, both=True) == ['stdout 1', 'stderr 1', 'stdout 2', 'stderr 2']
+
+
+def test_interleaved_pipelines():
+    assert pipeline([SCRIPT]) == 'stdout 1\nstdout 2\n'
+    assert pipeline([SCRIPT, 'wc -l']) == '2\n'
+    assert pipeline([SCRIPT], both=True) == 'stdout 1\nstderr 1\nstdout 2\nstderr 2\n'
+    assert pipeline([SCRIPT, 'wc -l'], both=True) == '4\n'

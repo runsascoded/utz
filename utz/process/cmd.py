@@ -1,14 +1,15 @@
-from abc import ABC
+from __future__ import annotations
 
-import shlex
 from os.path import expandvars, expanduser
 
+import shlex
+from abc import ABC
 from dataclasses import dataclass
-from typing import Sequence, Tuple, Any
+from typing import Sequence, Tuple, Any, List, Union
 
-from utz.process.util import _Unset, Unset, Elides, flatten, Arg, ELIDED
+from utz.process.util import Elides, flatten, Arg, ELIDED
 
-Args = str | list[str]
+Args = Union[str, List[str]]
 Kwargs = dict[str, Any]
 Compiled = Tuple[Args, Kwargs]
 
@@ -42,7 +43,7 @@ class Cmd(ABC):
             shell = True
 
         if len(args) == 1 and isinstance(args[0], str):
-            if shell is True or shell is _Unset:
+            if shell is True or shell is None:
                 if expanduser or expandvars:
                     raise ValueError("Can't `expand{user,vars}` in shell mode")
                 return ShellCmd(
@@ -69,7 +70,7 @@ class Cmd(ABC):
 @dataclass
 class ShellCmd(Cmd):
     cmd: str
-    executable: str | None | Unset = _Unset
+    executable: str | None = None
     elide: Elides = None
     kwargs: dict[str, Any] = None
 
