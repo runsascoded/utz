@@ -1,5 +1,5 @@
 # utz
-*("yoots")*: utilities I've missed in the Python standard library, Pytest, Pandas, Plotly, …
+*("yoots")*: utilities augmenting the Python standard library; processes, Pytest, Pandas, Plotly, …
 
 [![](https://img.shields.io/pypi/v/utz?color=blue&style=flat-square)][utz]
 
