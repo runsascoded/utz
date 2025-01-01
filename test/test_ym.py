@@ -15,6 +15,21 @@ def test_ym():
     assert ym0 - 24 == YM(202012)
     assert ym0 - 25 == YM(202011)
 
+    for ym1, diff in {
+        YM(202401): -13,
+        YM(202312): -12,
+        YM(202311): -11,
+        YM(202302): -2,
+        YM(202301): -1,
+        YM(202212): 0,
+        YM(202211): 1,
+        YM(202210): 2,
+        YM(202201): 11,
+        YM(202112): 12,
+    }.items():
+        assert ym0 - ym1 == diff
+        assert ym1 - ym0 == -diff
+
     assert ym0 +  1 == YM(202301)
     assert ym0 +  2 == YM(202302)
     assert ym0 + 11 == YM(202311)

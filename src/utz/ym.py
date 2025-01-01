@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass
 from datetime import datetime as dt, date
@@ -118,17 +120,24 @@ class YM:
         m = (m % 12) + 1
         return YM(y, m)
 
-    def __sub__(self, n: int) -> 'YM':
-        if not isinstance(n, int):
-            raise ValueError('%s: can only add an integer to a Month, not %s: %s' % (str(self), str(type(n)), str(n)))
-        y, m = self.y, self.m - n - 1
-        if m <= 0:
-            years = int(ceil(-m / 12))
-            y -= years
-            m += 12 * years
-            assert 0 <= m < 12
-        m += 1
-        return YM(y, m)
+    def __sub__(self, r: 'YM' | int) -> 'YM' | int:
+        if isinstance(r, YM):
+            y, m = self.y - r.y, self.m - r.m
+            if m < 0:
+                y -= 1
+                m += 12
+            return y * 12 + m
+        elif isinstance(r, int):
+            y, m = self.y, self.m - r - 1
+            if m <= 0:
+                years = int(ceil(-m / 12))
+                y -= years
+                m += 12 * years
+                assert 0 <= m < 12
+            m += 1
+            return YM(y, m)
+        else:
+            raise ValueError(f'{self}: can only add subtract an int or YM from YM, not {r} ({type(r)})')
 
     def until(self, end: 'YM' = None, step: int = 1) -> Yield['YM']:
         cur: YM = YM(self)
