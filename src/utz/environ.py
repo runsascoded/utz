@@ -183,20 +183,3 @@ class Env(MutableMapping):
 
 # Create singleton instance
 env = Env()
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Normal dictionary-like usage
-    env["MY_VAR"] = "value1"
-    print(env["MY_VAR"])  # value1
-
-    # Context manager that always resets unmodified variables
-    with env(UNMODIFIED="test1", MODIFIED="test2"):
-        print(env["UNMODIFIED"])  # test1
-        env["MODIFIED"] = "changed"  # This will trigger conflict handling
-    print("UNMODIFIED" in env)  # False - always reset
-
-    # Context manager with warning and skip for conflicts
-    with env(MY_VAR="temporary", _on_conflict=OnConflict.WARN, _on_exit=OnExit.SKIP):
-        env["MY_VAR"] = "modified"  # This will warn and value will remain
