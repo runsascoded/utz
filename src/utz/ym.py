@@ -146,3 +146,6 @@ class YM:
                 or (step < 0 and cur > end):
             yield cur
             cur = cur + step
+
+    def to(self, end: 'YM' = None, step: int = 1) -> Yield['YM']:
+        return self.until(end=end + 1 if end else end, step=step)
