@@ -33,14 +33,29 @@ pip install utz
 
 ## Use <a id="use"></a>
 
-I usually do this at the top of Jupyter notebooks:
+I often import `utz.*` in Jupyter notebooks:
 ```python
 from utz import *
 ```
 
 This imports most standard library modules/functions (via [`stdlb`]), as well as the `utz` members below.
 
-Below are a few modules, in rough order of how often I use them:
+You can also import `utz.*` during Python REPL startup:
+```bash
+cat >~/.pythonrc <<EOF
+try:
+    from utz import *
+    err("Imported utz")
+except ImportError:
+    err("Couldn't find utz")
+EOF
+export PYTHONSTARTUP=~/.pythonrc
+# Configure for Python REPL in new Bash shells:
+echo 'export PYTHONSTARTUP=~/.pythonrc' >> ~/.bashrc
+```
+
+## Modules <a id="modules"></a>
+Here are a few `utz` modules, in rough descending order of how often I use them:
 
 ### [`utz.proc`]: [`subprocess`] wrappers; shell out commands, parse output <a id="utz.proc"></a>
 
