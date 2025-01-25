@@ -78,6 +78,13 @@ from utz.collections import *
 # Verify a collection has one element, return it
 singleton(["aaa"])         # "aaa"
 singleton(["aaa", "bbb"])  # error
+
+# `solo` is an alias for `singleton`; both also work on dicts, verifying and extracting a single "item" pair:
+solo({'a': 1})  # ('a', 1)
+
+# Filter by a predicate
+solo([2, 3, 4], pred=lambda n: n % 2)  # 3
+solo([{'a': 1}, {'b': 2}], pred=lambda o: 'a' in o)  # {'a': 1}
 ```
 
 See also: [`test_collections.py`].

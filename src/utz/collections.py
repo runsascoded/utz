@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+from __future__ import annotations
+
+from typing import Callable, Iterable
 
 try:
     from pandas import Series
@@ -24,7 +26,7 @@ class WrongKey(ValueError):
     def __init__(self, expected, actual):
         self.expected = expected
         self.actual = actual
-        self.msg = f'Expected {expected}, actual {actual}'
+        self.msg = f'Expected key "{expected}", found "{actual}"'
         super().__init__(self.msg)
 
 
@@ -36,7 +38,23 @@ class WrongKeys(ValueError):
         super().__init__()
 
 
-def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True, key=None):
+def singleton(
+    elems: Iterable,
+    pred: Callable = None,
+    empty_ok: bool = False,
+    name: str = 'elems',
+    dedupe: bool | None = None,
+    key: str | None = None,
+):
+    """Verify ``elems`` contains exactly one element, and return it.
+
+    :param elems: Iterable of elements to check
+    :param pred: Optional predicate to apply to each element
+    :param empty_ok: If ``True``, return ``None`` if no matching element is found
+    :param name: Name for elements of ``elems``, used in error messages
+    :param dedupe: If ``True``, remove duplicates from ``elems`` before checking its length
+    :param key: If ``elems`` is a dict, return the value for this key
+    """
     if Series and isinstance(elems, Series):
         elems = elems.unique().tolist()
     elif isinstance(elems, dict):
@@ -48,9 +66,14 @@ def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True, key=Non
             return elems[key]
         else:
             elems = elems.items()
-    if fn:
-        elems = [elem for elem in elems if fn(elem)]
+    if pred:
+        elems = [elem for elem in elems if pred(elem)]
     else:
+        if dedupe is None:
+            if elems and isinstance(next(iter(elems)), dict):
+                dedupe = False
+            else:
+                dedupe = True
         if dedupe:
             elems = set(elems)
     if not elems:
@@ -61,6 +84,10 @@ def singleton(elems, fn=None, empty_ok=False, name='elems', dedupe=True, key=Non
         raise Expected1FoundN(name, len(elems), elems)
     [elem] = elems
     return elem
+
+
+solo = singleton
+"""Alias for ``singleton``."""
 
 
 def only(obj, *keys):
