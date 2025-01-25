@@ -1,7 +1,35 @@
 #!/usr/bin/env python
+
 from bs4 import BeautifulSoup
 from click import command
 from utz import *
+
+
+def pretty_print_html(soup, indent=0):
+    if isinstance(soup, str):
+        print(" " * indent + soup.strip())
+        return
+
+    if soup.name == '[document]':
+        for child in soup.children:
+            if not isinstance(child, str) or child.strip():
+                pretty_print_html(child, indent)
+        return
+
+    tag = soup.name
+    attrs = " ".join([f'{k}="{v}"' for k, v in soup.attrs.items()])
+    prefix = f"<{tag}{' ' + attrs if attrs else ''}>"
+
+    if tag in ['td', 'th']:
+        content = "".join(str(child) for child in soup.children)
+        print(" " * indent + prefix + content + f"</{tag}>")
+        return
+
+    print(" " * indent + prefix)
+    for child in soup.children:
+        if not isinstance(child, str) or child.strip():
+            pretty_print_html(child, indent + 2)
+    print(" " * indent + f"</{tag}>")
 
 
 @command()
@@ -25,6 +53,8 @@ def main():
 
     # Find the table and its header rows
     table = soup.find('table')
+    table.attrs['style'] = "text-align: right"
+    del table.attrs['class']
     header_rows = table.find_all('tr')[:2]
 
     # Combine the content of the two header rows
@@ -42,7 +72,14 @@ def main():
     for i, th in enumerate(header_rows[0].find_all('th')):
         th.string = combined_headers[i]
 
-    print(soup)
+    # Wrap each <td>'s content in a `<code>` tag
+    for td in table.find_all('td'):
+        code_tag = soup.new_tag('code')
+        code_tag.string = td.text.strip()
+        td.string = ''
+        td.append(code_tag)
+
+    pretty_print_html(soup)
 
 
 if __name__ == '__main__':
