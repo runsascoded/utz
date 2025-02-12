@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from os.path import expandvars, expanduser
+from subprocess import STDOUT
 
 import shlex
 from abc import ABC
 from dataclasses import dataclass
 from typing import Sequence, Tuple, Any, List, Union
 
+from utz.process.log import Log
 from utz.process.util import Elides, flatten, Arg, ELIDED
 
 Args = Union[str, List[str]]
@@ -15,7 +17,21 @@ Compiled = Tuple[Args, Kwargs]
 
 
 class Cmd(ABC):
-    def compile(self) -> Compiled:
+    def compile(
+        self,
+        log: Log = None,
+        both: bool = False,
+    ) -> Compiled:
+        if log:
+            log(f'Running: {self}')
+        args, kwargs = self._compile()
+        if both:
+            if 'stderr' in kwargs and kwargs['stderr'] is not STDOUT:
+                raise ValueError(f"`both=True` conflicts with `stderr={kwargs['stderr']}`")
+            kwargs['stderr'] = STDOUT
+        return args, kwargs
+
+    def _compile(self):
         raise NotImplementedError
 
     @staticmethod
@@ -77,7 +93,7 @@ class ShellCmd(Cmd):
     def __str__(self) -> str:
         return self.elide_cmd(self.cmd, self.elide)
 
-    def compile(self) -> Tuple[str, Kwargs]:
+    def _compile(self) -> Tuple[str, Kwargs]:
         cmd = self.cmd
         if self.elide:
             if isinstance(self.elide, str):
@@ -107,7 +123,7 @@ class ArrayCmd(Cmd):
     def __str__(self) -> str:
         return self.elide_cmd(shlex.join(self.cmd), self.elide)
 
-    def compile(self) -> Tuple[list[str], Kwargs]:
+    def _compile(self) -> Tuple[list[str], Kwargs]:
         cmd = self.cmd
         if self.expanduser:
             cmd = [ expanduser(arg) for arg in cmd ]

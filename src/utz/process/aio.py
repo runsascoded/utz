@@ -1,25 +1,15 @@
-#!/usr/bin/env python
 from __future__ import annotations
 
 from json import loads
-from sys import stderr
 
-import subprocess
-from functools import partial
-from subprocess import check_call, CalledProcessError, CompletedProcess, DEVNULL, Popen, PIPE
-from typing import Dict, List, Optional, Union
+import asyncio
+from subprocess import CalledProcessError, PIPE, CompletedProcess, DEVNULL
+from typing import Optional
 
-from .cmd import Cmd
-from .log import Log, silent
-from .util import Arg, Elides, parse_cmd
-
-err = partial(print, file=stderr)
+from utz.process import Cmd, err, Arg, Elides, Log, Json
 
 
-Json = Union[None, List, Dict, str, int, float, bool]
-
-
-def run(
+async def run(
     *args: Arg,
     dry_run: bool = False,
     elide: Elides = None,
@@ -30,7 +20,7 @@ def run(
     expandvars: bool | None = None,
     **kwargs,
 ) -> CompletedProcess | None:
-    """Convenience wrapper for ``subprocess.check_call``."""
+    """Async convenience wrapper for subprocess execution."""
     cmd = Cmd.mk(
         *args,
         shell=shell,
@@ -44,17 +34,28 @@ def run(
             log(f'Would run: {cmd}')
     else:
         args, kwargs = cmd.compile(log=log)
+        proc = await asyncio.create_subprocess_exec(*args, **kwargs)
+        await proc.wait()
+
         if check:
-            check_call(args, **kwargs)
+            if proc.returncode != 0:
+                raise CalledProcessError(proc.returncode, args)
             return None
         else:
-            return subprocess.run(args, **kwargs)
+            # Creating CompletedProcess to match subprocess.run's return type
+            return CompletedProcess(
+                args=args,
+                returncode=proc.returncode,
+                # Only include stdout/stderr if they were captured
+                stdout=None if proc.stdout is None else await proc.stdout.read(),
+                stderr=None if proc.stderr is None else await proc.stderr.read(),
+            )
 
 
 sh = run
 
 
-def output(
+async def output(
     *args: Arg,
     dry_run: bool = False,
     both: bool = False,
@@ -66,7 +67,7 @@ def output(
     expandvars: bool | None = None,
     **kwargs,
 ) -> Optional[bytes]:
-    """Convenience wrapper for ``subprocess.check_output``.
+    """Async convenience wrapper for subprocess output capture.
 
     By default, logs commands to `err` (stderr) before running (pass `log=None` to disable).
 
@@ -90,14 +91,31 @@ def output(
     else:
         args, kwargs = cmd.compile(log=log, both=both)
         try:
-            proc = Popen(args, stdout=PIPE, **kwargs)
+            if kwargs['shell']:
+                # For shell=True, we need to join args into a single string
+                # and use create_subprocess_shell
+                proc = await asyncio.create_subprocess_shell(
+                    args,
+                    stdout=PIPE,
+                    **kwargs
+                )
+            else:
+                proc = await asyncio.create_subprocess_exec(
+                    *args,
+                    stdout=PIPE,
+                    **kwargs
+                )
 
             # Stream and capture the output in real-time
             output = b''
-            for line in proc.stdout:
+            assert proc.stdout  # for type checking
+            while True:
+                line = await proc.stdout.readline()
+                if not line:
+                    break
                 output += line
 
-            proc.wait()
+            await proc.wait()
             if proc.returncode != 0:
                 raise CalledProcessError(proc.returncode, cmd, output=output)
             else:
@@ -111,24 +129,24 @@ def output(
                 raise e
 
 
-def text(*args, **kwargs) -> str | None:
-    return output(*args, **kwargs).decode()
+async def text(*args, **kwargs) -> str | None:
+    return (await output(*args, **kwargs)).decode()
 
 
-def json(
+async def json(
     *cmd: Arg,
     dry_run: bool = False,
     err_ok: bool = False,
     **kwargs,
 ) -> Json:
     """Run a command, parse the output as JSON, and return the parsed object."""
-    out = output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
+    out = await output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
     if out is None or err_ok is True and not out:
         return None
     return loads(out.decode())
 
 
-def check(
+async def check(
     *cmd: Arg,
     stdout=DEVNULL,
     stderr=DEVNULL,
@@ -136,21 +154,21 @@ def check(
 ):
     """Run a command, return True iff it runs successfully (i.e. exits with code 0)."""
     try:
-        run(*cmd, stdout=stdout, stderr=stderr, **kwargs)
+        await run(*cmd, stdout=stdout, stderr=stderr, **kwargs)
         return True
     except CalledProcessError:
         return False
 
 
-def lines(
+async def lines(
     *cmd: Arg,
     keep_trailing_newline: bool = False,
     dry_run: bool = False,
     err_ok: bool = False,
     **kwargs,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     """Return the lines written to stdout by a command."""
-    out = output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
+    out = await output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
     if err_ok is None and out is None:
         return None
 
@@ -166,14 +184,14 @@ def lines(
     return lines
 
 
-def line(
+async def line(
     *cmd: Arg,
     empty_ok: bool = False,
     err_ok: bool = False,
     **kwargs,
 ) -> Optional[str]:
     """Run a command, verify that it returns a single line of output, and return that line."""
-    _lines = lines(*cmd, err_ok=err_ok, **kwargs)
+    _lines = await lines(*cmd, err_ok=err_ok, **kwargs)
     if (empty_ok or err_ok is not False) and not _lines:
         return None
     elif len(_lines) == 1:
@@ -182,26 +200,13 @@ def line(
         raise ValueError(f'Expected 1 line, found {len(_lines)}:\n\t%s' % '\n\t'.join(_lines))
 
 
-from . import aio
-from .pipeline import pipeline
-from .named_pipes import named_pipes
-
-
-# Omit "json", to avoid colliding with stdlib
 __all__ = [
+    'text',
+    'json',
     'check',
-    'err',
     'line',
     'lines',
-    'named_pipes',
-    'output',
-    'pipeline',
     'run',
+    'output',
     'sh',
-    'silent',
-    'text',
-    'Arg',
-    'Cmd',
-    'Elides',
-    'Log',
 ]
