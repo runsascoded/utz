@@ -38,6 +38,9 @@ from .gzip import deterministic_gzip_open, DeterministicGzipFile
 from . import jsn
 from .jsn import Encoder
 
+from . import size
+from .size import iec
+
 with _try:
     from . import pnds
     from .pnds import *

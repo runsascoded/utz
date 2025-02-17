@@ -28,6 +28,7 @@ extras_require = {
         'plotly',
     ],
     'setup': [ 'setuptools' ],
+    'size': [ 'humanize' ],
     'test': [
         'pytest',
         'pytest-mock',
