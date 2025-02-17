@@ -16,6 +16,7 @@
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
     - [`utz.jsn`: `JsonEncoder` for datetimes, `dataclasses`](#utz.jsn)
+    - [`utz.cli`: `click` helpers](#utz.cli)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.plot`: Plotly helpers](#utz.plots)
@@ -182,6 +183,45 @@ print(json.dumps(A(111), cls=Encoder))
 ```
 
 See [`test_jsn.py`] for more examples.
+
+### [`utz.cli`]: [`click`] helpers <a id="utz.cli"></a>
+[`utz.cli`] provides wrappers around `click.option` for parsing common option formats:
+- `@count`: "count" options, including optional value mappings (e.g. `-v` → "info", `-vv` → "debug")
+- `@multi`: parse comma-delimited values (or other delimiter), with optional value-`parse` callback (e.g. `-a1,2 -a3` → `(1,2,3)`)
+- `@num`: parse numeric values, including human-readable SI/IEC suffixes (i.e. `10k` → `10_000`)
+- `@obj`: parse dictionaries from multi-value options (e.g. `-eFOO=BAR -eBAZ=QUX` → `dict(FOO="BAR", BAZ="QUX")`)
+
+```python
+# cli.py
+from utz.cli import cmd, count, multi, num, obj
+from typing import Literal
+
+@cmd  # Alias for `click.command`
+@multi('-a', '--arr', parse=int, help="Comma-separated integers")
+@obj('-e', '--env', help='Env vars, in the form `k=v`')
+@num('-m', '--max-memory', help='Max memory size (e.g. "100m"')
+@count('-v', '--verbosity', values=['warn', 'info', 'debug'], help='0x: "warn", 1x: "info", 2x: "debug"')
+def main(
+    arr: tuple[int, ...],
+    env: dict[str, str],
+    max_memory: int,
+    verbosity: Literal['warn', 'info', 'debug'],
+):
+    print(f"{arr} {env} {max_memory} {verbosity}")
+
+if __name__ == '__main__':
+    main()
+```
+
+Saving the above as `cli.py` and running will yield:
+```bash
+python cli.py -a1,2 -a3 -eAAA=111 -eBBB=222 -m10k
+# (1, 2, 3) {'AAA': '111', 'BBB': '222'} 10000 warn
+python cli.py -m 1Gi -v
+# () {} 1073741824 info
+```
+
+See [`test_cli`] for more examples.
 
 ### [`utz.cd`]: "change directory" contextmanager <a id="utz.cd"></a>
 ```python
@@ -449,6 +489,7 @@ Some repos that use `utz`:
 [`utz.backoff`]: src/utz/backoff.py
 [`utz.bases`]: src/utz/bases.py
 [`utz.cd`]: src/utz/cd.py
+[`utz.cli`]: src/utz/cli.py
 [`utz.collections`]: src/utz/collections.py
 [`utz.context`]: src/utz/context.py
 [`utz.ctxs`]: src/utz/context.py
@@ -472,6 +513,7 @@ Some repos that use `utz`:
 [`utz.tmpdir`]: src/utz/tmpdir.py
 [`utz.ym`]: src/utz/ym.py
 
+[`test_cli`]: test/test_cli.py
 [`test_collections.py`]: test/test_collections.py
 [`test_context.py`]: test/test_context.py
 [`test_env.py`]: test/test_env.py
@@ -483,6 +525,7 @@ Some repos that use `utz`:
 [`on_conflict`]: src/utz/environ.py#L9-13
 [`on_exit`]: src/utz/environ.py#L16-19
 
+[`click`]: https://click.palletsprojects.com/
 [Pandas]: https://pandas.pydata.org/
 [Plotly]: https://plotly.com/python/
 [`pytest.mark.parametrize`]: https://docs.pytest.org/en/stable/how-to/parametrize.html
