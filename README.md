@@ -17,6 +17,7 @@
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
     - [`utz.jsn`: `JsonEncoder` for datetimes, `dataclasses`](#utz.jsn)
     - [`utz.cli`: `click` helpers](#utz.cli)
+    - [`utz.mem`: memray wrapper](#utz.mem)
     - [`utz.time`: `Time` timer, `now`/`today` helpers](#utz.time)
     - [`utz.size`: `humanize.naturalsize` wrapper](#utz.size)
     - [`utz.hash_file`: hash file contents](#utz.hash_file)
@@ -223,6 +224,20 @@ python cli.py -m 1Gi -v
 ```
 
 See [`test_cli`] for more examples.
+
+### [`utz.mem`]: [memray] wrapper <a id="utz.mem"></a>
+Use [memray] to profile memory allocations, extract stats and peak memory use:
+
+```python
+from utz.mem import Tracker
+from utz import iec
+with (tracker := Tracker()):
+    nums = list(sorted(range(1_000_000, 0, -1)))
+
+peak_mem = tracker.peak_mem
+print(f'Peak memory use: {peak_mem:,} ({iec(peak_mem)})')
+# Peak memory use: 48,530,432 (46.3 MiB)
+```
 
 ### [`utz.time`]: `Time` timer, `now`/`today` helpers <a id="utz.time"></a>
 
@@ -534,6 +549,7 @@ Some repos that use `utz`:
 [`utz.gzip`]: src/utz/gzip.py
 [`utz.hash_file`]: src/utz/hash.py
 [`utz.jsn`]: src/utz/jsn.py
+[`utz.mem`]: src/utz/mem.py
 [`utz.o`]: src/utz/o.py
 [`utz.plot`]: src/utz/plots.py
 [`utz.pnds`]: src/utz/pnds.py
@@ -560,6 +576,7 @@ Some repos that use `utz`:
 [`on_exit`]: src/utz/environ.py#L16-19
 
 [`click`]: https://click.palletsprojects.com/
+[memray]: https://bloomberg.github.io/memray/
 [Pandas]: https://pandas.pydata.org/
 [Plotly]: https://plotly.com/python/
 [`pytest.mark.parametrize`]: https://docs.pytest.org/en/stable/how-to/parametrize.html

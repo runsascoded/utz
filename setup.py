@@ -14,6 +14,7 @@ extras_require = {
         'GitPython',
         'PyGithub',
     ],
+    'mem': [ 'memray' ],
     'pd': [
         'numpy',
         'pandas',
