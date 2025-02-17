@@ -27,9 +27,7 @@ extras_require = {
         'kaleido',
         'plotly',
     ],
-    'setup': [
-        'setuptools',
-    ],
+    'setup': [ 'setuptools' ],
     'test': [
         'pytest',
         'pytest-mock',
