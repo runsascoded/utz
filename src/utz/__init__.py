@@ -11,7 +11,7 @@ with _try: from stdlb import *
 # ### Date/Time
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
-from .time import now, today, utc
+from .time import now, today, Time, utc
 
 # ### Jupyter
 with _try: from IPython.display import HTML, Image, Markdown, display

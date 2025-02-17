@@ -17,7 +17,7 @@
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
     - [`utz.jsn`: `JsonEncoder` for datetimes, `dataclasses`](#utz.jsn)
     - [`utz.cli`: `click` helpers](#utz.cli)
-    - [`utz.time`: `now`/`today` helpers](#utz.time)
+    - [`utz.time`: `Time` timer, `now`/`today` helpers](#utz.time)
     - [`utz.size`: `humanize.naturalsize` wrapper](#utz.size)
     - [`utz.hash_file`: hash file contents](#utz.hash_file)
     - [`utz.ym`: `YM` (year/month) class](#utz.ym)
@@ -224,7 +224,31 @@ python cli.py -m 1Gi -v
 
 See [`test_cli`] for more examples.
 
-### [`utz.time`]: `now`/`today` helpers <a id="utz.time"></a>
+### [`utz.time`]: `Time` timer, `now`/`today` helpers <a id="utz.time"></a>
+
+#### `Time`: timer class
+
+```python
+from utz import Time, sleep
+
+time = Time()
+time("step 1")
+sleep(1)
+time("step 2")
+sleep(1)
+time()  # "close" "step 2"
+print(f'Step 1 took {time["step 1"]:.1f}s, step 2 took {time["step 2"]:.1f}s.')
+# Step 1 took 1.0s, step 2 took 1.0s.
+
+# Can also be used as a contextmanager:
+with time("run"):
+    sleep(1)
+
+print(f'Run took {time["run"]:.1f}s')
+# Run took 1.0s
+```
+
+#### `now`, `today`
 
 `now` and `today` are wrappers around `datetime.datetime.now` that expose convenient functions:
 ```python

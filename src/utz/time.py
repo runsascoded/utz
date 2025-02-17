@@ -1,11 +1,68 @@
+from __future__ import annotations
 
 from datetime import datetime as dt, timezone
 from sys import stderr
+from time import perf_counter
+from types import TracebackType
+from typing_extensions import Self
 
 from .o import o
 
 
 utc = timezone.utc
+
+
+class Time:
+    """Simple "timer" class.
+
+    >>> from time import sleep
+    >>> time = Time()
+    >>> time("step 1")
+    >>> sleep(1)
+    >>> time("step 2")
+    >>> sleep(1)
+    >>> time()  # "close" "step 2"
+    >>> print(f'Step 1 took {time["step 1"]:.1f}s, step 2 took {time["step 2"]:.1f}s.'
+
+    Can also be used as a contextmanager:
+
+    >>> time = Time()
+    >>> with time("run"):
+    >>>     sleep(1)
+    >>> print(f'Run took {time["run"]:.1f}s')
+    """
+    def __init__(self):
+        self.times = {}
+        self._cur_timer = None
+        self._cur_start = 0
+
+    def __call__(self, name: str | None = None) -> Self:
+        prev_end = perf_counter()
+        if self._cur_timer:
+            self.times[self._cur_timer] = prev_end - self._cur_start
+        if name:
+            self._cur_timer = name
+            self._cur_start = perf_counter()
+        else:
+            self._cur_timer = None
+            self._cur_start = 0
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_tb: TracebackType | None,
+    ):
+        self()
+        if exc_value:
+            raise exc_value
+
+    def __getitem__(self, name: str) -> float:
+        return self.times[name]
 
 
 class now:

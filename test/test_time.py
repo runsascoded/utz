@@ -7,7 +7,7 @@ from utz import b62, b64, b90, now, o, today
 to_dt = now.to_dt
 
 
-def test_time():
+def test_now():
     fmt = '%Y-%m-%dT%H:%M:%SZ'
     assert fmt == now.FMTS.iso
 
