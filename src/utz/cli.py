@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import click
 from click import command as cmd, option as opt
 
 
@@ -57,12 +56,12 @@ def flag(*names, default=None, **kwargs):
 
     opts = [ make_opt(name) for name in names ]
     if default is None:
-        defaults = set([ opt['default'] for opt in opts ])
+        defaults = set([ o['default'] for o in opts ])
         if len(defaults) > 1: raise ValueError(f'Conflicting defaults: {opts}')
         [default] = defaults
 
     return opt(
-        *[ opt['arg'] for opt in opts ],
+        *[ o['arg'] for o in opts ],
         default=default,
         **kwargs
     )

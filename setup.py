@@ -3,6 +3,7 @@ from setuptools import find_packages
 from utz.setup import setup
 
 extras_require = {
+    'cli': [ 'click' ],
     'dt': [
         'click',
         'python-dateutil',
