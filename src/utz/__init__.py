@@ -11,7 +11,7 @@ with _try: from stdlb import *
 # ### Date/Time
 with _try: from dateutil.parser import parse
 with _try: from pytz import UTC
-from .time import now, today
+from .time import now, today, utc
 
 # ### Jupyter
 with _try: from IPython.display import HTML, Image, Markdown, display
@@ -34,6 +34,9 @@ from . import fn
 from .fn import args, call, decos, recvs
 
 from .gzip import deterministic_gzip_open, DeterministicGzipFile
+
+from . import jsn
+from .jsn import Encoder
 
 with _try:
     from . import pnds

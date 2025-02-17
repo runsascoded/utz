@@ -1,8 +1,11 @@
 
-from datetime import datetime as dt
+from datetime import datetime as dt, timezone
 from sys import stderr
 
 from .o import o
+
+
+utc = timezone.utc
 
 
 class now:

@@ -15,6 +15,7 @@
     - [`utz.fn`: decorator/function utilities](#utz.fn)
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
+    - [`utz.jsn`: `JsonEncoder` for datetimes, `dataclasses`](#utz.jsn)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.plot`: Plotly helpers](#utz.plots)
@@ -160,6 +161,27 @@ kwargs = dict(a=11, b='22', c=33, d=44)
 call(fn1, **kwargs)  # passes {a, b}, not {c, d}
 call(fn2, **kwargs)  # passes {a, b, c}, not {d}
 ```
+
+### [`utz.jsn`]: `JsonEncoder` for datetimes, `dataclasses` <a id="utz.jsn"></a>
+```python
+from utz import dataclass, Encoder, fromtimestamp, json  # Convenience imports from standard library
+epoch = fromtimestamp(0)
+print(json.dumps({ 'epoch': epoch }, cls=Encoder))
+# {"epoch": "1969-12-31 19:00:00"}
+print(json.dumps({ 'epoch': epoch }, cls=Encoder("%Y-%m-%d"), indent=2))
+# {
+#   "epoch": "1969-12-31"
+# }
+
+@dataclass
+class A:
+    n: int
+
+print(json.dumps(A(111), cls=Encoder))
+# {"n": 111}
+```
+
+See [`test_jsn.py`] for more examples.
 
 ### [`utz.cd`]: "change directory" contextmanager <a id="utz.cd"></a>
 ```python
@@ -437,6 +459,7 @@ Some repos that use `utz`:
 [`utz.git`]: src/utz/git
 [`utz.gzip`]: src/utz/gzip.py
 [`utz.hash_file`]: src/utz/hash.py
+[`utz.jsn`]: src/utz/jsn.py
 [`utz.o`]: src/utz/o.py
 [`utz.plot`]: src/utz/plots.py
 [`utz.pnds`]: src/utz/pnds.py
@@ -453,6 +476,7 @@ Some repos that use `utz`:
 [`test_context.py`]: test/test_context.py
 [`test_env.py`]: test/test_env.py
 [`test_gzip.py`]: test/test_gzip.py
+[`test_jsn.py`]: test/test_jsn.py
 [`test_parametrize.py`]: test/test_parametrize.py
 [`test_proc.py`]: test/test_proc.py
 
