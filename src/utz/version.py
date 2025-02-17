@@ -22,8 +22,10 @@ def git_version():
     return version
 
 
-def pkg_version(name=None):
+def pkg_version(name: str = None):
     try:
         return version(name)
     except PackageNotFoundError:
+        if name:
+            raise
         return git_version()

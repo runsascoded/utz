@@ -111,5 +111,3 @@ with _try: import matplotlib.pyplot as plt
 with _try: from scipy.sparse import spmatrix, coo_matrix, csr_matrix, csc_matrix
 
 from .version import git_version, pkg_version
-
-__version__ = pkg_version('utz')

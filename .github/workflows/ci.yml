@@ -23,9 +23,7 @@ jobs:
         working-directory: test/data/gsmo
         run: git fetch --tags origin
       - name: Install test dependencies
-        run: |
-          pip install -e .[all]
-          python -c 'import utz; print("utz version: %s, file: %s" % (utz.__version__, utz.__file__))'
+        run: pip install -e .[all]
       - name: Test
         env:
           SHELL: /bin/bash  # Required by test_proc.py::test_pipeline_shell_executable_warning
