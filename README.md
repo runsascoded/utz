@@ -10,6 +10,7 @@
     - [Python REPL](#repl)
 - [Modules](#modules)
     - [`utz.proc`: `subprocess` wrappers; shell out commands, parse output](#utz.proc)
+        - [`utz.proc.aio`: async `subprocess` wrappers](#utz.proc.aio)
     - [`utz.collections`: collection/list helpers](#utz.collections)
     - [`utz.env`: `os.environ` wrapper + `contextmanager`](#utz.env)
     - [`utz.fn`: decorator/function utilities](#utz.fn)
@@ -95,6 +96,27 @@ pipeline(['seq 10', 'head -n5'])  # '1\n2\n3\n4\n5\n'
 ```
 
 See also: [`test_proc.py`].
+
+#### [`utz.proc.aio`]: async [`subprocess`] wrappers <a id="utz.proc.aio"></a>
+Async versions of most [`utz.proc`] helpers are also available:
+
+```python
+from utz.proc.aio import *
+import asyncio
+from asyncio import gather
+
+async def test():
+  _1, _2, _3, nums = await gather(*[
+      run('sleep', '1'),
+      run('sleep', '2'),
+      run('sleep', '3'),
+      lines('seq', '10'),
+  ])
+  return nums
+
+asyncio.run(test())
+# ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+```
 
 ### [`utz.collections`]: collection/list helpers <a id="utz.collections"></a>
 
@@ -554,6 +576,7 @@ Some repos that use `utz`:
 [`utz.plot`]: src/utz/plots.py
 [`utz.pnds`]: src/utz/pnds.py
 [`utz.proc`]: src/utz/proc/__init__.py
+[`utz.proc.aio`]: src/utz/proc/aio.py
 [`utz.process`]: src/utz/process/__init__.py
 [`utz.setup`]: src/utz/setup.py
 [`utz.size`]: src/utz/size.py
