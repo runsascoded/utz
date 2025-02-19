@@ -6,9 +6,8 @@ from datetime import datetime as dt, timezone
 from sys import stderr
 from time import perf_counter
 from types import TracebackType
-from typing_extensions import Self
 
-from .o import o
+from utz.o import o
 
 
 utc = timezone.utc
@@ -38,7 +37,7 @@ class Time:
         self._cur_timer = None
         self._cur_start = 0
 
-    def __call__(self, name: str | None = None) -> Self:
+    def __call__(self, name: str | None = None) -> "Time":
         prev_end = perf_counter()
         if self._cur_timer:
             self.times[self._cur_timer] = prev_end - self._cur_start
