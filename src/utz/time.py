@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import KeysView, ItemsView, ValuesView
+
 from datetime import datetime as dt, timezone
 from sys import stderr
 from time import perf_counter
@@ -63,6 +65,15 @@ class Time:
 
     def __getitem__(self, name: str) -> float:
         return self.times[name]
+
+    def keys(self) -> KeysView[str]:
+        return self.times.keys()
+
+    def values(self) -> ValuesView[float]:
+        return self.times.values()
+
+    def items(self) -> ItemsView[str, float]:
+        return self.times.items()
 
 
 class now:
