@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import KeysView, ItemsView, ValuesView
+from typing import KeysView, ItemsView, ValuesView, Callable
 
 from datetime import datetime as dt, timezone
 from sys import stderr
 from time import perf_counter
 from types import TracebackType
 
+from utz.proc import err
 from utz.o import o
 
 
@@ -32,21 +33,37 @@ class Time:
     >>>     sleep(1)
     >>> print(f'Run took {time["run"]:.1f}s')
     """
-    def __init__(self):
+    def __init__(self, log: str | True | Callable[[str, float], str] | None = None):
         self.times = {}
         self._cur_timer = None
         self._cur_start = 0
 
-    def __call__(self, name: str | None = None) -> "Time":
+        if log is True:
+            log = "{k} took {v:.3g}s"
+        if isinstance(log, str):
+            def fmt_fn(k, v):
+                return log.format(k=k, v=v)
+            self._log = fmt_fn
+        elif log is None:
+            self._log = None
+        else:
+            self._log = log
+
+    def end(self):
         prev_end = perf_counter()
         if self._cur_timer:
-            self.times[self._cur_timer] = prev_end - self._cur_start
+            v = prev_end - self._cur_start
+            self.times[self._cur_timer] = v
+            if self._log:
+                err(self._log(self._cur_timer, v))
+            self._cur_timer = None
+            self._cur_start = 0
+
+    def __call__(self, name: str | None = None) -> "Time":
+        self.end()
         if name:
             self._cur_timer = name
             self._cur_start = perf_counter()
-        else:
-            self._cur_timer = None
-            self._cur_start = 0
         return self
 
     def __enter__(self):
@@ -61,6 +78,13 @@ class Time:
         self()
         if exc_value:
             raise exc_value
+
+    def fmt(self, fmt_spec: str = ".3g") -> dict[str, float]:
+        fmt_str = "{:%s}" % fmt_spec
+        return {
+            k: float(fmt_str.format(v))
+            for k, v in self.times.items()
+        }
 
     def __getitem__(self, name: str) -> float:
         return self.times[name]
