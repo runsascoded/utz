@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import AbstractContextManager, contextmanager
-from typing import ContextManager, Generator, Sequence, TypeVar
+from typing import ContextManager, Generator, Sequence, TypeVar, Iterator
 
 T = TypeVar("T")
 
@@ -11,7 +11,7 @@ T = TypeVar("T")
 Yield = Generator[T, None, None]
 
 
-def contexts(*ctxs: ContextManager | Sequence[ContextManager]) -> ContextManager:
+def contexts(*ctxs: ContextManager | Sequence[ContextManager] | Iterator) -> ContextManager:
     """Compose context managers."""
     ctxs = [
         ctx
