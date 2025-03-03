@@ -1,2 +1,2 @@
-import proc
-import proc as process  # alias
+from . import proc
+from . import proc as process  # alias
