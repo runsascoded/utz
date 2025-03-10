@@ -23,8 +23,12 @@ class Tracker:
         native_traces: bool = True,
         follow_fork: bool = True,
         log: Log | bool | Literal[0, 1, 2] = None,
+        stats: bool = True,
+        flamegraph: bool = True,
         **kwargs,
     ):
+        if not stats and not flamegraph and not keep:
+            raise ValueError("At least one of {stats, flamegraph, keep} should be True")
         self.path = path
         self.keep = keep
         self.verbose = 1
@@ -45,6 +49,8 @@ class Tracker:
         )
         self.peak_mem = None
         self.stats = None
+        self.compute_stats = stats
+        self.compute_flamegraph = flamegraph
         self.tracker = None
 
     def __enter__(self):
@@ -52,7 +58,7 @@ class Tracker:
         assert not self.tracker, f"Attempted to `__enter__` MemTracker before `__exit__`ing"
         path = self.path
         if path is None:
-            path = self.path = NamedTemporaryFile(dir=getcwd(), suffix=".bin").name
+            path = self.path = NamedTemporaryFile(dir=getcwd(), suffix=".memray").name
             self.tmpfile = True
         elif exists(path):
             self.log(f"mem.Tracker removing {path}")
@@ -72,6 +78,14 @@ class Tracker:
         else:
             return f'{splitext(self.path)[0]}.stats.json'
 
+    @property
+    def flamegraph_path(self) -> str | None:
+        path = self.path
+        if path is None:
+            return path
+        else:
+            return f'{splitext(self.path)[0]}.html'
+
     def __exit__(
         self,
         exc_type: type[BaseException] | None,
@@ -81,15 +95,22 @@ class Tracker:
         self.tracker.__exit__(exc_type, exc_value, exc_tb)
         self.tracker = None
         rm = self.keep is False or (self.keep is None and self.tmpfile)
-        stats_path = self.stats_path
-        if not exc_value:
-            proc.run(
-                'memray', 'stats', '--json',
-                '-fo', stats_path,
-                self.path,
-                log=self.log,
-                **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
-            )
+        if self.compute_stats:
+            stats_path = self.stats_path
+            if not exc_value:
+                proc.run(
+                    'memray', 'stats', '--json', '-fo', stats_path, self.path,
+                    log=self.log,
+                    **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                )
+        if self.compute_flamegraph:
+            flamegraph_path = self.flamegraph_path
+            if not exc_value:
+                proc.run(
+                    'memray', 'flamegraph', '-fo', flamegraph_path, self.path,
+                    log=self.log,
+                    **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                )
         if rm:
             remove(self.path)
             self.path = None

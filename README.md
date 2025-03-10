@@ -248,7 +248,7 @@ python cli.py -m 1Gi -v
 See [`test_cli`] for more examples.
 
 ### [`utz.mem`]: [memray] wrapper <a id="utz.mem"></a>
-Use [memray] to profile memory allocations, extract stats and peak memory use:
+Use [memray] to profile memory allocations, extract stats, flamegraph HTML, and peak memory use:
 
 ```python
 from utz.mem import Tracker
