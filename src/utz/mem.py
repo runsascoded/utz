@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+from asyncio import gather, set_event_loop
+
 from typing import Literal
 
 import json
@@ -11,7 +14,8 @@ from types import TracebackType
 
 import memray
 
-from utz import proc, err
+from utz import err
+from utz.aio import proc
 from utz.process.log import Log, silent
 
 
@@ -95,22 +99,40 @@ class Tracker:
         self.tracker.__exit__(exc_type, exc_value, exc_tb)
         self.tracker = None
         rm = self.keep is False or (self.keep is None and self.tmpfile)
+        coros = []
         if self.compute_stats:
             stats_path = self.stats_path
             if not exc_value:
-                proc.run(
-                    'memray', 'stats', '--json', '-fo', stats_path, self.path,
-                    log=self.log,
-                    **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                coros.append(
+                    proc.run(
+                        'memray', 'stats', '--json', '-fo', stats_path, self.path,
+                        log=self.log,
+                        **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                    )
                 )
         if self.compute_flamegraph:
             flamegraph_path = self.flamegraph_path
             if not exc_value:
-                proc.run(
-                    'memray', 'flamegraph', '-fo', flamegraph_path, self.path,
-                    log=self.log,
-                    **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                coros.append(
+                    proc.run(
+                        'memray', 'flamegraph', '-fo', flamegraph_path, self.path,
+                        log=self.log,
+                        **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
+                    )
                 )
+        if coros:
+            try:
+                # If we're already in an event loop
+                loop = asyncio.get_running_loop()
+                loop.run_until_complete(gather(*coros))
+            except RuntimeError:
+                # If no event loop is running, create one
+                loop = asyncio.new_event_loop()
+                set_event_loop(loop)
+                try:
+                    loop.run_until_complete(asyncio.gather(*coros))
+                finally:
+                    loop.close()
         if rm:
             remove(self.path)
             self.path = None
