@@ -1,25 +1,24 @@
 from __future__ import annotations
 
-import asyncio
 from asyncio import gather, set_event_loop
-
-from typing import Literal
-
-import json
 from os import getcwd, remove, makedirs
 from os.path import splitext, exists, dirname
+
+import asyncio
+import json
+import memray
+from contextlib import AbstractContextManager, AbstractAsyncContextManager
 from subprocess import DEVNULL
 from tempfile import NamedTemporaryFile
 from types import TracebackType
-
-import memray
+from typing import Literal, Self
 
 from utz import err
 from utz.aio import proc
 from utz.process.log import Log, silent
 
 
-class Tracker:
+class Tracker(AbstractContextManager, AbstractAsyncContextManager):
     def __init__(
         self,
         path: str | None = None,
@@ -57,7 +56,7 @@ class Tracker:
         self.compute_flamegraph = flamegraph
         self.tracker = None
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.peak_mem = self.stats = None
         assert not self.tracker, f"Attempted to `__enter__` MemTracker before `__exit__`ing"
         path = self.path
@@ -73,6 +72,9 @@ class Tracker:
         self.tracker = memray.Tracker(path, **self.kwargs)
         self.tracker.__enter__()
         return self
+
+    async def __aenter__(self) -> Self:
+        return self.__enter__()
 
     @property
     def stats_path(self) -> str | None:
@@ -90,7 +92,7 @@ class Tracker:
         else:
             return f'{splitext(self.path)[0]}.html'
 
-    def __exit__(
+    async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
@@ -120,19 +122,8 @@ class Tracker:
                         **(dict() if self.verbose > 1 else dict(stdout=DEVNULL)),
                     )
                 )
-        if coros:
-            try:
-                # If we're already in an event loop
-                loop = asyncio.get_running_loop()
-                loop.run_until_complete(gather(*coros))
-            except RuntimeError:
-                # If no event loop is running, create one
-                loop = asyncio.new_event_loop()
-                set_event_loop(loop)
-                try:
-                    loop.run_until_complete(asyncio.gather(*coros))
-                finally:
-                    loop.close()
+
+        await gather(*coros)
         if rm:
             remove(self.path)
             self.path = None
@@ -144,3 +135,25 @@ class Tracker:
             remove(stats_path)
         self.stats = stats
         self.peak_mem = stats['metadata']['peak_memory']
+
+        pass
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_tb: TracebackType | None,
+    ):
+        coro = self.__aexit__(exc_type, exc_value, exc_tb)
+        try:
+            # If we're already in an event loop
+            loop = asyncio.get_running_loop()
+            loop.run_until_complete(coro)
+        except RuntimeError:
+            # If no event loop is running, create one
+            loop = asyncio.new_event_loop()
+            set_event_loop(loop)
+            try:
+                loop.run_until_complete(coro)
+            finally:
+                loop.close()
