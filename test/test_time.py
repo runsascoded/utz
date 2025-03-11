@@ -1,9 +1,12 @@
+from unittest.mock import patch
 
 from datetime import datetime
 import pytest
+from pytest import approx
 from pytz import UTC
 
-from utz import b62, b64, b90, now, o, today
+from utz import b62, b64, b90, now, o, today, Time
+
 to_dt = now.to_dt
 
 
@@ -106,3 +109,59 @@ def test_encodings(debug, codec, cases, t2021):
         codec(now(d=instant).ms),
         codec(now(d=instant).us),
     ) == t2021
+
+
+class FakeTimer:
+    def __init__(self, start=0.0, increment=0.1):
+        self.value = start
+        self.increment = increment
+        # self.orig_increment = increment
+
+    def __call__(self):
+        result = self.value
+        self.value += self.increment
+        # self.increment += self.orig_increment
+
+        return result
+
+
+def test_timer():
+    with patch('utz.time.perf_counter', FakeTimer()):
+        time = Time()
+        time("a")
+        time("b")
+        time("c")
+        time()
+
+    assert time.times == approx({
+        'a': 0.1,
+        'b': 0.1,
+        'c': 0.1,
+    })
+
+
+def test_timer_ctx():
+    with patch('utz.time.perf_counter', FakeTimer()):
+        time = Time()
+        with time("a"):
+            time("b")
+            time("c")
+
+        with time("d"):
+            pass
+
+        with time("e"), time("f"):
+            with time("g"):
+                time("h")
+                time()
+
+    assert time.times == approx({
+        'a': 0.4,
+        'b': 0.1,
+        'c': 0.1,
+        'd': 0.1,
+        'e': 0.9,
+        'f': 0.6,
+        'g': 0.3,
+        'h': 0.1,
+    })

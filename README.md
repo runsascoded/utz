@@ -263,7 +263,7 @@ print(f'Peak memory use: {peak_mem:,} ({iec(peak_mem)})')
 
 ### [`utz.time`]: `Time` timer, `now`/`today` helpers <a id="utz.time"></a>
 
-#### `Time`: timer class
+#### `Time`: minimal timer class
 
 ```python
 from utz import Time, sleep
@@ -271,14 +271,17 @@ from utz import Time, sleep
 time = Time()
 time("step 1")
 sleep(1)
-time("step 2")
+time("step 2")  # Ends "step 1" timer
 sleep(1)
-time()  # "close" "step 2"
+time()  # Ends "step 2" timer
 print(f'Step 1 took {time["step 1"]:.1f}s, step 2 took {time["step 2"]:.1f}s.')
 # Step 1 took 1.0s, step 2 took 1.0s.
 
-# Can also be used as a contextmanager:
-with time("run"):
+# contextmanager timers can overlap/contain others
+with time("run"):    # ≈2s
+    time("sleep-1")  # ≈1s
+    sleep(1)
+    time("sleep-2")  # ≈1s
     sleep(1)
 
 print(f'Run took {time["run"]:.1f}s')

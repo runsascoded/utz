@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from typing import KeysView, ItemsView, ValuesView, Callable
 
 from datetime import datetime as dt, timezone
@@ -37,6 +39,8 @@ class Time:
         self.times = {}
         self._cur_timer = None
         self._cur_start = 0
+        # `__{enter,exit}__`s push and pop timer names to and from this stack
+        self._ctx_stack = []
 
         if log is True:
             log = "{k} took {v:.3g}s"
@@ -49,24 +53,41 @@ class Time:
         else:
             self._log = log
 
-    def end(self):
-        prev_end = perf_counter()
+    def save(self, name: str, duration: float):
+        """Record a duration associated with a timer name, and optionally log a message about it."""
+        self.times[name] = duration
+        if self._log:
+            err(self._log(name, duration))
+
+    def end(self, ts: float | None = None):
+        """End and save any active timer."""
         if self._cur_timer:
-            v = prev_end - self._cur_start
-            self.times[self._cur_timer] = v
-            if self._log:
-                err(self._log(self._cur_timer, v))
+            prev_end = ts or perf_counter()
+            duration = prev_end - self._cur_start
+            self.save(self._cur_timer, duration)
             self._cur_timer = None
             self._cur_start = 0
 
     def __call__(self, name: str | None = None) -> "Time":
-        self.end()
+        """Primary method for recording a named timer."""
+        self.end()  # End any active timer
         if name:
+            # Start a new timer
             self._cur_timer = name
             self._cur_start = perf_counter()
         return self
 
+    @contextmanager
+    def ctx(self, name: str):
+        with self(name):
+            yield
+
     def __enter__(self):
+        """Push the current timer onto the "context stack"."""
+        if self._cur_timer is not None:
+            self._ctx_stack.append((self._cur_timer, perf_counter()))
+            self._cur_timer = None
+            self._cur_start = 0
         return self
 
     def __exit__(
@@ -75,11 +96,19 @@ class Time:
         exc_value: BaseException | None,
         exc_tb: TracebackType | None,
     ):
-        self()
+        """End the most-recently `__enter__`d timer."""
+        end = perf_counter()
+        self.end(end)
+        if self._ctx_stack:
+            name, start = self._ctx_stack.pop()
+            duration = end - start
+            self.save(name, duration)
+
         if exc_value:
             raise exc_value
 
     def fmt(self, fmt_spec: str = ".3g") -> dict[str, float]:
+        """Format the accumulated timings."""
         fmt_str = "{:%s}" % fmt_spec
         return {
             k: float(fmt_str.format(v))
