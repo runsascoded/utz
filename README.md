@@ -17,6 +17,7 @@
         - [`utz.decos`: compose decorators](#utz.decos)
         - [`utz.call`: only pass expected `kwargs` to functions](#utz.call)
     - [`utz.jsn`: `JsonEncoder` for datetimes, `dataclasses`](#utz.jsn)
+    - [`utz.context`: `{async,}contextmanager` helpers](#utz.context)
     - [`utz.cli`: `click` helpers](#utz.cli)
     - [`utz.mem`: memray wrapper](#utz.mem)
     - [`utz.time`: `Time` timer, `now`/`today` helpers](#utz.time)
@@ -207,6 +208,11 @@ print(json.dumps(A(111), cls=Encoder))
 ```
 
 See [`test_jsn.py`] for more examples.
+
+### [`utz.context`]: `{async,}contextmanager` helpers <a id="utz.context"></a>
+- `ctxs`: compose `contextmanager`s
+- `actxs`: compose `asynccontextmanager`s
+- `with_exit_hook`: wrap a `contextmanager`'s `__exit__` method in another `contextmanager`
 
 ### [`utz.cli`]: [`click`] helpers <a id="utz.cli"></a>
 [`utz.cli`] provides wrappers around `click.option` for parsing common option formats:

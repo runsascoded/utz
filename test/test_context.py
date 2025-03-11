@@ -1,9 +1,12 @@
-from contextlib import contextmanager
+import asyncio
+from asyncio import sleep
 
-import pytest
+from contextlib import contextmanager, asynccontextmanager
+
+from pytest import raises
 from tempfile import NamedTemporaryFile
 
-from utz import exists, AbstractContextManager, contexts
+from utz import exists, AbstractContextManager, contexts, acontexts, Time
 
 
 class EnterException(Exception): pass
@@ -53,7 +56,7 @@ def test_contexts_complex():
     for f in [ f1, f2, f3 ]:
         assert exists(f.name)
 
-    with pytest.raises(EnterException):
+    with raises(EnterException):
         with contexts(
             f1,
             TestCtx(111),
@@ -108,3 +111,32 @@ def test_contexts_order():
     n = 2
     with contexts(to_str(), double()) as (_s, _n):
         assert n == '22'
+
+
+@asynccontextmanager
+async def exit_sleep(s: float):
+    try:
+        yield
+    finally:
+        await sleep(s)
+
+
+async def _test_acontexts(time: Time):
+    async with acontexts(
+        exit_sleep(0.1),
+        exit_sleep(0.1),
+        exit_sleep(0.1),
+    ):
+        with time("inside"):
+            pass
+
+
+def test_acontexts():
+    time = Time()
+    with time("acontexts"):
+        asyncio.run(_test_acontexts(time))
+
+    inside = time.times["inside"]
+    assert 0 < inside < 1e-5
+    total = time.times["acontexts"]
+    assert 0.1 < total < 0.11
