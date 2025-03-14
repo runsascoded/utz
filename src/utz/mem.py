@@ -18,6 +18,9 @@ from utz.aio import proc
 from utz.process.log import Log, silent
 
 
+Verbosity = Literal[0, 1, 2]
+
+
 class Tracker(AbstractContextManager, AbstractAsyncContextManager):
     def __init__(
         self,
@@ -25,7 +28,7 @@ class Tracker(AbstractContextManager, AbstractAsyncContextManager):
         keep: bool | None = None,
         native_traces: bool = True,
         follow_fork: bool = True,
-        log: Log | bool | Literal[0, 1, 2] = None,
+        log: Log | bool | Verbosity = None,
         stats: bool = True,
         flamegraph: bool = True,
         **kwargs,
