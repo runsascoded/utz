@@ -29,7 +29,7 @@ def args(fn, kwargs):
 
 def call(fn, *_args, **kwargs):
     """Call a function with only the kwargs that it is able to receive."""
-    return fn(*_args, args(fn, kwargs))
+    return fn(*_args, **args(fn, kwargs))
 
 
 def recvs(fn: Callable, k: str) -> bool:

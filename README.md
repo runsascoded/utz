@@ -151,7 +151,7 @@ assert 'FOO' not in os.environ
 
 The `env()` contextmanager also supports configurable [`on_conflict`] and [`on_exit`] kwargs, for handling env vars that were patched, then changed while the context was active.
 
-See also [`test_env.py`].
+See also: [`test_env.py`].
 
 ### [`utz.fn`]: decorator/function utilities <a id="utz.fn"></a>
 
@@ -187,6 +187,8 @@ kwargs = dict(a=11, b='22', c=33, d=44)
 call(fn1, **kwargs)  # passes {a, b}, not {c, d}
 call(fn2, **kwargs)  # passes {a, b, c}, not {d}
 ```
+
+See also: [`test_fn.py`].
 
 ### [`utz.jsn`]: `JsonEncoder` for datetimes, `dataclasses` <a id="utz.jsn"></a>
 ```python
@@ -599,6 +601,7 @@ Some repos that use `utz`:
 [`test_collections.py`]: test/test_collections.py
 [`test_context.py`]: test/test_context.py
 [`test_env.py`]: test/test_env.py
+[`test_fn.py`]: test/test_fn.py
 [`test_gzip.py`]: test/test_gzip.py
 [`test_jsn.py`]: test/test_jsn.py
 [`test_parametrize.py`]: test/test_parametrize.py

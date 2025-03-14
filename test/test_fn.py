@@ -1,15 +1,15 @@
 from functools import wraps
 
-from utz import recvs
+from utz import recvs, call
 
 
 def fn1(a, b):
-    pass
+    return dict(a=a, b=b)
 
 
 @wraps(fn1)
 def fn2(a, c, **kwargs):
-    pass
+    return dict(a=a, c=c, kwargs=kwargs)
 
 
 def test_recvs():
@@ -21,3 +21,11 @@ def test_recvs():
     assert recvs(fn2, 'b')
     assert recvs(fn2, 'c')
     assert not recvs(fn2, 'd')
+
+
+def test_call():
+    assert call(fn1, a=1, b=2) == dict(a=1, b=2)
+    assert call(fn1, a=1, b=2, c=3) == dict(a=1, b=2)
+
+    assert call(fn2, a=1, b=2, c=3) == dict(a=1, c=3, kwargs=dict(b=2))
+    assert call(fn2, a=1, b=2, c=3, d=4) == dict(a=1, c=3, kwargs=dict(b=2))
