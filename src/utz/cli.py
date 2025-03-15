@@ -174,9 +174,10 @@ def multi(
 
 
 paths = partial(multi, sep=':')
+flag = partial(option, is_flag=True)
 
 
-def flag(*names, default=None, **kwargs):
+def flags(*names, default=None, **kwargs):
     def long_opt(name):
         _default = False
         if name.startswith('no-'):
