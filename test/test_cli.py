@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import pytest
 import typing
-from click import command
+from click import command, argument
 from click.testing import CliRunner
 from functools import partial
 from typing import Literal
 
-from utz.cli import cmd, count, num, obj, flag, parse_int, multi
+from utz.cli import cmd, count, num, obj, flag, parse_int, multi, inc_exc, incs, multi_cb, excs
+from utz.rgx import Patterns, Includes
+
+parametrize = pytest.mark.parametrize
 
 Verbosity = Literal["warn", "info", "debug"]
 Verbosities = typing.get_args(Verbosity)
@@ -24,12 +28,15 @@ def _check(
     actual_lines = res.output.split('\n')
     if not actual_lines[-1]:
         actual_lines.pop()
-    assert actual_lines == list(expected_lines)
-    assert res.exit_code == exit_code
-    if not exit_code:
-        assert res.exception is None
+
+    expected = [ list(expected_lines), exit_code ]
+    actual = [ actual_lines, res.exit_code ]
+    if exit_code == 0 and res.exit_code != 0:
+        raise res.exception
     if msg is not None:
-        assert res.exception.args == (msg,)
+        expected.append((msg,))
+        actual.append(res.exception.args)
+    assert actual == expected
 
 
 def checks(cli):
@@ -205,3 +212,99 @@ def test_multi():
         "",
         "Error: Invalid value for '-n' / '--num': failed to parse \"12a\"",
     )
+
+
+# Example strings to test vs. regexs /a./ and /b/ below
+matches = ['aa', 'bc', 'cb']
+misses = ['c', 'a', 'AA', 'B']
+args = matches + misses
+
+
+def test_inc_exc():
+    @command
+    @inc_exc(
+        multi('-i', '--include', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
+        multi('-x', '--exclude', help="Print arguments iff they don't match any of these regexs; comma-delimited, and can be passed multiple times"),
+    )
+    @argument('vals', nargs=-1)
+    def cli(patterns: Patterns, vals: tuple[str, ...]):
+        for val in vals:
+            if patterns(val):
+                print(val)
+
+    check, fail = checks(cli)
+    check(['-i', 'a.,b', *args], *matches)
+    check(['-i', 'a.', '--include', 'b', *args], *matches)
+    check(['-x', 'a.,b', *args], *misses)
+    check(['-x', 'a.', '--exclude', 'b', *args], *misses)
+    fail(['-i', 'a', '-x', 'b'], msg='Pass -i/--include xor -x/--exclude', exit_code=1)
+
+
+@parametrize(
+    'deco,args,expected', [
+        *[
+            (deco, args, expected)
+            for deco in [
+                # `incs` can receive a fully-constructed `click` decorator, e.g. using the `multi` helper:
+                incs(multi('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times")),
+                # `incs` can also receive args/kwargs that will be passed to `click.option`, to construct a decorator; this example recreates what `multi` does above:
+                incs('-i', '--include', 'patterns', multiple=True, callback=multi_cb, help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
+            ]
+            for args, expected in [
+                ([ '-i', 'a.,b', *matches, *misses ], matches),
+                ([ '-i', 'a.', '--include', 'b', *matches, *misses ], matches),
+                ([ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['AAA', 'CCC']),
+            ]
+        ],
+        (
+            # Simple, non-"multi" version:
+            incs('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
+            [ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['AAA', 'CCC'],
+        ),
+        *[
+            (deco, args, expected)
+            for deco in [
+                # Similarly, `excs` can receive a fully-constructed `click` decorator, e.g. using the `multi` helper:
+                excs(multi('-x', '--exclude', 'patterns', help="Print arguments iff they don't match any of these regexs; comma-delimited, and can be passed multiple times")),
+                # `excs` can also receive args/kwargs that will be passed to `click.option`, to construct a decorator; this example recreates what `multi` does above:
+                excs('-x', '--exclude', 'patterns', multiple=True, callback=multi_cb, help="Print arguments iff they don't match any of these regexs; comma-delimited, and can be passed multiple times"),
+            ]
+            for args, expected in [
+                ([ '-x', 'a.,b', *matches, *misses], misses),
+                ([ '-x', 'a.', '--exclude', 'b', *matches, *misses], misses),
+                ([ '-x', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['bbb', 'ddd']),
+            ]
+        ],
+        (
+            # Simple, non-"multi" version:
+            excs('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
+            [ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['bbb', 'ddd'],
+        ),
+    ],
+)
+def test_incs(deco, args, expected):
+    @command
+    @deco
+    @argument('vals', nargs=-1)
+    def cli(patterns: Patterns, vals: tuple[str, ...]):
+        for val in vals:
+            if patterns(val):
+                print(val)
+
+    check, _ = checks(cli)
+    check(args, *expected)
+
+
+def test_incs_arg():
+    @command
+    @argument('val_str')
+    # `incs` can even accept a `click.argument`; in this case, multiple comma-delimited strings are accepted:
+    @incs(argument('includes', callback=multi_cb, nargs=-1))
+    def cli(val_str: str, includes: Includes):
+        for val in val_str.split(' '):
+            if includes(val):
+                print(val)
+
+    check, _ = checks(cli)
+    check([' '.join(args), 'a.', 'b'], *matches)
+    check([' '.join(args), 'a.,b'], *matches)

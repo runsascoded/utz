@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from functools import partial
-
+import re
+from click import argument, command, Context, option, Parameter, BadParameter, Option, Argument
+from functools import partial, wraps
+from re import fullmatch, IGNORECASE
 from typing import Sequence, Any, Callable
 
-import re
-from re import fullmatch, IGNORECASE
-
-from click import command as cmd, Context, option, option as opt, Parameter, BadParameter
+from utz.rgx import Includes, Excludes, Patterns
 
 INT_RGX = re.compile(r'(?P<base>[\d.]+)(?P<suffix>[kmbg]i?)', flags=IGNORECASE)
 ORDERS_SI  = { 'k': 2**10, 'm': 2**20, 'g': 2**30 }
 ORDERS_IEC = { 'k': 1e3  , 'm': 1e6  , 'g': 1e9  , 'b': 1e9 }
+
+arg = argument
+cmd = command
+opt = option
 
 
 def parse_int(value: str | int | None) -> int:
@@ -108,7 +111,7 @@ def dict_cb(
     for kv in value:
         pcs = kv.split('=', 1)
         if len(pcs) != 2:
-            raise BadParameter(f"bad value: {kv}")
+            raise BadParameter(f"bad value: {kv}", ctx, param)
         k, v = pcs
         if parse:
             v = parse(v)
@@ -133,12 +136,16 @@ def obj(
 def multi_cb(
     ctx: Context,
     param: Parameter,
-    value: tuple[str, ...],
-    sep: str = ',',
+    value: str | tuple[str, ...],
+    sep: str | None = ',',
     parse: Parse | None = None,
 ) -> tuple[str, ...]:
     """``click.option`` ``callback`` that combines multiple ``sep``-delimited strings into a ``tuple``."""
+    if sep is None:
+        return value
     rv = []
+    if isinstance(value, str):
+        value = (value,)
     for v in value:
         for s in v.split(sep):
             if parse:
@@ -152,7 +159,7 @@ def multi_cb(
 
 def multi(
     *args: str,
-    sep: str = ',',
+    sep: str | None = ',',
     parse: Parse | None = None,
     multiple: bool = True,
     **kwargs,
@@ -218,3 +225,120 @@ def flag(*names, default=None, **kwargs):
         default=default,
         **kwargs
     )
+
+
+Deco = Callable[[Callable], Callable]
+
+
+def patterns(
+    *args: str | Deco,
+    cls: type[Patterns],
+    flags: int = 0,
+    search: bool = True,
+    **kwargs,
+):
+    """Decorator that parses "include" regexs into an ``Includes`` object.
+
+    include_opt:
+        ``click.option`` specifying
+    kwarg:
+        The returned ``Patterns`` object will be passed to the user's final ``click.Command`` function with this
+        keyword-arg name.
+    flags:
+        Regex flags passed to ``Includes`` or ``Excludes``.
+    search:
+        Passed to ``Includes`` or ``Excludes``, controls use of ``search`` (default) vs. ``fullmatch``.
+    """
+
+    if len(args) == 1 and callable(args[0]) and not kwargs:
+        deco = args[0]
+    else:
+        deco = option(*args, **kwargs)
+
+    def rv(fn):
+
+        nonlocal deco
+        param: Argument | Option | None = None
+
+        @deco
+        @wraps(fn)
+        def _fn(*args, **kwargs):
+            nonlocal param
+            assert param
+            name = param.name
+            pats = kwargs.pop(name)
+            if isinstance(pats, str):
+                pats = (pats,)
+            patterns = cls(pats or None, flags=flags, search=search)
+            return fn(
+                *args,
+                **{ name: patterns },
+                **kwargs,
+            )
+
+        param = _fn.__click_params__[-1]
+
+        return _fn
+
+    return rv
+
+
+includes = incs = partial(patterns, cls=Includes)
+excludes = excs = partial(patterns, cls=Excludes)
+
+
+def include_exclude(
+    include_opt: Deco,
+    exclude_opt: Deco,
+    kwarg: str = 'patterns',
+    flags: int = 0,
+    search: bool = True,
+):
+    """Decorator that adds two exclusive ``click.option``s, for specifying regexs to include or exclude.
+
+    kwarg:
+        The returned ``Patterns`` object will be passed to the user's final ``click.Command`` function with this
+        keyword-arg name.
+    flags:
+        Regex flags passed to ``Includes`` or ``Excludes``.
+    search:
+        Passed to ``Includes`` or ``Excludes``, controls use of ``search`` (default) vs. ``fullmatch``.
+    """
+    patterns_kwargs = dict(flags=flags, search=search)
+
+    def rv(fn):
+
+        include_option: Option | None = None
+        exclude_option: Option | None = None
+
+        @include_opt
+        @exclude_opt
+        @wraps(fn)
+        def _fn(*args, **kwargs):
+            nonlocal include_option, exclude_option
+            assert include_option
+            assert exclude_option
+            includes = kwargs.pop(include_option.name)
+            excludes = kwargs.pop(exclude_option.name)
+            if includes:
+                if excludes:
+                    raise ValueError(f"Pass {'/'.join(include_option.opts)} xor {'/'.join(exclude_option.opts)}")
+                else:
+                    patterns = Includes(includes, **patterns_kwargs)
+            else:
+                patterns = Excludes(excludes, **patterns_kwargs)
+            return fn(
+                *args,
+                **{ kwarg: patterns },
+                **kwargs,
+            )
+
+        include_option = _fn.__click_params__[-1]
+        exclude_option = _fn.__click_params__[-2]
+
+        return _fn
+
+    return rv
+
+
+inc_exc = include_exclude

@@ -222,24 +222,30 @@ See [`test_jsn.py`] for more examples.
 - `@multi`: parse comma-delimited values (or other delimiter), with optional value-`parse` callback (e.g. `-a1,2 -a3` → `(1,2,3)`)
 - `@num`: parse numeric values, including human-readable SI/IEC suffixes (i.e. `10k` → `10_000`)
 - `@obj`: parse dictionaries from multi-value options (e.g. `-eFOO=BAR -eBAZ=QUX` → `dict(FOO="BAR", BAZ="QUX")`)
+- `@incs`/`@excs`: construct an [`Includes` or `Excludes`](#utz.rgx) object for regex-filtering of string arguments
+- `@inc_exc`: combination of `@incs` and `@excs`; constructs an [`Includes` or `Excludes`](#utz.rgx) for regex-filtering of strings, from two (mutually-exclusive) `option`s
 
+Examples:
 ```python
 # cli.py
-from utz.cli import cmd, count, multi, num, obj
-from typing import Literal
+from utz.cli import cmd, count, incs, multi, num, obj
+from utz import Includes, Literal
 
 @cmd  # Alias for `click.command`
 @multi('-a', '--arr', parse=int, help="Comma-separated integers")
 @obj('-e', '--env', help='Env vars, in the form `k=v`')
+@incs('-i', '--include', 'includes', help="Only print `env` keys that match one of these regexs")
 @num('-m', '--max-memory', help='Max memory size (e.g. "100m"')
 @count('-v', '--verbosity', values=['warn', 'info', 'debug'], help='0x: "warn", 1x: "info", 2x: "debug"')
 def main(
     arr: tuple[int, ...],
     env: dict[str, str],
+    includes: Includes,
     max_memory: int,
     verbosity: Literal['warn', 'info', 'debug'],
 ):
-    print(f"{arr} {env} {max_memory} {verbosity}")
+    filtered_env = { k: v for k, v in env.items() if includes(k) }
+    print(f"{arr} {filtered_env} {max_memory} {verbosity}")
 
 if __name__ == '__main__':
     main()
@@ -247,10 +253,35 @@ if __name__ == '__main__':
 
 Saving the above as `cli.py` and running will yield:
 ```bash
-python cli.py -a1,2 -a3 -eAAA=111 -eBBB=222 -m10k
+python cli.py -a1,2 -a3 -eAAA=111 -eBBB=222 -eccc=333 -i[A-Z] -m10k
 # (1, 2, 3) {'AAA': '111', 'BBB': '222'} 10000 warn
 python cli.py -m 1Gi -v
 # () {} 1073741824 info
+```
+
+```python
+from utz.cli import arg, cmd, inc_exc, multi
+from utz.rgx import Patterns
+
+@cmd
+@inc_exc(
+    multi('-i', '--include', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
+    multi('-x', '--exclude', help="Print arguments iff they don't match any of these regexs; comma-delimited, and can be passed multiple times"),
+)
+@arg('vals', nargs=-1)
+def main(patterns: Patterns, vals: tuple[str, ...]):
+    print(' '.join([ val for val in vals if patterns(val) ]))
+
+if __name__ == '__main__':
+    main()
+```
+
+Saving the above as `cli.py` and running will yield:
+```bash
+python cli.py -i a.,b aa bc cb c a AA B
+# aa bc cb
+python cli.py -x a.,b aa bc cb c a AA B
+# c a AA B
 ```
 
 See [`test_cli`] for more examples.

@@ -1,3 +1,13 @@
+"""
+"Export" most members of this module, as well as the standard library (c/o `stdlb`). Add:
+
+```python
+from utz import *
+```
+
+to notebooks (or your `$PYTHONSTARTUP` script) to save lots of `import` boilerplate.
+"""
+
 # Optional-import helper
 from .imports import _try
 
@@ -22,6 +32,7 @@ from .backoff import backoff
 from .bases import b26u, b26l, b36u, b36l, b52, b62, b64, b90
 from .hash import hash_file, HashName
 from .path import mkdir, mkpar
+from .rgx import Patterns, Includes, Excludes
 from os import path
 from .tmpdir import tmpdir
 
