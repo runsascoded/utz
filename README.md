@@ -26,6 +26,7 @@
     - [`utz.ym`: `YM` (year/month) class](#utz.ym)
     - [`utz.cd`: "change directory" contextmanager](#utz.cd)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
+    - [`utz.s3`: S3 utilities](#utz.s3)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
@@ -448,6 +449,27 @@ hash_file('a.gz')  # dfbe03625c539cbc2a2331d806cc48652dd3e1f52fe187ac2f3420dbfb3
 
 See also: [`test_gzip.py`].
 
+### [`utz.s3`]: S3 utilities <a id="utz.s3"></a>
+
+- `client()`: cached boto3 S3 client
+- `parse_bkt_key(args: tuple[str, ...]) -> tuple[str, str]`: parse bucket and key from s3:// URL or separate arguments
+- `get_etag(*args: str, err_ok: bool = False, strip: bool = True) -> str | None`: get ETag of S3 object
+- `get_etags(*args: str) -> dict[str, str]`: get ETags for all objects with the given prefix
+- `atomic_edit(...) -> Iterator[str]`: context manager for atomically editing S3 objects
+
+```python
+from utz import s3, pd
+
+url = 's3://bkt/key.parquet'
+# `url`'s ETag is snapshotted on initial read
+with s3.atomic_edit(url) as out_path:
+    df = pd.read_parquet(url)
+    df.sort_index(inplace=True)
+    df.to_parquet(out_path)
+    # On contextmanager exit, `out_path` is uploaded to `url`, iff
+    # `url`'s ETag hasn't changed (no concurrent update has occurred).
+```
+
 ### [`utz.plot`]: [Plotly] helpers <a id="utz.plots"></a>
 Helpers for Plotly transformations I make frequently, e.g.:
 ```python
@@ -620,6 +642,7 @@ Some repos that use `utz`:
 [`utz.proc`]: src/utz/proc/__init__.py
 [`utz.proc.aio`]: src/utz/proc/aio.py
 [`utz.process`]: src/utz/process/__init__.py
+[`utz.s3`]: src/utz/s3.py
 [`utz.setup`]: src/utz/setup.py
 [`utz.size`]: src/utz/size.py
 [`utz.ssh`]: src/utz/ssh.py
