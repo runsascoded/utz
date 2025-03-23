@@ -28,6 +28,7 @@ extras_require = {
         'kaleido',
         'plotly',
     ],
+    's3': [ 'boto3', 'botocore', ],
     'setup': [ 'setuptools' ],
     'size': [ 'humanize' ],
     'test': [
