@@ -3,6 +3,10 @@
 from collections.abc import MutableMapping
 
 
+def rev(arg: dict) -> dict:
+    return { v: k for k, v in arg.items() }
+
+
 def merge(*args, **kwargs):
     if args:
         (obj, *args) = args

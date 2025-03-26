@@ -64,7 +64,7 @@ from .docker.dsl import *
 # `utz.Yield` is used by some modules below, e.g. `utz.ym`
 from .context import *
 
-from .o import o
+from .o import o, rev
 from .use import use
 from .ym import YM
 from .ymd import YMD
