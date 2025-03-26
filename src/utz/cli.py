@@ -141,11 +141,11 @@ def multi_cb(
     parse: Parse | None = None,
 ) -> tuple[str, ...]:
     """``click.option`` ``callback`` that combines multiple ``sep``-delimited strings into a ``tuple``."""
+    if isinstance(value, str):
+        value = (value,)
     if sep is None:
         return value
     rv = []
-    if isinstance(value, str):
-        value = (value,)
     for v in value:
         for s in v.split(sep):
             if parse:
@@ -268,6 +268,7 @@ def patterns(
             name = param.name
             pats = kwargs.pop(name)
             if isinstance(pats, str):
+                # Non-`multi` version, e.g. `incs('-i', '--include', 'patterns'),`
                 pats = (pats,)
             patterns = cls(pats or None, flags=flags, search=search)
             return fn(
@@ -324,9 +325,9 @@ def include_exclude(
                 if excludes:
                     raise ValueError(f"Pass {'/'.join(include_option.opts)} xor {'/'.join(exclude_option.opts)}")
                 else:
-                    patterns = Includes(includes, **patterns_kwargs)
+                    patterns = Includes(includes or None, **patterns_kwargs)
             else:
-                patterns = Excludes(excludes, **patterns_kwargs)
+                patterns = Excludes(excludes or None, **patterns_kwargs)
             return fn(
                 *args,
                 **{ kwarg: patterns },

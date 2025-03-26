@@ -217,7 +217,7 @@ def test_multi():
 # Example strings to test vs. regexs /a./ and /b/ below
 matches = ['aa', 'bc', 'cb']
 misses = ['c', 'a', 'AA', 'B']
-args = matches + misses
+both = matches + misses
 
 
 def test_inc_exc():
@@ -229,14 +229,16 @@ def test_inc_exc():
     @argument('vals', nargs=-1)
     def cli(patterns: Patterns, vals: tuple[str, ...]):
         for val in vals:
+            assert patterns.pats != []  # patterns.pats should be `None` when no patterns are passed, which also implies `not bool(patterns)`
             if patterns(val):
                 print(val)
 
     check, fail = checks(cli)
-    check(['-i', 'a.,b', *args], *matches)
-    check(['-i', 'a.', '--include', 'b', *args], *matches)
-    check(['-x', 'a.,b', *args], *misses)
-    check(['-x', 'a.', '--exclude', 'b', *args], *misses)
+    check(both, *both)
+    check(['-i', 'a.,b', *both], *matches)
+    check(['-i', 'a.', '--include', 'b', *both], *matches)
+    check(['-x', 'a.,b', *both], *misses)
+    check(['-x', 'a.', '--exclude', 'b', *both], *misses)
     fail(['-i', 'a', '-x', 'b'], msg='Pass -i/--include xor -x/--exclude', exit_code=1)
 
 
@@ -251,16 +253,22 @@ def test_inc_exc():
                 incs('-i', '--include', 'patterns', multiple=True, callback=multi_cb, help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
             ]
             for args, expected in [
-                ([ '-i', 'a.,b', *matches, *misses ], matches),
-                ([ '-i', 'a.', '--include', 'b', *matches, *misses ], matches),
+                ([*both], both),
+                ([ '-i', 'a.,b', *both], matches),
+                ([ '-i', 'a.', '--include', 'b', *both], matches),
                 ([ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['AAA', 'CCC']),
             ]
         ],
-        (
-            # Simple, non-"multi" version:
-            incs('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
-            [ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['AAA', 'CCC'],
-        ),
+        *[
+            (
+                # Simple, non-"multi" version:
+                incs('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited"),
+                args, expected,
+            ) for args, expected in [
+                ([ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['AAA', 'CCC']),
+                ([ 'AAA', 'bbb', 'CCC', 'ddd', ], [ 'AAA', 'bbb', 'CCC', 'ddd', ]),
+            ]
+        ],
         *[
             (deco, args, expected)
             for deco in [
@@ -270,16 +278,22 @@ def test_inc_exc():
                 excs('-x', '--exclude', 'patterns', multiple=True, callback=multi_cb, help="Print arguments iff they don't match any of these regexs; comma-delimited, and can be passed multiple times"),
             ]
             for args, expected in [
-                ([ '-x', 'a.,b', *matches, *misses], misses),
-                ([ '-x', 'a.', '--exclude', 'b', *matches, *misses], misses),
+                ([*both], both),
+                ([ '-x', 'a.,b', *both], misses),
+                ([ '-x', 'a.', '--exclude', 'b', *both], misses),
                 ([ '-x', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['bbb', 'ddd']),
             ]
         ],
-        (
-            # Simple, non-"multi" version:
-            excs('-i', '--include', 'patterns', help="Print arguments iff they match at least one of these regexs; comma-delimited, and can be passed multiple times"),
-            [ '-i', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['bbb', 'ddd'],
-        ),
+        *[
+            (
+                # Simple, non-"multi" version:
+                excs('-x', '--exclude', 'patterns', help="Print arguments iff they don't match any of these regexs; comma-delimited"),
+                args, expected,
+            ) for args, expected in [
+                ([ '-x', '[A-Z]', 'AAA', 'bbb', 'CCC', 'ddd', ], ['bbb', 'ddd']),
+                ([ 'AAA', 'bbb', 'CCC', 'ddd', ], [ 'AAA', 'bbb', 'CCC', 'ddd', ]),
+            ]
+        ],
     ],
 )
 def test_incs(deco, args, expected):
@@ -306,5 +320,5 @@ def test_incs_arg():
                 print(val)
 
     check, _ = checks(cli)
-    check([' '.join(args), 'a.', 'b'], *matches)
-    check([' '.join(args), 'a.,b'], *matches)
+    check([' '.join(both), 'a.', 'b'], *matches)
+    check([' '.join(both), 'a.,b'], *matches)

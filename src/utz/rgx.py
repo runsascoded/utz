@@ -30,7 +30,8 @@ class Patterns(ABC):
 
     def __call__(self, val: str) -> bool:
         pats = self.pats
-        if pats is None:
+        if not self:
+            # `pats is None` ⟹ everything passes this filter
             return True
         else:
             return any(pat.search(val) if self.search else pat.fullmatch(val) for pat in pats)
@@ -42,7 +43,7 @@ class Includes(Patterns):
 
 class Excludes(Patterns):
     def __call__(self, val: str) -> bool:
-        if self.pats is None:
+        if not self:
             return True
         else:
             return not super().__call__(val)
