@@ -224,6 +224,7 @@ See [`test_jsn.py`] for more examples.
 - `@obj`: parse dictionaries from multi-value options (e.g. `-eFOO=BAR -eBAZ=QUX` → `dict(FOO="BAR", BAZ="QUX")`)
 - `@incs`/`@excs`: construct an [`Includes` or `Excludes`](#utz.rgx) object for regex-filtering of string arguments
 - `@inc_exc`: combination of `@incs` and `@excs`; constructs an [`Includes` or `Excludes`](#utz.rgx) for regex-filtering of strings, from two (mutually-exclusive) `option`s
+- `@opt`, `@arg`, `@flag`: wrappers for `click.{option,argument}`, `option(is_flag=True)`
 
 Examples:
 ```python
