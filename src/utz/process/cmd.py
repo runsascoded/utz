@@ -17,11 +17,14 @@ Compiled = tuple[Args, Kwargs]
 
 
 class Cmd(ABC):
+    """Interface for shell (`str`) and non-shell (`list[str]`) commands."""
+
     def compile(
         self,
         log: Log = None,
         both: bool = False,
     ) -> Compiled:
+        """Compile a ``Cmd`` into ``args`` and ``kwargs`` suitable for passing to ``subprocess`` functions."""
         if log:
             log(f'Running: {self}')
         args, kwargs = self._compile()
@@ -45,6 +48,7 @@ class Cmd(ABC):
 
     def mk(
         *args: tuple[Arg, ...],
+        sh: bool | str | None = None,
         shell: bool | str | None = None,
         executable: str | None = None,
         expanduser: bool | None = None,
@@ -52,6 +56,17 @@ class Cmd(ABC):
         elide: Elides = None,
         **kwargs,
     ):
+        """Construct a ``Cmd`` instance.
+
+        - Handles `shell` and non-`shell` modes (including `shell` executable strings, with `sh` as a convenience alias
+          for `shell`)
+        - Optional strings to elide (e.g. secrets); **this has not been security-reviewed, and you should audit the
+          relevant code paths if relying on it**.
+        """
+        if sh is not None:
+            if shell is not None and sh != shell:
+                raise ValueError(f"{sh=} != {shell=}")
+            shell = sh
         if isinstance(shell, str):
             if executable and executable != shell:
                 raise ValueError(f"{shell=} != {executable=}")

@@ -22,23 +22,12 @@ Json = Union[None, list, dict, str, int, float, bool]
 def run(
     *args: Arg,
     dry_run: bool = False,
-    elide: Elides = None,
     log: Log = err,
     check: bool = True,
-    shell: bool | None = None,
-    expanduser: bool | None = None,
-    expandvars: bool | None = None,
     **kwargs,
 ) -> CompletedProcess | None:
     """Convenience wrapper for ``subprocess.check_call``."""
-    cmd = Cmd.mk(
-        *args,
-        shell=shell,
-        expanduser=expanduser,
-        expandvars=expandvars,
-        elide=elide,
-        **kwargs,
-    )
+    cmd = Cmd.mk(*args, **kwargs)
     if dry_run:
         if log:
             log(f'Would run: {cmd}')
@@ -59,11 +48,7 @@ def output(
     dry_run: bool = False,
     both: bool = False,
     err_ok: bool | None = False,
-    elide: Elides = None,
     log: Log = err,
-    shell: bool | None = None,
-    expanduser: bool | None = None,
-    expandvars: bool | None = None,
     **kwargs,
 ) -> bytes | None:
     """Convenience wrapper for ``subprocess.check_output``.
@@ -75,14 +60,7 @@ def output(
 
     ``both=True`` is an alias for ``stderr=STDOUT``.
     """
-    cmd = Cmd.mk(
-        *args,
-        shell=shell,
-        expanduser=expanduser,
-        expandvars=expandvars,
-        elide=elide,
-        **kwargs,
-    )
+    cmd = Cmd.mk(*args, **kwargs)
     if dry_run:
         if log:
             log(f'Would run: {cmd}')
@@ -144,9 +122,9 @@ def check(
 
 def lines(
     *cmd: Arg,
-    keep_trailing_newline: bool = False,
     dry_run: bool = False,
     err_ok: bool = False,
+    keep_trailing_newline: bool = False,
     **kwargs,
 ) -> list[str] | None:
     """Return the lines written to stdout by a command."""

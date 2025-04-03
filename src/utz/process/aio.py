@@ -6,29 +6,18 @@ import asyncio
 from subprocess import CalledProcessError, PIPE, CompletedProcess, DEVNULL
 from typing import Optional
 
-from utz.process import Cmd, err, Arg, Elides, Log, Json
+from utz.process import Cmd, err, Arg, Log, Json
 
 
 async def run(
     *args: Arg,
     dry_run: bool = False,
-    elide: Elides = None,
     log: Log = err,
     check: bool = True,
-    shell: bool | None = None,
-    expanduser: bool | None = None,
-    expandvars: bool | None = None,
     **kwargs,
 ) -> CompletedProcess | None:
     """Async convenience wrapper for subprocess execution."""
-    cmd = Cmd.mk(
-        *args,
-        shell=shell,
-        expanduser=expanduser,
-        expandvars=expandvars,
-        elide=elide,
-        **kwargs,
-    )
+    cmd = Cmd.mk(*args, **kwargs)
     if dry_run:
         if log:
             log(f'Would run: {cmd}')
@@ -60,11 +49,7 @@ async def output(
     dry_run: bool = False,
     both: bool = False,
     err_ok: bool | None = False,
-    elide: Elides = None,
     log: Log = err,
-    shell: bool | None = None,
-    expanduser: bool | None = None,
-    expandvars: bool | None = None,
     **kwargs,
 ) -> Optional[bytes]:
     """Async convenience wrapper for subprocess output capture.
@@ -76,14 +61,7 @@ async def output(
 
     ``both=True`` is an alias for ``stderr=STDOUT``.
     """
-    cmd = Cmd.mk(
-        *args,
-        shell=shell,
-        expanduser=expanduser,
-        expandvars=expandvars,
-        elide=elide,
-        **kwargs,
-    )
+    cmd = Cmd.mk(*args, **kwargs)
     if dry_run:
         if log:
             log(f'Would run: {cmd}')

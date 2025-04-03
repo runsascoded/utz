@@ -11,12 +11,8 @@ def pipeline(
     cmds: list[str] | list[list[str]] | list[Cmd],
     out: str | IO[AnyStr] | None = None,
     mode: Literal['b', 't', None] = None,
-    shell: bool | str | None = None,
-    executable: str | None = None,
     wait: bool = True,
     both: bool = False,
-    expanduser: bool | None = None,
-    expandvars: bool | None = None,
     **kwargs,
 ) -> str | list[Popen] | None:
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
@@ -25,14 +21,7 @@ def pipeline(
 
     cmds = [
         cmd if isinstance(cmd, Cmd) else
-        Cmd.mk(
-            cmd,
-            shell=shell,
-            executable=executable,
-            expanduser=expanduser,
-            expandvars=expandvars,
-            **kwargs,
-        )
+        Cmd.mk(cmd, **kwargs)
         for cmd in cmds
     ]
 
