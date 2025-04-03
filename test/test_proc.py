@@ -89,6 +89,8 @@ class Base(ABC):
     def test_line(mod):
         line = mod.line
         eq(line('echo', 'yay'), 'yay')
+        eq(line('echo $var', env={'var': 'aaa'}), 'aaa')
+        eq(line('echo yay'), 'yay')  # Single string ⟹ `shell=True`
         eq(line('echo', '-n', 'yay'), 'yay')
         eq(line('echo', ''), '')
         eq(line('echo', '-n', '', empty_ok=True), None)
@@ -116,9 +118,9 @@ class Base(ABC):
     def test_interleaved_stdout_stderr(mod):
         lines = mod.lines
         eq(lines(SCRIPT), ['stdout 1', 'stdout 2'])
-        eq(lines([SCRIPT], shell=False), ['stdout 1', 'stdout 2'])
+        eq(lines([SCRIPT]), ['stdout 1', 'stdout 2'])
         eq(lines(SCRIPT, both=True), ['stdout 1', 'stderr 1', 'stdout 2', 'stderr 2'])
-        eq(lines([SCRIPT], shell=False, both=True), ['stdout 1', 'stderr 1', 'stdout 2', 'stderr 2'])
+        eq(lines([SCRIPT], both=True), ['stdout 1', 'stderr 1', 'stdout 2', 'stderr 2'])
 
 
 class TestSubProc(Base):
@@ -161,18 +163,36 @@ def tmp_text_file():
 
 def test_pipeline_vars_no_shell(tmp_text_file):
     with env(FILE=tmp_text_file):
-        output = pipeline(
+        assert pipeline(
             [['cat', '$FILE'], ['head', '-n5']],
-            shell=False,
             expandvars=True,
-        )
-    assert output == '1\n2\n3\n4\n5\n'
+        ) == '1\n2\n3\n4\n5\n'
+
+
+def test_pipeline_vars_err():
+    with raises(
+        CalledProcessError,
+        match=r"Command 'cat \$FILE' returned non-zero exit status 1\.",
+    ) as ei:
+        pipeline([['cat', '$FILE']])
+    assert ei.value.stderr == "cat: '$FILE': No such file or directory\n"
+
+
+def test_pipeline_vars_err2(tmp_text_file):
+    with (
+        env(FILE=tmp_text_file),
+        raises(
+            CalledProcessError,
+            match=r"Command 'grep 11' returned non-zero exit status 1\.",
+        ) as ei,
+    ):
+        pipeline([f'cat {tmp_text_file}', 'grep 11'])
+    assert ei.value.stderr == ""
 
 
 def test_pipeline_vars_shell(tmp_text_file):
     output = pipeline(
         ['cat $FILE', 'head -n5'],
-        shell=True,
         env={ **env, 'FILE': tmp_text_file },
     )
     assert output == '1\n2\n3\n4\n5\n'

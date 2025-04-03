@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from io import UnsupportedOperation, StringIO
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from typing import Literal, AnyStr, IO
 
 from utz.process import Cmd
@@ -43,6 +43,9 @@ def pipeline(
         except UnsupportedOperation:
             use_pipe = True
 
+    # Collect stderr for error reporting (if not redirecting stderr to stdout)
+    stderr_pipes = [] if not both else None
+
     for i, cmd in enumerate(cmds):
         is_last = i + 1 == len(cmds)
 
@@ -50,9 +53,8 @@ def pipeline(
         stdin = None if prev_process is None else prev_process.stdout
 
         def mkproc(stdout=PIPE):
-            args, kwargs = cmd.compile()
-            if both:
-                kwargs['stderr'] = STDOUT
+            args, kwargs = cmd.compile(both=both)
+            kwargs['stderr'] = STDOUT if both else PIPE
             return Popen(
                 args,
                 stdin=stdin,
@@ -81,10 +83,40 @@ def pipeline(
             prev_process.stdout.close()
 
         processes.append(proc)
+        if not both:
+            stderr_pipes.append(proc.stderr)
         prev_process = proc
 
     if not wait:
         return processes
+
+    # Check for errors
+    for i, p in enumerate(processes):
+        return_code = p.wait()
+
+        if return_code != 0:
+            # Collect stderr from the process if available
+            stderr_output = ""
+            if stderr_pipes and i < len(stderr_pipes) and stderr_pipes[i]:
+                stderr_output = stderr_pipes[i].read()
+                if isinstance(stderr_output, bytes):
+                    stderr_output = stderr_output.decode('utf-8', errors='replace')
+
+            # Close all remaining processes
+            for remaining in processes[i+1:]:
+                if remaining.poll() is None:  # if process is still running
+                    remaining.terminate()
+
+            # Prepare the original command for the error message
+            cmd_args, _ = cmds[i].compile()
+            cmd_str = ' '.join(str(arg) for arg in cmd_args) if isinstance(cmd_args, list) else cmd_args
+
+            raise CalledProcessError(
+                return_code,
+                cmd_str,
+                output=None,
+                stderr=stderr_output,
+            )
 
     for p in processes:
         p.wait()
