@@ -78,17 +78,20 @@ from utz.proc import *
 # Run a command
 run('git', 'commit', '-m', 'message')  # Commit staged changes
 
+# Passing a single string implies `shell=True` (for all functions listed here)
 # Return `list[str]` of stdout lines
-lines('git', 'log', '-n5', '--format=%h')  # Last 5 commit SHAs
+lines('git log -n5 --format=%h')  # Last 5 commit SHAs
 
 # Verify exactly one line of stdout, return it
-line('git', 'log', '-1', '--format=%h')  # Current HEAD commit SHA
+line('git log -1 --format=%h')  # Current HEAD commit SHA
 
 # Return stdout as a single string
-output('git', 'log', '-1', '--format=%B')  # Current HEAD commit message
+output('git log -1 --format=%B')  # Current HEAD commit message
 
 # Check whether a command succeeds, suppress output
-check('git', 'diff', '--exit-code', '--quiet')  # `True` iff there are no uncommitted changes
+check('git diff --exit-code --quiet')  # `True` iff there are no uncommitted changes
+# Nested arrays are flattened (for all commands above):
+check(['git', 'diff', ['--exit-code', '--quiet']])
 
 err("This will be output to stderr")
 
