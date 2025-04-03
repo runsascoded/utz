@@ -7,7 +7,7 @@ from sys import stderr
 import subprocess
 from functools import partial
 from subprocess import check_call, CalledProcessError, CompletedProcess, DEVNULL, Popen, PIPE
-from typing import Dict, List, Optional, Union
+from typing import Union
 
 from .cmd import Cmd
 from .log import Log, silent
@@ -16,7 +16,7 @@ from .util import Arg, Elides, parse_cmd
 err = partial(print, file=stderr)
 
 
-Json = Union[None, List, Dict, str, int, float, bool]
+Json = Union[None, list, dict, str, int, float, bool]
 
 
 def run(
@@ -65,7 +65,7 @@ def output(
     expanduser: bool | None = None,
     expandvars: bool | None = None,
     **kwargs,
-) -> Optional[bytes]:
+) -> bytes | None:
     """Convenience wrapper for ``subprocess.check_output``.
 
     By default, logs commands to `err` (stderr) before running (pass `log=None` to disable).
@@ -148,7 +148,7 @@ def lines(
     dry_run: bool = False,
     err_ok: bool = False,
     **kwargs,
-) -> Optional[List[str]]:
+) -> list[str] | None:
     """Return the lines written to stdout by a command."""
     out = output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
     if err_ok is None and out is None:
@@ -171,7 +171,7 @@ def line(
     empty_ok: bool = False,
     err_ok: bool = False,
     **kwargs,
-) -> Optional[str]:
+) -> str | None:
     """Run a command, verify that it returns a single line of output, and return that line."""
     _lines = lines(*cmd, err_ok=err_ok, **kwargs)
     if (empty_ok or err_ok is not False) and not _lines:

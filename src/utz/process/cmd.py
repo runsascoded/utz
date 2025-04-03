@@ -6,14 +6,14 @@ from subprocess import STDOUT
 import shlex
 from abc import ABC
 from dataclasses import dataclass
-from typing import Sequence, Tuple, Any, List, Union
+from typing import Any, Sequence, Union
 
 from utz.process.log import Log
-from utz.process.util import Elides, flatten, Arg, ELIDED
+from utz.process.util import Arg, Elides, flatten, ELIDED
 
-Args = Union[str, List[str]]
+Args = Union[str, list[str]]
 Kwargs = dict[str, Any]
-Compiled = Tuple[Args, Kwargs]
+Compiled = tuple[Args, Kwargs]
 
 
 class Cmd(ABC):
@@ -44,7 +44,7 @@ class Cmd(ABC):
         return cmd
 
     def mk(
-        *args: Tuple[Arg, ...],
+        *args: tuple[Arg, ...],
         shell: bool | str | None = None,
         executable: str | None = None,
         expanduser: bool | None = None,
@@ -93,7 +93,7 @@ class ShellCmd(Cmd):
     def __str__(self) -> str:
         return self.elide_cmd(self.cmd, self.elide)
 
-    def _compile(self) -> Tuple[str, Kwargs]:
+    def _compile(self) -> tuple[str, Kwargs]:
         cmd = self.cmd
         if self.elide:
             if isinstance(self.elide, str):
@@ -123,7 +123,7 @@ class ArrayCmd(Cmd):
     def __str__(self) -> str:
         return self.elide_cmd(shlex.join(self.cmd), self.elide)
 
-    def _compile(self) -> Tuple[list[str], Kwargs]:
+    def _compile(self) -> tuple[list[str], Kwargs]:
         cmd = self.cmd
         if self.expanduser:
             cmd = [ expanduser(arg) for arg in cmd ]
