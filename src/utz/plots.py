@@ -255,7 +255,6 @@ def plot(
     title_layout = dict(title_text=title, title_x=0.5) if title else {}
     if png_title:
         layout.update(title_layout)
-    fig.update_layout(**layout)
 
     if bottom_legend is True:
         fig.update_layout(
@@ -270,6 +269,8 @@ def plot(
         margin = { k: margin for k in 'trbl' }
     if margin:
         fig.update_layout(margin=margin)
+
+    fig.update_layout(**layout)
 
     saved = go.Figure(fig)
     if not png_title:
