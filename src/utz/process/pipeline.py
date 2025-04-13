@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from io import UnsupportedOperation, StringIO
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
-from typing import Literal, AnyStr, IO
+from typing import AnyStr, IO, Literal
 
 from utz.process import Cmd
 

@@ -4,7 +4,6 @@ from json import loads
 
 import asyncio
 from subprocess import CalledProcessError, PIPE, CompletedProcess, DEVNULL
-from typing import Optional
 
 from utz.process import Cmd, err, Arg, Log, Json
 
@@ -51,7 +50,7 @@ async def output(
     err_ok: bool | None = False,
     log: Log = err,
     **kwargs,
-) -> Optional[bytes]:
+) -> bytes | None:
     """Async convenience wrapper for subprocess output capture.
 
     By default, logs commands to `err` (stderr) before running (pass `log=None` to disable).
@@ -144,7 +143,7 @@ async def lines(
     dry_run: bool = False,
     err_ok: bool = False,
     **kwargs,
-) -> Optional[list[str]]:
+) -> list[str] | None:
     """Return the lines written to stdout by a command."""
     out = await output(*cmd, dry_run=dry_run, err_ok=err_ok, **kwargs)
     if err_ok is None and out is None:
@@ -167,7 +166,7 @@ async def line(
     empty_ok: bool = False,
     err_ok: bool = False,
     **kwargs,
-) -> Optional[str]:
+) -> str | None:
     """Run a command, verify that it returns a single line of output, and return that line."""
     _lines = await lines(*cmd, err_ok=err_ok, **kwargs)
     if (empty_ok or err_ok is not False) and not _lines:

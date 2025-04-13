@@ -3,14 +3,14 @@ from __future__ import annotations
 from os import path
 
 import shlex
-from typing import List, Tuple, Union, Sequence
+from typing import Sequence, Union
 
-Arg = Union[None, str, int, List['Arg'], Tuple['Arg']]
+Arg = Union[None, str, int, list['Arg'], tuple['Arg']]
 ELIDED = '****'
-Elides = Union[None, str, List[str]]
+Elides = Union[None, str, list[str]]
 
 
-def flatten(args: Sequence[Arg]) -> Tuple:
+def flatten(args: Sequence[Arg]) -> tuple:
     """Recursively flatten a nested list of arguments."""
     if isinstance(args, list) or isinstance(args, tuple):
         return tuple(
@@ -39,7 +39,7 @@ def parse_cmd(
     expanduser: bool | None = None,
     expandvars: bool | None = None,
     elide: Elides = None,
-) -> Tuple[List[str] | str, str]:
+) -> tuple[list[str] | str, str]:
     """Flatten and stringify a command."""
     if shell:
         if not isinstance(cmd, str):

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import hashlib
-from typing import Literal, Optional
+from typing import Literal
 
 HashName = Literal[
     'md5',
@@ -19,7 +21,11 @@ HashName = Literal[
 ]
 
 
-def hash_file(path: str, hash_name: HashName = 'sha256', chunk_size: Optional[int] = None) -> str:
+def hash_file(
+    path: str,
+    hash_name: HashName = 'sha256',
+    chunk_size: int | None = None,
+) -> str:
     """Return the SHA-256 hash of the file at the given path."""
     try:
         hash_fn = getattr(hashlib, hash_name)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime as dt, date
 import re
 from math import ceil
-from typing import Tuple, Union
+from typing import Union
 
 from utz import Yield
 
@@ -107,7 +107,7 @@ class YM:
         return self.dt.date()
 
     @property
-    def dates(self) -> Tuple[datetime.date, datetime.date]:
+    def dates(self) -> tuple[datetime.date, datetime.date]:
         start = self.date
         end = (self + 1).date
         return start, end

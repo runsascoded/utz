@@ -1,5 +1,6 @@
-from dataclasses import dataclass, asdict
-from typing import Optional, List
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
 
 from utz.dataclasses import from_dict
 from utz.test import raises
@@ -9,24 +10,24 @@ from utz.test import raises
 class A:
     s: str
     n: int
-    b: Optional[bool] = None
+    b: bool | None = None
 
 
 @dataclass
 class B:
     f: float
-    arr: List[A]
+    arr: list[A]
     obj: dict[str, A]
 
 
 @dataclass
 class O1:
-    obj: Optional[dict[int, Optional[A]]] = None
+    obj: dict[int, A | None] | None = None
 
 
 @dataclass
 class O2:
-    arr: Optional[List[Optional[A]]] = None
+    arr: list[A | None] | None = None
 
 
 class C:

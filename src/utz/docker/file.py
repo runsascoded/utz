@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import AbstractContextManager, nullcontext
 import json
 from os.path import exists, join
@@ -5,7 +7,6 @@ from os import getcwd, remove
 import shlex
 from tempfile import NamedTemporaryFile
 from types import TracebackType
-from typing import Optional, Type
 
 from ..proc import sh
 
@@ -51,10 +52,10 @@ class File(AbstractContextManager):
         return self
 
     def __exit__(
-            self,
-            exc_type: Optional[Type[BaseException]],
-            exc_value: Optional[BaseException],
-            traceback: Optional[TracebackType]
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ):
         File._file = None
         if self.tag:

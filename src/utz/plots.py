@@ -6,7 +6,7 @@ from io import TextIOWrapper
 from os import environ as env, makedirs
 from os.path import exists, join, relpath
 from sys import stderr
-from typing import Union, Literal, Tuple, Callable
+from typing import Callable, Literal, Union
 
 import plotly.graph_objects as go
 from IPython.display import Image
@@ -103,13 +103,13 @@ def plot(
     png_title: bool = True,
     yrange: str | None = 'tozero',
     legend: bool | dict | Literal['reversed'] | None = None,
-    bottom_legend: Union[bool, Literal['all']] = False,
+    bottom_legend: bool | Literal['all'] = False,
     pretty: bool = False,
-    margin: Union[None, int, dict, _Unset] = Unset,
+    margin: None | int | dict | _Unset = Unset,
     dir: str | None = None,
     w: int | None = None,
     h: int | None = None,
-    png: dict | int | Tuple[int] | Tuple[int, int] | None = None,
+    png: dict | int | tuple[int] | tuple[int, int] | None = None,
     xtitle: Title = None,
     ytitle: Title = None,
     ltitle: Title = None,
@@ -299,7 +299,7 @@ def plot(
             log(f"Wrote plot JSON to {relpath(json_path)}")
         png_path = join(dir, f'{png_name or name}.png')
         if png:
-            # Convert `int | Tuple[int] | Tuple[int, int]` to `dict`
+            # Convert `int | tuple[int] | tuple[int, int]` to `dict`
             if isinstance(png, tuple):
                 if len(png) == 1:
                     png = dict(w=png[0])

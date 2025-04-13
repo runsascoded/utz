@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import os
 import enum
 import warnings
 from collections.abc import MutableMapping
 from contextlib import contextmanager
-from typing import Any, Dict, Optional, Union, overload, Iterator
+from typing import Any, Iterator, overload
 
 
 class OnConflict(enum.Enum):
@@ -21,7 +23,7 @@ class OnExit(enum.Enum):
 
 class EnvPatchConflict(Exception):
     """Raised when environment variables were modified during the context."""
-    def __init__(self, conflicts: Dict[str, tuple[str, str]]):
+    def __init__(self, conflicts: dict[str, tuple[str, str]]):
         self.conflicts = conflicts
         items = [f"{k}: expected={v[0]!r}, found={v[1]!r}"
                  for k, v in conflicts.items()]
@@ -84,7 +86,7 @@ class Env(MutableMapping):
     @contextmanager
     def _patch(
         self,
-        updates: Dict[str, str],
+        updates: dict[str, str],
         on_conflict: OnConflict = OnConflict.ERROR,
         on_exit: OnExit = OnExit.RESET,
     ):
@@ -140,7 +142,7 @@ class Env(MutableMapping):
     @overload
     def __call__(
         self,
-        updates: Dict[str, str],
+        updates: dict[str, str],
         *,
         on_conflict: OnConflict = OnConflict.ERROR,
         on_exit: OnExit = OnExit.RESET,
@@ -149,12 +151,12 @@ class Env(MutableMapping):
     @overload
     def __call__(
         self,
-        **kwargs: Union[str, OnConflict, OnExit],
+        **kwargs: str | OnConflict | OnExit,
     ) -> Any: ...
 
     def __call__(
         self,
-        updates: Optional[Dict[str, str]] = None,
+        updates: dict[str, str] | None = None,
         *,
         on_conflict: OnConflict = OnConflict.ERROR,
         on_exit: OnExit = OnExit.RESET,

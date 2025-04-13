@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import re
 from functools import wraps
 from os import environ
-from typing import Optional, Literal
+from typing import Literal
 
 import utz
 from utz import proc
@@ -10,7 +12,7 @@ GITHUB_HTTPS_URL_RGX = r'https://github.com/(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.
 GITHUB_SSH_URL_RGX = r'git@github.com:(?P<nameWithOwner>[^/]+/[^/]+?)(?:\.git)?'
 
 
-def parse_url(url: str, err: Literal['raise', 'stderr', 'none'] = 'raise') -> Optional[str]:
+def parse_url(url: str, err: Literal['raise', 'stderr', 'none'] = 'raise') -> str | None:
     m = re.fullmatch(GITHUB_HTTPS_URL_RGX, url)
     if m:
         return m.group('nameWithOwner')

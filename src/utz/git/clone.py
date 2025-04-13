@@ -28,12 +28,12 @@ def tmp(
     commits from it
 
     - `url`: local or remote path to Git repository to be cloned
-    - `clone_args` (List[str]): passed directly to `git clone`
+    - `clone_args` (list[str]): passed directly to `git clone`
     - `branch`: Git branch to operate on inside temporary clone (by default, inherit from origin)
     - `ref`: if `branch` doesn't already exist, reset it to this ref. Note: if `ref` is omitted, `branch` must already
-        exist in the remote! If `ref` is set and `branch` isn't, a temporary/nonced branch name will be used.
+        exist in the remote! If `ref` is set and `branch` isn't, a temporary/nonce branch name will be used.
     - `submodules`: recursively clone submodules (`git clone --recurse-submodules`)
-    - `push` (str | bool | List[str]): run a `git push` after `yield`ing; `str` or `List[str]` serve as arguments to
+    - `push` (str | bool | list[str]): run a `git push` after `yield`ing; `str` or `list[str]` serve as arguments to
         `git push`
     - `pull` (bool): upstream changes post-`yield` by `cd`ing into the origin directory (must be a local dir, otherwise
         use `push`) and running a `git pull` from this temporary clone

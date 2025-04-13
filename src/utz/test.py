@@ -4,12 +4,12 @@ import dataclasses
 from contextlib import contextmanager
 from dataclasses import replace
 from inspect import getfullargspec, getmembers, isfunction
-from typing import Any, Callable, Iterable, Type, TypeVar, Optional, Union
+from typing import Any, Callable, Iterable, TypeVar, Union
 
 # Dataclass type
 Case = TypeVar('Case')
 # Input field value, output string repr (for test-case "ID"s; ``None`` ⟹ omit)
-IdFmtField = Callable[[Any], Optional[str]]
+IdFmtField = Callable[[Any], Union[str, None]]
 # Format function for each dataclass field.
 IdFmts = dict[str, IdFmtField]
 # Unprocessed version of ``IdFmts``, supports key-tuple shorthand for assigning a format-fn value
@@ -195,7 +195,7 @@ def parametrize(
 
 @contextmanager
 def raises(
-    exc_type: Type[Exception],
+    exc_type: type[Exception],
     match: str | list[str] | None = None,
     exact: bool | None = None,
     *args,

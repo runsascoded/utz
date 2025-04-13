@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
-from typing import Optional, Callable, TypeVar, Sequence
+from typing import Callable, Sequence, TypeVar
 
 T = TypeVar("T")
 
@@ -23,8 +25,8 @@ class DefaultDict(dict[str, T]):
     @staticmethod
     def parse_configs(
         configs: Sequence[str],
-        name2value: Optional[Callable[[str], T]] = None,
-        fallback: Optional[T] = Unset,
+        name2value: Callable[[str], T] | None = None,
+        fallback: T | None = Unset,
     ) -> (T, dict[str, T]):
         default = fallback
         default_set = False
@@ -48,8 +50,8 @@ class DefaultDict(dict[str, T]):
     @staticmethod
     def load(
         args: Sequence[str],
-        name2value: Optional[Callable] = None,
-        fallback: Optional[T] = None,
+        name2value: Callable | None = None,
+        fallback: T | None = None,
     ) -> "DefaultDict":
         default, kwargs = DefaultDict.parse_configs(
             args, name2value=name2value, fallback=fallback

@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from contextlib import nullcontext, contextmanager
 from dataclasses import dataclass
 from os import makedirs
 from os.path import dirname, exists, relpath
 from shutil import rmtree
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional
+from typing import Any
 
 from utz import parametrize
 
@@ -114,8 +116,8 @@ def json_load(path: str) -> Any:
 @dataclass
 class case3:
     obj: Any  # Object to JSON-serde
-    dir: Optional[str] = None  # Perform JSON-serde roundtrip in this directory
-    suffix: Optional[str] = None  # Suffix for the temporary file
+    dir: str | None = None  # Perform JSON-serde roundtrip in this directory
+    suffix: str | None = None  # Suffix for the temporary file
 
     @property
     @contextmanager
