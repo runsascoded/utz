@@ -2,13 +2,15 @@ import asyncio
 
 from abc import ABC
 from asyncio import iscoroutine
-from os.path import join, dirname
+from os.path import dirname, join
 
 import json
+from typing import Iterable
+
 import pytest
 from pytest import fixture, raises
 
-from utz import env
+from utz import cd, env
 
 parametrize = pytest.mark.parametrize
 from subprocess import CalledProcessError
@@ -203,3 +205,77 @@ def test_interleaved_pipelines():
     assert pipeline([SCRIPT, 'wc -l']) == '2\n'
     assert pipeline([SCRIPT], both=True) == 'stdout 1\nstderr 1\nstdout 2\nstderr 2\n'
     assert pipeline([SCRIPT, 'wc -l'], both=True) == '4\n'
+
+
+def test_pipeline_errs_both():
+    with TemporaryDirectory() as tmpdir:
+        def save(name: str, lines: Iterable):
+            with open(join(tmpdir, name), 'w') as f:
+                print('\n'.join([ str(l) for l in lines ]), file=f)
+
+        save('1.txt', range(10))
+        save('2.txt', range(10, 0, -2))
+        expected = [
+            '0',
+            '1',
+            '\t10',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '\t\t8',
+            'comm: file 2 is not in sorted order',
+            '\t6',
+            '\t4',
+            '\t2',
+            '9',
+            'comm: input is not in sorted order',
+            '',
+        ]
+        with cd(tmpdir):
+            assert pipeline(['comm 1.txt 2.txt'], both=True, err_ok=True).split('\n') == expected
+            with raises(CalledProcessError) as ei:
+                pipeline(['comm 1.txt 2.txt'], both=True)
+            exc = ei.value
+            assert exc.stdout.split('\n') == expected
+            assert exc.stderr is None
+
+
+def test_pipeline_errs():
+    with TemporaryDirectory() as tmpdir:
+        def save(name: str, lines: Iterable):
+            with open(join(tmpdir, name), 'w') as f:
+                print('\n'.join([ str(l) for l in lines ]), file=f)
+
+        save('1.txt', range(10))
+        save('2.txt', range(10, 0, -2))
+        expected = [
+            '0',
+            '1',
+            '\t10',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '\t\t8',
+            '\t6',
+            '\t4',
+            '\t2',
+            '9',
+            '',
+        ]
+        with cd(tmpdir):
+            assert pipeline(['comm 1.txt 2.txt'], err_ok=True).split('\n') == expected
+            with raises(CalledProcessError) as ei:
+                pipeline(['comm 1.txt 2.txt'])
+            exc = ei.value
+            assert exc.stdout.split('\n') == expected
+            assert exc.stderr.split('\n') == [
+                'comm: file 2 is not in sorted order',
+                'comm: input is not in sorted order',
+                '',
+            ]

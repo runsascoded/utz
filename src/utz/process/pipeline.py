@@ -13,6 +13,7 @@ def pipeline(
     mode: Literal['b', 't', None] = None,
     wait: bool = True,
     both: bool = False,
+    err_ok: bool = False,
     **kwargs,
 ) -> str | list[Popen] | None:
     """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
@@ -59,7 +60,7 @@ def pipeline(
                 args,
                 stdin=stdin,
                 stdout=stdout,
-                **kwargs
+                **kwargs,
             )
 
         # For the last process
@@ -90,36 +91,48 @@ def pipeline(
     if not wait:
         return processes
 
-    # Check for errors
-    for i, p in enumerate(processes):
-        return_code = p.wait()
-
-        if return_code != 0:
-            # Collect stderr from the process if available
-            stderr_output = ""
-            if stderr_pipes and i < len(stderr_pipes) and stderr_pipes[i]:
-                stderr_output = stderr_pipes[i].read()
-                if isinstance(stderr_output, bytes):
-                    stderr_output = stderr_output.decode('utf-8', errors='replace')
-
-            # Close all remaining processes
-            for remaining in processes[i+1:]:
-                if remaining.poll() is None:  # if process is still running
-                    remaining.terminate()
-
-            # Prepare the original command for the error message
-            cmd_args, _ = cmds[i].compile()
-            cmd_str = ' '.join(str(arg) for arg in cmd_args) if isinstance(cmd_args, list) else cmd_args
-
-            raise CalledProcessError(
-                return_code,
-                cmd_str,
-                output=None,
-                stderr=stderr_output,
-            )
-
     for p in processes:
         p.wait()
 
+    def get_output():
+        if isinstance(out, str):
+            with open(out, 'rt') as f:
+                return f.read()
+        else:
+            return out.getvalue()
+
+    if not err_ok:
+        # Check for errors + `raise`
+        for i, p in enumerate(processes):
+            returncode = p.returncode
+
+            if returncode != 0:
+                # Collect stderr from the process, if available
+                stdout_output = p.stdout.read()
+                if isinstance(stdout_output, bytes):
+                    stdout_output = stdout_output.decode('utf-8', errors='replace')
+
+                if stderr_pipes:
+                    stderr_output = stderr_pipes[i].read()
+                elif p.stderr:
+                    stderr_output = p.stderr.read()
+                else:
+                    stderr_output = None
+                if isinstance(stderr_output, bytes):
+                    stderr_output = stderr_output.decode('utf-8', errors='replace')
+
+                # Prepare the original command for the error message
+                cmd_args, _ = cmds[i].compile()
+                cmd_str = ' '.join(str(arg) for arg in cmd_args) if isinstance(cmd_args, list) else cmd_args
+
+                if not stdout_output and (not both or not stderr_output):
+                    stdout_output = get_output()
+                raise CalledProcessError(
+                    returncode,
+                    cmd_str,
+                    output=stdout_output,
+                    stderr=stderr_output,
+                )
+
     if return_output:
-        return out.getvalue()
+        return get_output()
