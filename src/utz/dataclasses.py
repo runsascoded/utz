@@ -1,5 +1,14 @@
-from dataclasses import fields
-from typing import get_args, get_origin, Union
+from __future__ import annotations
+
+import dataclasses
+from typing import get_args, get_origin, Union, get_type_hints
+
+try:
+    from types import UnionType
+    UnionTypes = (Union, UnionType)
+except ImportError:
+    # Python < 3.10
+    UnionTypes = (Union,)
 
 
 def from_dict(cls, v):
@@ -8,7 +17,7 @@ def from_dict(cls, v):
     Recursively parses instance-vars' types.
     """
     for typ in (int, float, str, bool, type(None)):
-        if cls is typ:
+        if cls is typ or isinstance(cls, str) and cls == typ.__name__:
             if type(v) is not typ:
                 raise ValueError(f"{v} ({type(v).__name__}) is not of expected type {typ.__name__}")
             return v
@@ -29,7 +38,7 @@ def from_dict(cls, v):
             from_dict(key_cls, k): from_dict(value_cls, _v)
             for k, _v in v.items()
         }
-    elif get_origin(cls) is Union:
+    elif get_origin(cls) in UnionTypes:
         args = get_args(cls)
         for arg in args:
             try:
@@ -39,7 +48,11 @@ def from_dict(cls, v):
         raise ValueError(f"Invalid value '{v}' (expected one of {[ c.__name__ for c in get_args(cls) ]})")
 
     try:
-        fieldtypes = { f.name: f.type for f in fields(cls) }
+        fields = dataclasses.fields(cls)
+        try:
+            fieldtypes = get_type_hints(cls)
+        except TypeError:
+            fieldtypes = { f.name: f.type for f in fields }
     except TypeError:
         raise TypeError(f"`fields` must be called with a dataclass type or instance, not {getattr(cls, '__name__', cls)}")
 
