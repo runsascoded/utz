@@ -34,7 +34,7 @@ from .hash import hash_file, HashName
 from .path import mkdir, mkpar
 from .rgx import Patterns, Includes, Excludes
 from os import path
-from .tmpdir import tmpdir
+from .tmpdir import named_tmpdir, tmpdir, TmpDir, tmp_ensure_dir, tmppath, TmpPath
 
 from . import proc, process
 from .process import *
@@ -56,7 +56,7 @@ with _try:
     from . import pnds
     from .pnds import *
 
-from .cd import cd
+from .cd import cd, cd_tmpdir
 
 from . import docker
 from .docker.dsl import *

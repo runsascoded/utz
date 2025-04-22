@@ -24,7 +24,7 @@
     - [`utz.size`: `humanize.naturalsize` wrapper](#utz.size)
     - [`utz.hash_file`: hash file contents](#utz.hash_file)
     - [`utz.ym`: `YM` (year/month) class](#utz.ym)
-    - [`utz.cd`: "change directory" contextmanager](#utz.cd)
+    - [`utz.cd`: "change directory" contextmanagers](#utz.cd)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.s3`: S3 utilities](#utz.s3)
     - [`utz.plot`: Plotly helpers](#utz.plots)
@@ -440,12 +440,25 @@ assert all(ym == YM(202401) for ym in [
 ])
 ```
 
-### [`utz.cd`]: "change directory" contextmanager <a id="utz.cd"></a>
+### [`utz.cd`]: "change directory" contextmanagers <a id="utz.cd"></a>
 ```python
-from utz import cd
-with cd('..'):  # change to parent dir
+from utz import cd, cd_tmpdir
+
+with cd('..'):
+    # Inside parent dir
+    ...
+# Back in original dir
+
+with cd('a/b/c', mk=True):
+    # Moved into a/b/c (created it if it didn't exist)
+    ...
+
+with cd_tmpdir(dir='.', name='my_tmpdir') as tmpdir:
+    # Inside a temporary subdirectory of previous working directory, with basename `my_tmpdir`
     ...
 ```
+
+See also [`test_cd.py`].
 
 ### [`utz.gzip`]: deterministic GZip helpers <a id="utz.gzip"></a>
 ```python
@@ -582,7 +595,32 @@ def test_fn(f, fmt, expected):
 
 #### `utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings <a id="utz.raises"></a>
 
-### [`utz.docker`], [`utz.tmpdir`], etc. <a id="misc"></a>
+### [`utz.tmpdir`]
+```python
+from utz import TmpDir, tmp_ensure_dir, TmpPath
+
+#  ``TemporaryDirectory`` wrapper that creates ``dir`` (and parents), if necessary (and removes any dirs it created, on exit)
+# Also adds support for specifying exact basename, via ``name`` kwarg.
+with TmpDir(dir='nested/subdir', name='basename') as tmpdir:
+    ...
+
+# Yields a path with the requested basename, inside a ``TemporaryDirectory``.
+# As with ``TmpDir``, ``dir`` (and parents) will be created, if necessary (and removed on exit, leaving the filesystem in the same state it started in)
+with TmpPath('basename.txt', dir='nested/subdir') as tmppath:
+    ...
+
+# Multiple right-most path components can be specified exactly.
+with TmpPath('dir1/dir2/basename.txt', dir='nested/subdir') as tmppath:
+    ...
+
+# Used by ``TmpDir``/``TmpPath`` above, creates ``dir`` (and parents), if necessary (and removes any dirs it created, on exit)
+with tmp_ensure_dir(dir='nested/subdir'):
+    ...
+```
+
+See also: [`test_tmpdir.py`].
+
+### [`utz.docker`], [`utz.bases`], etc. <a id="misc"></a>
 
 Misc other modules:
 - [bases][`utz.bases`]: encode/decode in various bases (62, 64, 90, …)
@@ -659,6 +697,7 @@ Some repos that use `utz`:
 [`utz.tmpdir`]: src/utz/tmpdir.py
 [`utz.ym`]: src/utz/ym.py
 
+[`test_cd.py`]: test/test_cd.py
 [`test_cli`]: test/test_cli.py
 [`test_collections.py`]: test/test_collections.py
 [`test_context.py`]: test/test_context.py
@@ -668,6 +707,7 @@ Some repos that use `utz`:
 [`test_jsn.py`]: test/test_jsn.py
 [`test_parametrize.py`]: test/test_parametrize.py
 [`test_proc.py`]: test/test_proc.py
+[`test_tmpdir.py`]: test/test_tmpdir.py
 
 [`on_conflict`]: src/utz/environ.py#L9-13
 [`on_exit`]: src/utz/environ.py#L16-19

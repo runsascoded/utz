@@ -1,6 +1,6 @@
 import pytest
 
-from .paths import GSMO, HAILSTONE
+from test.paths import GSMO, HAILSTONE
 from utz import basename, CalledProcessError, cd, env, exists, getcwd, git, lines, realpath, run, line, \
     now, b62
 
