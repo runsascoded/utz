@@ -76,7 +76,7 @@ with _try:
 from .git import github
 
 with _try:
-    from .collections import coerce, only, is_subsequence, singleton, solo
+    from .collections import coerce, only, is_subsequence, singleton, solo, one, e1
 
 from .defaultdict import DefaultDict, Unset
 

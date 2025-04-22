@@ -126,18 +126,22 @@ asyncio.run(test())
 ### [`utz.collections`]: collection/list helpers <a id="utz.collections"></a>
 
 ```python
-from utz.collections import *
+from utz import *
 
-# Verify a collection has one element, return it
-singleton(["aaa"])         # "aaa"
-singleton(["aaa", "bbb"])  # error
+# Verify a collection has one element, return it:
+singleton(["aaa"])               # ✅ "aaa"
+singleton({'a': 1})              # ✅ ('a', 1); works on `dict`s`
+singleton([("aaa",), ("aaa",)])  # ✅ ("aaa",); dedupes by default (elems must be hashable)
+singleton(["aaa", "bbb"])        # ❌ `raise utz.collections.Expected1FoundN("2 elems found: bbb,aaa")`
 
-# `solo` is an alias for `singleton`; both also work on dicts, verifying and extracting a single "item" pair:
-solo({'a': 1})  # ('a', 1)
+# `solo`, `one`, and `e1` are aliases for `singleton`:
+solo(["aaa"])  # "aaa"
+one(["aaa"])   # "aaa"
+e1(["aaa"])    # "aaa"
 
 # Filter by a predicate
-solo([2, 3, 4], pred=lambda n: n % 2)  # 3
-solo([{'a': 1}, {'b': 2}], pred=lambda o: 'a' in o)  # {'a': 1}
+one([2, 3, 4], lambda n: n % 2)  # 3
+one([{'a': 1}, {'b': 2}], lambda o: 'a' in o)  # {'a': 1}
 ```
 
 See also: [`test_collections.py`].

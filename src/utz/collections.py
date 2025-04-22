@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable
+from typing import Callable, Iterable, TypeVar
 
 try:
     from pandas import Series
@@ -38,14 +38,17 @@ class WrongKeys(ValueError):
         super().__init__()
 
 
+T = TypeVar("T")
+
+
 def singleton(
-    elems: Iterable,
-    pred: Callable = None,
+    elems: Iterable[T],
+    pred: Callable[[T], bool] | None = None,
     empty_ok: bool = False,
     name: str = 'elems',
-    dedupe: bool | None = None,
+    dedupe: bool = False,
     key: str | None = None,
-):
+) -> T:
     """Verify ``elems`` contains exactly one element, and return it.
 
     :param elems: Iterable of elements to check
@@ -69,25 +72,28 @@ def singleton(
     if pred:
         elems = [elem for elem in elems if pred(elem)]
     else:
-        if dedupe is None:
-            if elems and isinstance(next(iter(elems)), dict):
-                dedupe = False
-            else:
-                dedupe = True
         if dedupe:
-            elems = set(elems)
+            seen = set()
+            elems2 = []
+            for elem in elems:
+                if elem not in seen:
+                    seen.add(elem)
+                    elems2.append(elem)
+            elems = elems2
     if not elems:
         if empty_ok:
             return None
         raise Expected1Found0(f'No {name} found')
+    if not getattr(elems, 'len', None) and isinstance(elems, Iterable):
+        elems = list(elems)
     if len(elems) > 1:
         raise Expected1FoundN(name, len(elems), elems)
     [elem] = elems
     return elem
 
 
-solo = singleton
-"""Alias for ``singleton``."""
+one = e1 = solo = singleton
+"""Aliases for ``singleton``."""
 
 
 def only(obj, *keys):
