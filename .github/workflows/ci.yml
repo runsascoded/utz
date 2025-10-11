@@ -19,11 +19,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v4
       - name: Fetch submodule tags
         working-directory: test/data/gsmo
         run: git fetch --tags origin
       - name: Install test dependencies
-        run: pip install -e .[all]
+        run: uv pip install --system -e .[all]
       - name: Test
         env:
           SHELL: /bin/bash  # Required by test_proc.py::test_pipeline_shell_executable_warning
@@ -42,7 +43,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          pip install setuptools twine wheel
+          uv pip install --system setuptools twine wheel
           python setup.py sdist bdist_wheel
           twine upload dist/*
           gh release create "${{ github.ref_name }}" dist/* --title "${{ github.ref_name }}" --notes "Release ${{ github.ref_name }}"
