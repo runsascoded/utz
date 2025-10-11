@@ -47,5 +47,5 @@ setup(
     install_requires=["stdlb"],
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
-    python_requires=">=3.9",
+    python_requires=">=3.10",
 )
