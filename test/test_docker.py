@@ -76,7 +76,9 @@ def test_docker_demo():
 
     [
         build_python_git_image(pv, f'python-git:{pv}')
-        for pv in ('3.7.9', '3.8.6', '3.9.1',)
+        for pv in ('3.10', '3.11', '3.12',)
     ]
 
-    assert lines('docker', 'run', 'python-git:3.9.1') == ['Python 3.9.1']
+    output = lines('docker', 'run', 'python-git:3.12')
+    assert len(output) == 1
+    assert output[0].startswith('Python 3.12.')

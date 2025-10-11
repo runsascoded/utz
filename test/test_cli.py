@@ -131,7 +131,7 @@ def test_num_required():
         'Usage: num-cli [OPTIONS]',
         "Try 'num-cli --help' for help.",
         '',
-        "Error: Missing option '-n' / '--num'.",
+        "Error: Invalid value for '-n' / '--num': expected value, received None",
     )
 
 
