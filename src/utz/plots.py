@@ -11,12 +11,19 @@ from typing import Callable, Literal, Union
 import plotly.graph_objects as go
 from IPython.display import Image
 from plotly.graph_objs import Figure
-from plotly.validators.scatter.marker import SymbolValidator
 
 from utz import err
 
 # Plotly marker names
-symbols = SymbolValidator().values[2::12]
+try:
+    # Plotly <6.2
+    from plotly.validators.scatter.marker import SymbolValidator
+    symbols = SymbolValidator().values[2::12]
+except (ImportError, ModuleNotFoundError):
+    # Plotly >=6.2: use ValidatorCache
+    from plotly.validator_cache import ValidatorCache
+    SymbolValidator = ValidatorCache.get_validator('scatter.marker', 'symbol')
+    symbols = SymbolValidator.values[2::12]
 
 
 # Env vars to fall back to, for various plot kwargs
