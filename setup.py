@@ -44,7 +44,7 @@ setup(
     version="0.21.0",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
-    install_requires=["stdlb"],
+    install_requires=["stdlb>=0.1.1"],
     extras_require=extras_require,
     url="https://github.com/runsascoded/utz",
     python_requires=">=3.10",
