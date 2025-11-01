@@ -65,6 +65,14 @@ class Base(ABC):
             wait(output('[', '1', '==', '2', ']'))
 
     @staticmethod
+    def test_text_none_handling(mod):
+        """Test that text() handles None return from output() without crashing."""
+        text = mod.text
+        # When output() returns None (err_ok=None or dry_run=True), text() should also return None
+        eq(text('[', '1', '==', '2', ']', err_ok=None), None)
+        eq(text('echo', 'test', dry_run=True, log=None), None)
+
+    @staticmethod
     def test_expandvars(mod):
         line = mod.line
         interpolated = f'{env["USER"]} {env["HOME"]}'

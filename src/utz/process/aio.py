@@ -107,7 +107,8 @@ async def output(
 
 
 async def text(*args, **kwargs) -> str | None:
-    return (await output(*args, **kwargs)).decode()
+    result = await output(*args, **kwargs)
+    return result.decode() if result is not None else None
 
 
 async def json(

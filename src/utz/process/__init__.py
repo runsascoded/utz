@@ -90,7 +90,8 @@ def output(
 
 
 def text(*args, **kwargs) -> str | None:
-    return output(*args, **kwargs).decode()
+    result = output(*args, **kwargs)
+    return result.decode() if result is not None else None
 
 
 def json(
