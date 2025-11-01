@@ -54,7 +54,7 @@ def test_now():
             b62,
             (
                     o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z', len_until='3799-06-08T08:23:06Z'),
-                    o(unit='ms', ch='d', len=7, first_until='2025-10-29T11:47:34.506000Z', len_until='2083-06-04T14:46:33.194000Z'),
+                    o(unit='ms', ch='e', len=7, first_until='2027-08-17T21:38:10.090000Z', len_until='2083-06-04T14:46:33.194000Z'),
                     o(unit='us', ch='H', len=9, first_until='2032-05-20T04:31:36.257258Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
             ('At4G0V', 'bTwXvhz', 'GWAZusO3r'),
