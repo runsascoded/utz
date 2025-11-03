@@ -41,7 +41,7 @@ extras_require['all'] = sum(extras_require.values(), [ 'pyyaml', ])
 
 setup(
     name="utz",
-    version="0.21.2",
+    version="0.21.3",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=["stdlb>=0.1.1"],
