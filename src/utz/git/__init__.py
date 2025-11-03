@@ -29,12 +29,12 @@ except ImportError:
     pass
 
 
-from . import branch, clone, diff, head, remote, submodule
+from . import branch, clone, diff, head, remote, submodule, tag
 from .ctx import txn
 from .head import fmt, sha
 from .log import msg
 from .remote import push, ls_remote, git_remote_sha
-from .repo import git_repo
+from .repo import git_repo, root
 from .submodule import git_submodules
 
 
