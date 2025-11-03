@@ -25,6 +25,7 @@
     - [`utz.hash_file`: hash file contents](#utz.hash_file)
     - [`utz.ym`: `YM` (year/month) class](#utz.ym)
     - [`utz.cd`: "change directory" contextmanagers](#utz.cd)
+    - [`utz.gist`: GitHub Gist operations](#utz.gist)
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.s3`: S3 utilities](#utz.s3)
     - [`utz.plot`: Plotly helpers](#utz.plots)
@@ -40,6 +41,7 @@
 ```bash
 pip install utz
 ```
+- Requires Python 3.10+
 - `utz` has one dependency, [`stdlb`] (wild-card standard library imports).
 - ["Extras"][extras] provide optional deps (e.g. [Pandas], [Plotly], …).
 
@@ -88,6 +90,9 @@ line('git log -1 --format=%h')  # Current HEAD commit SHA
 
 # Return stdout as a single string
 output('git log -1 --format=%B')  # Current HEAD commit message
+
+# Pass input to stdin
+line('git mktree', input=b'100644 blob abc123\tfile.txt\n')  # Create git tree from stdin
 
 # Check whether a command succeeds, suppress output
 check('git diff --exit-code --quiet')  # `True` iff there are no uncommitted changes
@@ -459,6 +464,25 @@ with cd_tmpdir(dir='.', name='my_tmpdir') as tmpdir:
 ```
 
 See also [`test_cd.py`].
+
+### [`utz.gist`]: GitHub Gist operations <a id="utz.gist"></a>
+```python
+from utz.gist import create_gist, upload_files_to_gist, get_github_user
+
+# Get current GitHub username (via `gh` CLI)
+username = get_github_user()
+
+# Create a new gist
+gist_id = create_gist(description="My gist", public=True)
+
+# Upload files to a gist
+upload_files_to_gist(
+    gist_id=gist_id,
+    files={'hello.txt': 'Hello, world!'},
+    branch='main',
+    commit_message='Add hello.txt'
+)
+```
 
 ### [`utz.gzip`]: deterministic GZip helpers <a id="utz.gzip"></a>
 ```python
