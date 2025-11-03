@@ -29,6 +29,25 @@ def parse_url(url: str, err: Literal['raise', 'stderr', 'none'] = 'raise') -> st
 GITHUB_REPOSITORY = 'GITHUB_REPOSITORY'
 
 
+def get_remotes():
+    """Get all GitHub remotes for the current repository.
+
+    Returns:
+        Dict mapping remote name to owner/repo string
+    """
+    from . import remote
+    remotes = {}
+    for name in remote.ls():
+        try:
+            url = remote.url(name)
+            name_with_owner = parse_url(url, err='none')
+            if name_with_owner:
+                remotes[name] = name_with_owner
+        except Exception:
+            pass
+    return remotes
+
+
 def repository_option(
     *flag_args,
     env=GITHUB_REPOSITORY,
