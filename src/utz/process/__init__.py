@@ -49,6 +49,7 @@ def output(
     both: bool = False,
     err_ok: bool | None = False,
     log: Log = err,
+    input: bytes | None = None,
     **kwargs,
 ) -> bytes | None:
     """Convenience wrapper for ``subprocess.check_output``.
@@ -59,6 +60,8 @@ def output(
     If ``err_ok=None``, exceptions will be caught and suppressed, and ``None`` will be returned.
 
     ``both=True`` is an alias for ``stderr=STDOUT``.
+
+    If ``input`` is provided, it will be passed to stdin of the process.
     """
     cmd = Cmd.mk(*args, **kwargs)
     if dry_run:
@@ -68,21 +71,33 @@ def output(
     else:
         args, kwargs = cmd.compile(log=log, both=both)
         try:
-            proc = Popen(args, stdout=PIPE, **kwargs)
-
-            # Stream and capture the output in real-time
-            output = b''
-            for line in proc.stdout:
-                output += line
-
-            proc.wait()
-            if proc.returncode != 0:
-                raise CalledProcessError(proc.returncode, cmd, output=output)
+            if input is not None:
+                # Use subprocess.run when input is provided
+                result = subprocess.run(
+                    args,
+                    input=input,
+                    stdout=PIPE,
+                    check=True,
+                    **kwargs
+                )
+                return result.stdout
             else:
-                return output
+                # Use Popen for streaming output when no input
+                proc = Popen(args, stdout=PIPE, **kwargs)
+
+                # Stream and capture the output in real-time
+                output = b''
+                for line in proc.stdout:
+                    output += line
+
+                proc.wait()
+                if proc.returncode != 0:
+                    raise CalledProcessError(proc.returncode, cmd, output=output)
+                else:
+                    return output
         except CalledProcessError as e:
             if err_ok is True:
-                return e.output
+                return e.output if hasattr(e, 'output') else None
             elif err_ok is None:
                 return None
             else:

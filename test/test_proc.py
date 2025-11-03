@@ -208,6 +208,41 @@ def test_pipeline_vars_shell(tmp_text_file):
     assert output == '1\n2\n3\n4\n5\n'
 
 
+def test_input_parameter():
+    """Test that the input parameter works for passing stdin data."""
+    # Test with text
+    result = proc.text('cat', input=b'hello world\n', log=False)
+    assert result == 'hello world\n'
+
+    # Test with line
+    result = proc.line('cat', input=b'single line', log=False)
+    assert result == 'single line'
+
+    # Test with lines
+    result = proc.lines('cat', input=b'line1\nline2\nline3', log=False)
+    assert result == ['line1', 'line2', 'line3']
+
+    # Test with git mktree (a real use case)
+    with NamedTemporaryFile(mode='w', delete=False) as f:
+        f.write('test content for blob')
+        temp_file = f.name
+
+    try:
+        # Create a blob
+        blob_hash = proc.line('git', 'hash-object', '-w', temp_file, log=False)
+
+        # Create a tree using the blob with input parameter
+        tree_input = f'100644 blob {blob_hash}\ttest.txt\n'
+        tree_hash = proc.line('git', 'mktree', input=tree_input.encode(), log=False)
+
+        # Verify we got a valid tree hash (40 hex chars)
+        assert len(tree_hash) == 40
+        assert all(c in '0123456789abcdef' for c in tree_hash)
+    finally:
+        import os
+        os.unlink(temp_file)
+
+
 def test_interleaved_pipelines():
     assert pipeline([SCRIPT]) == 'stdout 1\nstdout 2\n'
     assert pipeline([SCRIPT, 'wc -l']) == '2\n'
