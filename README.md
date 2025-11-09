@@ -30,6 +30,7 @@
     - [`utz.s3`: S3 utilities](#utz.s3)
     - [`utz.plot`: Plotly helpers](#utz.plots)
     - [`utz.setup`: `setup.py` helper](#utz.setup)
+    - [`utz.version`: runtime package version with git hash](#utz.version)
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
         - [`utz.parametrize`: `pytest.mark.parametrize` wrapper, accepts `dataclass` instances](#utz.parametrize)
         - [`utz.raises`: `pytest.raises` wrapper, match a regex or multiple strings](#utz.raises)
@@ -579,6 +580,46 @@ The `setup` helper can be installed via a pip "extra":
 pip install utz[setup]
 ```
 
+### [`utz.version`]: runtime package version with git hash <a id="utz.version"></a>
+
+Get your package version with current git commit hash at runtime, useful for verifying which exact commit is installed during local development:
+
+```python
+# In your package's __init__.py:
+from utz.version import pkg_version_with_git
+
+__version__ = "0.1.1"
+
+def get_version(include_git=True):
+    """Get version string with optional git hash."""
+    return pkg_version_with_git(pkg_version=__version__, include_git=include_git)
+```
+
+Usage:
+```python
+import mypackage
+
+mypackage.get_version()
+# "0.1.1+git.abc1234" (clean working tree)
+# "0.1.1+git.abc1234.dirty" (uncommitted changes)
+
+mypackage.get_version(include_git=False)
+# "0.1.1"
+
+mypackage.__version__
+# "0.1.1"
+```
+
+The `+git.HASH` format follows [PEP 440] local version identifier conventions. This helps verify which exact commit is installed when doing `pip install -e .` during local development, especially when working with multiple interdependent packages.
+
+Features:
+- Auto-detects git repo from caller's package directory
+- Falls back to plain version if git not available (e.g., PyPI installs)
+- Detects uncommitted changes (`.dirty` suffix)
+- Supports short (7-char, default) or full (40-char) hashes
+
+Also available: `utz.git.is_dirty()` to check if the working tree has uncommitted changes.
+
 ### [`utz.test`]: `dataclass` test cases, `raises` helper <a id="utz.test"></a>
 
 #### `utz.parametrize`: [`pytest.mark.parametrize`] wrapper, accepts [`dataclass`] instances <a id="utz.parametrize"></a>
@@ -719,6 +760,7 @@ Some repos that use `utz`:
 [`utz.test`]: src/utz/test.py
 [`utz.time`]: src/utz/time.py
 [`utz.tmpdir`]: src/utz/tmpdir.py
+[`utz.version`]: src/utz/version.py
 [`utz.ym`]: src/utz/ym.py
 
 [`test_cd.py`]: test/test_cd.py
@@ -742,6 +784,7 @@ Some repos that use `utz`:
 [Plotly]: https://plotly.com/python/
 [`pytest.mark.parametrize`]: https://docs.pytest.org/en/stable/how-to/parametrize.html
 [`dataclass`]: https://docs.python.org/3/library/dataclasses.html
+[PEP 440]: https://peps.python.org/pep-0440/#local-version-identifiers
 
 [hudcostreets/nj-crashes utz.plots]: https://github.com/search?q=repo%3Ahudcostreets%2Fnj-crashes%20utz.plot&type=code
 [ryan-williams/arrayloader-benchmarks utz.plots]: https://github.com/search?q=repo%3Aryan-williams%2Farrayloader-benchmarks%20utz.plot&type=code
