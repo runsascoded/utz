@@ -322,3 +322,31 @@ def test_pipeline_errs():
                 'comm: input is not in sorted order',
                 '',
             ]
+
+
+def test_pipeline_large_stderr_no_deadlock():
+    """Test that pipeline doesn't deadlock with large stderr output.
+
+    Regression test for pipe buffer deadlock bug where subprocess writes >65KB
+    to stderr, filling the pipe buffer and blocking, while pipeline() doesn't
+    read stderr until after wait(), causing a deadlock.
+
+    See PIPELINE_DEADLOCK_BUG.md for details.
+    """
+    import time
+    from utz.process import pipeline, Cmd
+
+    # Generate 100KB+ of stderr output (well over typical ~65KB pipe buffer)
+    # Each line is ~15 bytes, so 10000 lines = ~150KB
+    cmds = [Cmd.mk(['bash', '-c', 'for i in {1..10000}; do echo "Line $i" >&2; done'])]
+
+    start = time.time()
+    result = pipeline(cmds, both=False, err_ok=True)
+    elapsed = time.time() - start
+
+    # Should complete quickly (not deadlock)
+    # Using 5s as generous timeout - should typically complete in <1s
+    assert elapsed < 5.0, f"Pipeline took {elapsed:.2f}s, likely deadlocked"
+
+    # stdout should be empty since we only wrote to stderr
+    assert result == '' or result is None

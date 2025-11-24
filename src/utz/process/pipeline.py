@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import UnsupportedOperation, StringIO
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
+from threading import Thread
 from typing import AnyStr, IO, Literal
 
 from utz.process import Cmd
@@ -45,7 +46,14 @@ def pipeline(
             use_pipe = True
 
     # Collect stderr for error reporting (if not redirecting stderr to stdout)
-    stderr_pipes = [] if not both else None
+    # Use threads to drain stderr pipes asynchronously to avoid deadlock
+    stderr_data = [] if not both else None
+    stderr_threads = [] if not both else None
+
+    def read_stderr(pipe, index):
+        """Read stderr in background thread to prevent pipe buffer deadlock"""
+        data = pipe.read()
+        stderr_data[index] = data
 
     for i, cmd in enumerate(cmds):
         is_last = i + 1 == len(cmds)
@@ -67,6 +75,12 @@ def pipeline(
         if is_last:
             if use_pipe:
                 proc = mkproc()
+                # Start stderr reading thread BEFORE blocking read of stdout
+                if not both:
+                    stderr_data.append(None)
+                    thread = Thread(target=read_stderr, args=(proc.stderr, i), daemon=True)
+                    thread.start()
+                    stderr_threads.append(thread)
                 # Read the output and write to the StringIO/BytesIO
                 output = proc.stdout.read()
                 if mode == 't' and isinstance(output, bytes):
@@ -75,21 +89,36 @@ def pipeline(
             else:
                 with (open(out, f'w{mode}') if isinstance(out, str) else out) as pipe_fd:
                     proc = mkproc(pipe_fd)
+                    # Start stderr reading thread for this process too
+                    if not both:
+                        stderr_data.append(None)
+                        thread = Thread(target=read_stderr, args=(proc.stderr, i), daemon=True)
+                        thread.start()
+                        stderr_threads.append(thread)
 
         # For intermediate processes, output to a pipe
         else:
             proc = mkproc()
+            # Start stderr reading thread for intermediate processes
+            if not both:
+                stderr_data.append(None)
+                thread = Thread(target=read_stderr, args=(proc.stderr, i), daemon=True)
+                thread.start()
+                stderr_threads.append(thread)
 
         if prev_process is not None:
             prev_process.stdout.close()
 
         processes.append(proc)
-        if not both:
-            stderr_pipes.append(proc.stderr)
         prev_process = proc
 
     if not wait:
         return processes
+
+    # Wait for all threads to finish reading stderr before calling wait()
+    if stderr_threads:
+        for thread in stderr_threads:
+            thread.join()
 
     for p in processes:
         p.wait()
@@ -112,8 +141,9 @@ def pipeline(
                 if isinstance(stdout_output, bytes):
                     stdout_output = stdout_output.decode('utf-8', errors='replace')
 
-                if stderr_pipes:
-                    stderr_output = stderr_pipes[i].read()
+                # Use pre-read stderr data from background threads
+                if stderr_data is not None:
+                    stderr_output = stderr_data[i]
                 elif p.stderr:
                     stderr_output = p.stderr.read()
                 else:
