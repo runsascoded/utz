@@ -15,9 +15,15 @@ def pipeline(
     wait: bool = True,
     both: bool = False,
     err_ok: bool = False,
+    pipefail: bool = False,
     **kwargs,
 ) -> str | list[Popen] | None:
-    """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``"""
+    """Run a pipeline of commands, writing the final stdout to a file or ``IO``, or returning it as a ``str``.
+
+    Args:
+        pipefail: If True, check all processes for errors (like bash's `set -o pipefail`).
+            If False (default), only check the last process (standard shell behavior).
+    """
     processes = []
     prev_process: Popen | None = None
 
@@ -132,12 +138,20 @@ def pipeline(
 
     if not err_ok:
         # Check for errors + `raise`
-        for i, p in enumerate(processes):
+        # By default (pipefail=False), only check the last process (standard shell behavior).
+        # With pipefail=True, check all processes (like bash's `set -o pipefail`).
+        processes_to_check = enumerate(processes) if pipefail else [(len(processes) - 1, processes[-1])]
+        for i, p in processes_to_check:
             returncode = p.returncode
 
             if returncode != 0:
-                # Collect stderr from the process, if available
-                stdout_output = p.stdout.read()
+                # Collect stdout from the process, if available
+                # For intermediate processes, stdout was piped to the next process and closed
+                try:
+                    stdout_output = p.stdout.read() if p.stdout else None
+                except ValueError:
+                    # stdout was closed (intermediate process in pipeline)
+                    stdout_output = None
                 if isinstance(stdout_output, bytes):
                     stdout_output = stdout_output.decode('utf-8', errors='replace')
 

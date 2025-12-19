@@ -350,3 +350,30 @@ def test_pipeline_large_stderr_no_deadlock():
 
     # stdout should be empty since we only wrote to stderr
     assert result == '' or result is None
+
+
+def test_pipeline_pipefail():
+    """Test pipefail parameter catches errors in early pipeline stages."""
+    # Without pipefail (default): only the last command's exit status matters
+    # `false` exits 1, but `echo ok` succeeds, so pipeline succeeds
+    assert pipeline([['false'], ['echo', 'ok']]) == 'ok\n'
+    assert pipeline([['false'], ['echo', 'ok']], pipefail=False) == 'ok\n'
+
+    # With pipefail=True: any command failure raises CalledProcessError
+    with raises(CalledProcessError, match=r"Command 'false' returned non-zero exit status 1"):
+        pipeline([['false'], ['echo', 'ok']], pipefail=True)
+
+    # Shell mode: same behavior
+    assert pipeline(['false', 'echo ok']) == 'ok\n'
+    with raises(CalledProcessError, match=r"Command 'false' returned non-zero exit status 1"):
+        pipeline(['false', 'echo ok'], pipefail=True)
+
+    # Multi-stage pipeline: first command fails
+    assert pipeline([['false'], ['cat'], ['head', '-n1']]) == ''
+    with raises(CalledProcessError):
+        pipeline([['false'], ['cat'], ['head', '-n1']], pipefail=True)
+
+    # Multi-stage pipeline: middle command fails
+    assert pipeline([['echo', 'hi'], ['false'], ['cat']]) == ''
+    with raises(CalledProcessError):
+        pipeline([['echo', 'hi'], ['false'], ['cat']], pipefail=True)
