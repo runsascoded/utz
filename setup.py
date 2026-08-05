@@ -33,14 +33,14 @@ extras_require = {
     'test': [
         'pytest',
         'pytest-mock',
-        'python-dateutil==2.9.0'  # Verified (as an example) in `test_setup.py`
+        'python-dateutil==2.9.0'  # Verified (as an example) in `test_version.py`
     ],
 }
 extras_require['all'] = sum(extras_require.values(), [ 'pyyaml', ])
 
 setup(
     name="utz",
-    version="0.21.5",
+    version="0.22.0",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=["stdlb>=0.1.1"],

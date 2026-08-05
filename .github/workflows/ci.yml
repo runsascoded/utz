@@ -36,6 +36,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           uv pip install --system build twine
-          python -m build
+          # `--sdist --wheel` builds both from the source tree; default (wheel-via-sdist) fails
+          # because `utz.setup` shells out to git, and the unpacked sdist isn't a git repo
+          python -m build --sdist --wheel
           twine upload dist/*
           gh release create "${{ github.ref_name }}" dist/* --title "${{ github.ref_name }}" --generate-notes
