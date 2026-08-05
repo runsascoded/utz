@@ -2,8 +2,8 @@
 #
 # - `client()`: cached boto3 S3 client
 # - `parse_bkt_key(args: tuple[str, ...]) -> tuple[str, str]`: parse bucket and key from s3:// URL or separate arguments
-# - `get_etag(*args: str, err_ok: bool = False, strip: bool = True) -> str | None`: get ETag of S3 object
-# - `get_etags(*args: str) -> dict[str, str]`: get ETags for all objects with the given prefix
+# - `get_etag(*args: str, err_ok: bool = False, strip: bool = True, s3=None) -> str | None`: get ETag of S3 object
+# - `get_etags(*args: str, s3=None) -> dict[str, str]`: get ETags for all objects with the given prefix
 # - `atomic_edit(...) -> Iterator[str]`: context manager for atomically editing S3 objects
 
 from __future__ import annotations
@@ -44,6 +44,7 @@ def get_etag(
     *args: str,
     err_ok: bool = False,
     strip: bool = True,
+    s3 = None,
 ) -> str | None:
     """
     Get the ETag of an S3 object.
@@ -52,12 +53,14 @@ def get_etag(
         args (str): The full s3:// URL of the object, or the bucket and key as separate arguments
         err_ok (bool): If True, return None instead of raising FileNotFoundError if object doesn't exist
         strip (bool): If True, strip quotes from ETag
+        s3: Optional S3 client (defaults to the cached ``client()``)
 
     Returns:
         str: The ETag value of the S3 object, or None if it doesn't exist (and err_ok=True)
     """
     bkt, key = parse_bkt_key(args)
-    s3 = client()
+    if s3 is None:
+        s3 = client()
 
     try:
         res = s3.head_object(Bucket=bkt, Key=key)
@@ -73,17 +76,19 @@ def get_etag(
         return None
 
 
-def get_etags(*args: str) -> dict[str, str]:
+def get_etags(*args: str, s3 = None) -> dict[str, str]:
     """Return etags for all objects with the given prefix.
 
     Args:
         args (str): The full s3:// URL of the object, or the bucket and key as separate arguments
+        s3: Optional S3 client (defaults to the cached ``client()``)
 
     Returns:
         dict[str, str]: A mapping of object keys to ETags
     """
     bkt, key = parse_bkt_key(args)
-    s3 = client()
+    if s3 is None:
+        s3 = client()
     res = s3.list_objects_v2(Bucket=bkt, Prefix=key)
     etags = {
         obj['Key']: obj['ETag'].strip('"')
@@ -126,7 +131,8 @@ def atomic_edit(
         bucket_or_url: Either bucket name or full s3:// URL
         key: Optional object key (required if bucket_or_url is bucket name)
         s3: Optional S3 client
-        create_ok: If True, allows creation of new objects
+        create_ok: If True, allows creation of new objects; the upload is conditional on the object
+            still not existing (``If-None-Match: *``), so racing creators conflict
         download: If True, download object to temp path before yielding
         rm_ok: If True, delete object if temp path is removed. Implies download=True, unless download=False is passed explicitly.
         basename: Optional name for temp file (defaults to key basename)
@@ -161,7 +167,7 @@ def atomic_edit(
 
     url = f"s3://{bkt}/{key}"
     # Get current etag if object exists
-    etag0 = get_etag(bkt, key, err_ok=create_ok, strip=False)
+    etag0 = get_etag(bkt, key, err_ok=create_ok, strip=False, s3=s3)
 
     with TemporaryDirectory(dir=getcwd()) as tmpdir:
         tmp_path = join(tmpdir, basename or path.basename(key))
@@ -174,11 +180,14 @@ def atomic_edit(
         if exists(tmp_path):
             if etag0:
                 kwargs['IfMatch'] = etag0
+            else:
+                # Object didn't exist on entry (create_ok=True); only create, never clobber a racing creator
+                kwargs['IfNoneMatch'] = '*'
 
             try:
                 if dry_run:
                     log(f"Dry run: would upload {tmp_path} to {url}")
-                    etag1 = get_etag(bkt, key, err_ok=create_ok, strip=False)
+                    etag1 = get_etag(bkt, key, err_ok=True, strip=False, s3=s3)
                     if etag0 != etag1:
                         raise ETagConflictError(f"ETag mismatch: {etag0} != {etag1}")
                 else:
@@ -192,7 +201,9 @@ def atomic_edit(
             except ClientError as e:
                 error_code = e.response['Error']['Code']
                 if error_code == 'PreconditionFailed':
-                    raise ETagConflictError("ETag mismatch - object was modified") from e
+                    if etag0:
+                        raise ETagConflictError("ETag mismatch - object was modified") from e
+                    raise ETagConflictError("Object was created concurrently") from e
                 if error_code == 'ConditionalRequestFailed':
                     raise ConditionalRequestError("Concurrent conflicting operation") from e
                 raise

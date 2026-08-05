@@ -1,6 +1,6 @@
 # Live-endpoint test scaffolding for `utz.s3` (S3 + R2)
 
-Status: **open** (2026-08-04, written from the pyrmts session). Motivation: pyrmts' shard-invalidation journal wants `atomic_edit`-style CAS (If-Match conditional PUT) against Cloudflare R2; R2's S3 shim claims conditional-write support but the 412 path has never been exercised by us. `utz.s3` currently has zero test coverage (no `test/test_s3.py`, no moto, no live gating).
+Status: **implemented, awaiting live runs** (2026-08-04; suite + src changes landed, findings below pending an R2 run). Motivation: pyrmts' shard-invalidation journal wants `atomic_edit`-style CAS (If-Match conditional PUT) against Cloudflare R2; R2's S3 shim claims conditional-write support but the 412 path has never been exercised by us. `utz.s3` currently has zero test coverage (no `test/test_s3.py`, no moto, no live gating).
 
 ## Shape
 
@@ -20,6 +20,16 @@ Env-gated live tests, endpoint-parameterized so one suite runs against both AWS 
 6. `dry_run`: no write occurs; stale-etag detection still raises.
 
 Assertion style per global CLAUDE.md: exact equality on contents/etags, no substring `in` checks.
+
+## Implementation notes (2026-08-04)
+
+- Suite: `test/test_s3.py`, all tests marked `live` (registered in `pytest.ini`), parameterized over backends `['s3', 'r2']` via a `backend` fixture yielding `(client, bucket, per-test-uuid-prefix)`; teardown `delete_objects` under the prefix.
+- Env: `UTZ_S3_TEST_URL` / `UTZ_S3_TEST_URL_R2` as specced; each backend also honors optional companions `UTZ_S3_TEST_PROFILE[_R2]` (boto3 profile; can carry `endpoint_url` in `~/.aws/config`) and `UTZ_S3_TEST_ENDPOINT[_R2]` (explicit `endpoint_url`), since a dual-backend sweep needs per-backend clients that the ambient boto3 env can't express.
+- Src changes to `utz/s3.py` that came up:
+  - `get_etag` / `get_etags` grew an `s3=` kwarg, and `atomic_edit` now threads its `s3` client into its internal `get_etag` calls — previously the entry/dry-run HEADs always used the global cached `client()`, silently ignoring a caller-passed client (would have hit the wrong endpoint entirely for R2).
+  - Spec item 4's tightening: when the object didn't exist on entry (`create_ok=True`), the exit PUT now sends `If-None-Match: *`, so racing creators conflict instead of last-writer-wins. A 412 on that path raises `ETagConflictError("Object was created concurrently")` (vs `"ETag mismatch - object was modified"` on the `If-Match` path).
+  - `dry_run` stale-check now HEADs with `err_ok=True`, so out-of-band *deletion* during an edit also surfaces as `ETagConflictError` (was `FileNotFoundError`).
+- Hermetic verification: `pytest test/test_s3.py -m 'not live'` → 16 deselected; with env unset → 16 skipped; full suite unaffected.
 
 ## Notes
 
