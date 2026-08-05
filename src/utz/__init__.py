@@ -15,7 +15,7 @@ from os import environ
 from .environ import env
 
 # Import most of the Python standard library
-# `_try` wrap helps ensure `utz[setup]` can install properly
+# `_try` wrap keeps minimal (no-extras) installs importable
 with _try: from stdlb import *
 
 # ### Date/Time

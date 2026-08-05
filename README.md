@@ -29,7 +29,6 @@
     - [`utz.gzip`: deterministic GZip helpers](#utz.gzip)
     - [`utz.s3`: S3 utilities](#utz.s3)
     - [`utz.plot`: Plotly helpers](#utz.plots)
-    - [`utz.setup`: `setup.py` helper](#utz.setup)
     - [`utz.version`: runtime package version with git hash](#utz.version)
     - [`utz.test`: `dataclass` test cases, `raises` helper](#utz.test)
         - [`utz.parametrize`: `pytest.mark.parametrize` wrapper, accepts `dataclass` instances](#utz.parametrize)
@@ -536,50 +535,6 @@ plot(
 
 Example usages: [hudcostreets/nj-crashes][hudcostreets/nj-crashes utz.plots], [ryan-williams/arrayloader-benchmarks][ryan-williams/arrayloader-benchmarks utz.plots].
 
-### [`utz.setup`]: `setup.py` helper <a id="utz.setup"></a>
-[`utz/setup.py`][`utz.setup`] provides defaults for various `setuptools.setup()` params:
-- `name`: use parent directory name
-- `version`: parse from git tag (otherwise from `git describe --tags`)
-- `install_requires`: read `requirements.txt`
-- `author_{name,email}`: infer from last commit
-- `long_description`: parse `README.md` (and set `long_description_content_type`)
-- `description`: parse first `<p>` under opening `<h1>` from `README.md`
-- `license`: parse from `LICENSE` file (MIT and Apache v2 supported)
-
-For an example, see [`gsmo==0.0.1`](https://github.com/runsascoded/gsmo/blob/v0.0.1/setup.py) ([and corresponding release](https://pypi.org/project/gsmo/)).
-
-This library also "self-hosts" using `utz.setup`; see [pyproject.toml](pyproject.toml):
-
-```toml
-[build-system]
-requires = ["setuptools", "utz[setup]==0.4.2", "wheel"]
-build-backend = "setuptools.build_meta"
-```
-
-and [setup.py](setup.py):
-```python
-from utz.setup import setup
-
-extras_require = {
-    # …
-}
-
-# Various fields auto-populated from git, README.md, requirements.txt, …
-setup(
-    name="utz",
-    version="0.8.0",
-    extras_require=extras_require,
-    url="https://github.com/runsascoded/utz",
-    python_requires=">=3.10",
-)
-
-```
-
-The `setup` helper can be installed via a pip "extra":
-```bash
-pip install utz[setup]
-```
-
 ### [`utz.version`]: runtime package version with git hash <a id="utz.version"></a>
 
 Get your package version with current git commit hash at runtime, useful for verifying which exact commit is installed during local development:
@@ -754,7 +709,6 @@ Some repos that use `utz`:
 [`utz.proc.aio`]: src/utz/proc/aio.py
 [`utz.process`]: src/utz/process/__init__.py
 [`utz.s3`]: src/utz/s3.py
-[`utz.setup`]: src/utz/setup.py
 [`utz.size`]: src/utz/size.py
 [`utz.ssh`]: src/utz/ssh.py
 [`utz.test`]: src/utz/test.py
