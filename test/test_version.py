@@ -1,12 +1,19 @@
 """Tests for utz.version module."""
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from utz import line, match, run
 from utz.git.status import is_dirty
 from utz.version import VERSION_TAG_REGEX, pkg_version, pkg_version_with_git
+
+
+def repo_sha() -> str:
+    return line('git', 'rev-parse', 'HEAD')
+
+
+def dirty_suffix() -> str:
+    return '.dirty' if is_dirty() else ''
 
 
 def test_parse_version():
@@ -27,11 +34,9 @@ def test_pkg_version():
 
 
 def test_pkg_version_with_git_basic():
-    """Test basic version with git hash."""
+    """Test basic version with git hash (7-char by default)."""
     version = pkg_version_with_git(pkg_version="1.0.0")
-    assert version.startswith("1.0.0+git.")
-    # Should have 7-char hash by default
-    assert len(version) >= len("1.0.0+git.") + 7
+    assert version == f"1.0.0+git.{repo_sha()[:7]}{dirty_suffix()}"
 
 
 def test_pkg_version_without_git():
@@ -43,10 +48,7 @@ def test_pkg_version_without_git():
 def test_pkg_version_full_hash():
     """Test version with full 40-char git hash."""
     version = pkg_version_with_git(pkg_version="1.0.0", short_hash=False)
-    assert version.startswith("1.0.0+git.")
-    # Should have full 40-char hash
-    hash_part = version.split("+git.")[1].rstrip(".dirty")
-    assert len(hash_part) == 40
+    assert version == f"1.0.0+git.{repo_sha()}{dirty_suffix()}"
 
 
 def test_is_dirty_clean():
@@ -98,23 +100,15 @@ def test_is_dirty_with_temp_repo():
 
 
 def test_pkg_version_dirty_detection():
-    """Test that dirty flag is appended when repo is dirty."""
-    # Get version with dirty detection
+    """Test that dirty flag is appended iff repo is dirty."""
     version = pkg_version_with_git(pkg_version="1.0.0", include_dirty=True)
-
-    # Should either end with hash or .dirty
-    assert version.startswith("1.0.0+git.")
-
-    # If our current repo is dirty, should have .dirty suffix
-    if is_dirty():
-        assert version.endswith(".dirty")
+    assert version == f"1.0.0+git.{repo_sha()[:7]}{dirty_suffix()}"
 
 
 def test_pkg_version_no_dirty():
     """Test that dirty flag is not included when include_dirty=False."""
     version = pkg_version_with_git(pkg_version="1.0.0", include_dirty=False)
-    assert not version.endswith(".dirty")
-    assert version.startswith("1.0.0+git.")
+    assert version == f"1.0.0+git.{repo_sha()[:7]}"
 
 
 def test_pkg_version_fallback_on_error():
