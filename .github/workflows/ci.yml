@@ -14,15 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v4
-      - name: Fetch submodule tags
-        working-directory: test/data/gsmo
-        run: git fetch --tags origin
       - name: Install test dependencies
         run: uv pip install --system -e .[all]
       - name: Test
@@ -31,11 +27,7 @@ jobs:
         run: |
           git config --global user.name ci
           git config --global user.email ci
-          mkdir ~/.ssh
-          echo "${{ secrets.GITLAB_HAILSTONE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-          pytest -v
+          pytest -v -m 'not live'
       - name: Release
         if: startsWith(github.ref, 'refs/tags/') && matrix.python-version == '3.13'
         env:
