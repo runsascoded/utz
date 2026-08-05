@@ -1,6 +1,6 @@
 # Live-endpoint test scaffolding for `utz.s3` (S3 + R2)
 
-Status: **implemented, awaiting live runs** (2026-08-04; suite + src changes landed, findings below pending an R2 run). Motivation: pyrmts' shard-invalidation journal wants `atomic_edit`-style CAS (If-Match conditional PUT) against Cloudflare R2; R2's S3 shim claims conditional-write support but the 412 path has never been exercised by us. `utz.s3` currently has zero test coverage (no `test/test_s3.py`, no moto, no live gating).
+Status: **done — R2 live run green** (2026-08-05, ctbk session; suite + src changes landed 2026-08-04). All 8 tests pass against R2 (`--profile cf`, `s3://ctbk/tmp/utz-s3-tests`), including the conflict and create-race paths. See Findings below. Motivation: pyrmts' shard-invalidation journal wants `atomic_edit`-style CAS (If-Match conditional PUT) against Cloudflare R2; R2's S3 shim claims conditional-write support but the 412 path has never been exercised by us. `utz.s3` currently has zero test coverage (no `test/test_s3.py`, no moto, no live gating).
 
 ## Shape
 
@@ -31,7 +31,9 @@ Assertion style per global CLAUDE.md: exact equality on contents/etags, no subst
   - `dry_run` stale-check now HEADs with `err_ok=True`, so out-of-band *deletion* during an edit also surfaces as `ETagConflictError` (was `FileNotFoundError`).
 - Hermetic verification: `pytest test/test_s3.py -m 'not live'` → 16 deselected; with env unset → 16 skipped; full suite unaffected.
 
-## Notes
+## Findings (R2 live run, 2026-08-05)
 
-- Findings from the R2 run (esp. whether PutObject honors `If-Match` and returns 412, and the exact error code string boto3 surfaces — AWS uses `PreconditionFailed`, R2 may differ) should be recorded here; pyrmts will consume `atomic_edit` for its R2-resident invalidation journal on the strength of that result.
-- If R2 surfaces a different error code than `PreconditionFailed`/`ConditionalRequestFailed`, extend the except-arm in `atomic_edit` accordingly (that's a src change, in-scope for this spec).
+- **R2 PutObject honors both `If-Match` and `If-None-Match: *`, returning HTTP 412 with error code `PreconditionFailed`** — byte-identical to AWS's code string. Verified two ways: the full suite (`UTZ_S3_TEST_URL_R2='s3://ctbk/tmp/utz-s3-tests' UTZ_S3_TEST_PROFILE_R2=cf pytest test/test_s3.py` → 8 passed, 8 skipped [s3 backend unset]), and a direct boto3 probe printing `e.response['Error']['Code']` for both a stale-`IfMatch` PUT and an `IfNoneMatch='*'` PUT over an existing key.
+- No except-arm changes needed in `atomic_edit`: the existing `PreconditionFailed` handling covers R2 as-is.
+- This is the verification pyrmts' shard-invalidation journal was gated on (`~/c/pyrmts/specs/shard-invalidation.md`): `atomic_edit`-style CAS against R2 is safe to take prod traffic.
+- The `s3` (AWS) backend sweep remains unexercised live; run when convenient with `UTZ_S3_TEST_URL` set — no known risk, R2 was the open question.
