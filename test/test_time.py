@@ -45,8 +45,8 @@ def test_now():
             b64,
             (
                     o(unit= 's', ch='+', len=6, first_until='2038-08-04T09:32:48Z', len_until='4182-03-14T03:28:00Z'),
-                    o(unit='ms', ch='M', len=7, first_until='2026-08-27T02:19:40.480000Z', len_until='2111-08-01T07:19:33.184000Z'),
-                    o(unit='us', ch='3', len=9, first_until='2032-07-30T09:31:33.747776Z', len_until='2549-11-30T12:09:02.965824Z'),
+                    o(unit='ms', ch='K', len=7, first_until='2022-04-19T08:50:27.008000Z', len_until='2111-08-01T07:19:33.184000Z'),
+                    o(unit='us', ch='2', len=9, first_until='2023-08-29T14:01:57.037120Z', len_until='2549-11-30T12:09:02.965824Z'),
             ),
             ('+SuZKz', 'KNuCZyz', '2gvgesKyz'),
         ),
@@ -54,32 +54,34 @@ def test_now():
             b62,
             (
                     o(unit= 's', ch='A', len=6, first_until='2028-07-15T14:30:34Z', len_until='3799-06-08T08:23:06Z'),
-                    o(unit='ms', ch='e', len=7, first_until='2027-08-17T21:38:10.090000Z', len_until='2083-06-04T14:46:33.194000Z'),
-                    o(unit='us', ch='H', len=9, first_until='2032-05-20T04:31:36.257258Z', len_until='2406-01-02T18:06:37.841642Z'),
+                    o(unit='ms', ch='b', len=7, first_until='2022-03-24T16:06:23.338000Z', len_until='2083-06-04T14:46:33.194000Z'),
+                    o(unit='us', ch='G', len=9, first_until='2025-06-19T02:29:50.672362Z', len_until='2406-01-02T18:06:37.841642Z'),
             ),
             ('At4G0V', 'bTwXvhz', 'GWAZusO3r'),
         ),
         (
             b90,
             (
-                    o(unit= 's', ch=':', len=5, first_until='2026-02-27T15:46:30Z', len_until='2159-03-22T15:46:30Z'),
+                    o(unit= 's', ch='8', len=5, first_until='2021-12-31T21:46:30Z', len_until='2159-03-22T15:46:30Z'),
                     o(unit='ms', ch='#', len=7, first_until='2037-07-20T20:40:47.190000Z', len_until='3502-09-11T10:10:47.190002Z'),
-                    o(unit='us', ch='D', len=8, first_until='2026-02-04T20:12:22.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
+                    o(unit='us', ch='A', len=8, first_until='2021-07-20T02:07:52.247190Z', len_until='2107-12-11T09:33:22.247190Z'),
             ),
             ('8Od[z', '#"R^v[z', 'AZK=Tv[z'),
         ),
     ),
 )
 def test_encodings(debug, codec, cases, t2021):
-    # For each unit (s,ms,us), serialize the current epoch time using `b64`, and verify a few properties:
+    # For each unit (s,ms,us), serialize a fixed instant (2021-01-01; NOT wall-clock "now", which
+    # would bake expiry dates into the expected values below) and verify a few properties:
     # - `ch`: first char of serialized string (which changes least frequently)
     # - `len`: serialized string length
     # - `first_until`: time when the first char will change
     # - `len_until`: time when the length will change
+    instant = to_dt('20210101')
     last = codec.i2s[-1]
     for case in cases:
         unit = case.unit
-        t = now()
+        t = now(d=instant)
         n = getattr(t, unit)
         s = codec(n)
         N = len(s)
